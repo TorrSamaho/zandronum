@@ -353,6 +353,7 @@ static FFlagDef InventoryFlags[] =
 	DEFINE_FLAG(IF, NEVERRESPAWN, AInventory, ItemFlags),
 	DEFINE_FLAG(IF, NOSCREENFLASH, AInventory, ItemFlags),
 	DEFINE_FLAG(IF, TOSSED, AInventory, ItemFlags),
+	DEFINE_FLAG(IF, ALWAYSRESPAWN, AInventory, ItemFlags),
 	// [BB] New ST flags.
 	DEFINE_FLAG(IF, FORCERESPAWNINSURVIVAL, AInventory, ItemFlags),
 

@@ -567,7 +567,7 @@ bool AInventory::ShouldRespawn ()
 
 	if ((ItemFlags & IF_BIGPOWERUP) && !(dmflags & DF_RESPAWN_SUPER)) return false;
 	if (ItemFlags & IF_NEVERRESPAWN) return false;
-	return !!(dmflags & DF_ITEMS_RESPAWN);
+	return !!((dmflags & DF_ITEMS_RESPAWN) || (ItemFlags & IF_ALWAYSRESPAWN));
 }
 
 //===========================================================================
