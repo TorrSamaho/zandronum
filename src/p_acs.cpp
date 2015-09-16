@@ -8907,6 +8907,7 @@ int DLevelScript::RunScript ()
 
 	int *pc = this->pc;
 	ACSFormat fmt = activeBehavior->GetFormat();
+	FBehavior* const savedActiveBehavior = activeBehavior;
 	unsigned int runaway = 0;	// used to prevent infinite loops
 	int pcd;
 	FString work;
@@ -8943,6 +8944,7 @@ int DLevelScript::RunScript ()
 		{
 		default:
 			Printf ("Unknown P-Code %d in %s\n", pcd, ScriptPresentation(script).GetChars());
+			activeBehavior = savedActiveBehavior;
 			// fall through
 		case PCD_TERMINATE:
 			DPrintf ("%s finished\n", ScriptPresentation(script).GetChars());
