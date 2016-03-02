@@ -289,3 +289,24 @@ pasted into "src/sdl/hardware.cpp" manually instead.
  				width, height, bits,
  				ratios[ratio],
  				thisMode || !letterbox ? "" : TEXTCOLOR_BROWN " LB"
+
+===============================================================================================================
+Git hash: a4705c84047baee72f23db8709a686e8a663a843
+Mercurial hash: ad619c34ce09e0d688afe6efa76cd2a2ad9f084e
+vid_listmodes crash fix
+
+Reason for documentation: "src/posix/sdl/hardware.cpp" doesn't exist in Zandronum yet, so the node had to be
+pasted into "src/sdl/hardware.cpp" manually instead.
+===============================================================================================================
+
+--- src/posix/sdl/hardware.cpp
++++ src/posix/sdl/hardware.cpp
+@@ -308,7 +308,7 @@
+ 
+ CCMD (vid_listmodes)
+ {
+-	static const char *ratios[6] = { "", " - 16:9", " - 16:10", "", " - 5:4", " - 21:9" };
++	static const char *ratios[6] = { "", " - 16:9", " - 16:10", "", " - 5:4", "", " - 21:9" };
+ 	int width, height, bits;
+ 	bool letterbox;
+ 
