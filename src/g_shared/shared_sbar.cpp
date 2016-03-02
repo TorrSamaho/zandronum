@@ -1079,7 +1079,7 @@ void DBaseStatusBar::RefreshBackground () const
 	int x, x2, y, ratio;
 
 	ratio = CheckRatio (SCREENWIDTH, SCREENHEIGHT);
-	x = (!(ratio & 3) || !Scaled) ? ST_X : SCREENWIDTH*(48-BaseRatioSizes[ratio][3])/(48*2);
+	x = (!IsRatioWidescreen(ratio) || !Scaled) ? ST_X : SCREENWIDTH*(48-BaseRatioSizes[ratio][3])/(48*2);
 	y = x == ST_X && x > 0 ? ST_Y : ::ST_Y;
 
 	if(!CompleteBorder)
@@ -1099,7 +1099,7 @@ void DBaseStatusBar::RefreshBackground () const
 	{
 		if(!CompleteBorder)
 		{
-			x2 = !(ratio & 3) || !Scaled ? ST_X+HorizontalResolution :
+			x2 = !IsRatioWidescreen(ratio) || !Scaled ? ST_X+HorizontalResolution :
 				SCREENWIDTH - (SCREENWIDTH*(48-BaseRatioSizes[ratio][3])+48*2-1)/(48*2);
 		}
 		else

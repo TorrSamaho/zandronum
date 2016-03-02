@@ -257,3 +257,35 @@ but the commit couldn't be transplanted in its entirety. So, they were added in 
  };
  
  // CODE --------------------------------------------------------------------
+
+===============================================================================================================
+Git hash: 97821a3036f7ba8281f88d39bf2d750bf84c5c61
+Mercurial hash: 332f410234314d6cc183bff244a55a2ad57f103d
+21:9 aspect ratio support
+
+ - vid_aspect 6 forces 21:9
+
+Reason for documentation: "src/posix/sdl/hardware.cpp" doesn't exist in Zandronum yet, so the node had to be
+pasted into "src/sdl/hardware.cpp" manually instead.
+===============================================================================================================
+
+--- src/posix/sdl/hardware.cpp
++++ src/posix/sdl/hardware.cpp
+@@ -308,7 +308,7 @@
+ 
+ CCMD (vid_listmodes)
+ {
+-	static const char *ratios[5] = { "", " - 16:9", " - 16:10", "", " - 5:4" };
++	static const char *ratios[6] = { "", " - 16:9", " - 16:10", "", " - 5:4", " - 21:9" };
+ 	int width, height, bits;
+ 	bool letterbox;
+ 
+@@ -325,7 +325,7 @@
+ 			int ratio = CheckRatio (width, height);
+ 			Printf (thisMode ? PRINT_BOLD : PRINT_HIGH,
+ 				"%s%4d x%5d x%3d%s%s\n",
+-				thisMode || !(ratio & 3) ? "" : TEXTCOLOR_GOLD,
++				thisMode || !IsRatioWidescreen(ratio) ? "" : TEXTCOLOR_GOLD,
+ 				width, height, bits,
+ 				ratios[ratio],
+ 				thisMode || !letterbox ? "" : TEXTCOLOR_BROWN " LB"
