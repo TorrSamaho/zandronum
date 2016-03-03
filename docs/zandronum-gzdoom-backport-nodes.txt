@@ -310,3 +310,37 @@ pasted into "src/sdl/hardware.cpp" manually instead.
  	int width, height, bits;
  	bool letterbox;
  
+
+===============================================================================================================
+Git hash: 79f07143410af621bde29efaba21d4a4d340e1dc
+Mercurial hash: d372f0121321976680472c3d725b418f9d95d5f1
+Update ratios[] tables for SDL and Cocoa
+
+Reason for documentation: "src/posix/cocoa/i_video.mm" doesn't exist in Zandronum yet, and there's no other file
+that the first node can be pasted into. Likewise, "src/posix/sdl/hardware.cpp" doesn't exist yet either, so the
+second node had to be pasted into "src/sdl/hardware.cpp" manually instead.
+===============================================================================================================
+
+--- src/posix/cocoa/i_video.mm
++++ src/posix/cocoa/i_video.mm
+@@ -1170,7 +1170,7 @@
+ 		return;
+ 	}
+ 
+-	static const char* const ratios[5] = { "", " - 16:9", " - 16:10", " - 17:10", " - 5:4" };
++	static const char* const ratios[7] = { "", " - 16:9", " - 16:10", " - 17:10", " - 5:4", "", " - 21:9" };
+ 	int width, height;
+ 	bool letterbox;
+ 
+
+--- src/posix/sdl/hardware.cpp
++++ src/posix/sdl/hardware.cpp
+@@ -308,7 +308,7 @@
+ 
+ CCMD (vid_listmodes)
+ {
+-	static const char *ratios[6] = { "", " - 16:9", " - 16:10", "", " - 5:4", "", " - 21:9" };
++	static const char *ratios[7] = { "", " - 16:9", " - 16:10", "", " - 5:4", "", " - 21:9" };
+ 	int width, height, bits;
+ 	bool letterbox;
+ 
