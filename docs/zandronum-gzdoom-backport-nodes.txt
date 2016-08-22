@@ -55,3 +55,26 @@ Add FOV slider to the display options menu
  	// commenting this out for now, this menu is so general purpose I am not sure it makes sense, but I'm leaving it here just in case
  	// the "full" menu doesn't have some of the options that are in this one.
  	//StaticText " "
+
+===============================================================================================================
+Git hash: 276fb7dbb2f43fcb0db6a5fc276495af6254316f
+Mercurial hash: affd5a9240f457f0bfaa33b157fcd299d926aadc
+Add vid_maxfps support for Windows and Linux
+===============================================================================================================
+
+--- src/posix/sdl/sdlglvideo.cpp
++++ src/posix/sdl/sdlglvideo.cpp
+@@ -459,6 +459,13 @@
+ 
+ void SDLGLFB::SwapBuffers()
+ {
++#ifndef __APPLE__
++	if (vid_maxfps && !cl_capfps)
++	{
++		SEMAPHORE_WAIT(FPSLimitSemaphore)
++	}
++#endif
++
+ 	SDL_GL_SwapWindow (Screen);
+ }
+ 
