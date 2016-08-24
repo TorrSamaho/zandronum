@@ -78,3 +78,22 @@ Add vid_maxfps support for Windows and Linux
  	SDL_GL_SwapWindow (Screen);
  }
  
+
+===============================================================================================================
+Git hash: f79c442df533e26888eb748e14041eb71b1e6ab7
+Mercurial hash: e35343baadcf1f6162bcea92dbfe66f178b63951
+Fixed compilation of SDL backend
+===============================================================================================================
+
+--- src/posix/sdl/sdlglvideo.cpp
++++ src/posix/sdl/sdlglvideo.cpp
+@@ -49,7 +49,8 @@
+ EXTERN_CVAR (Int, vid_adapter)
+ EXTERN_CVAR (Int, vid_displaybits)
+ EXTERN_CVAR (Int, vid_renderer)
+-
++EXTERN_CVAR (Int, vid_maxfps)
++EXTERN_CVAR (Bool, cl_capfps)
+ 
+ // PUBLIC DATA DEFINITIONS -------------------------------------------------
+ 
