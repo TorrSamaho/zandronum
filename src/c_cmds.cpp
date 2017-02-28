@@ -1087,47 +1087,6 @@ CCMD (dir)
 	chdir (curdir);
 }
 
-CCMD (fov)
-{
-	// [AK] Use the free spectator player while in free spectate mode.
-	player_t *player = CLIENTDEMO_IsInFreeSpectateMode () ? CLIENTDEMO_GetFreeSpectatorPlayer () : (who ? who->player : &players[consoleplayer]);
-
-	if (argv.argc() != 2)
-	{
-		Printf ("fov is %g\n", player->DesiredFOV);
-		return;
-	}
-	// [AK] Allow unconditional FOV changes while in free spectate mode.
-	else if (CLIENTDEMO_IsInFreeSpectateMode ())
-	{
-		player->DesiredFOV = clamp<float> (static_cast<float> (atof (argv[1])), 5.f, 179.f);
-		return;
-	}
-	else if (dmflags & DF_NO_FOV)
-	{
-		if (consoleplayer == Net_Arbitrator)
-		{
-			Net_WriteByte (DEM_FOV);
-		}
-		else
-		{
-			Printf ("A setting controller has disabled FOV changes.\n");
-			return;
-		}
-	}
-	else
-	{
-		// Just do this here in client games.
-		// [RK] Use the server's allowed min and max FOV
-		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-			player->DesiredFOV = clamp<float> (static_cast<float> (atof (argv[1])), sv_minfov, sv_maxfov);
-
-		Net_WriteByte (DEM_MYFOV);
-	}
-	// [RK] Use the server's allowed min and max FOV offline too.
-	Net_WriteByte (static_cast<BYTE> (clamp<float> (static_cast<float> (atof (argv[1])), sv_minfov, sv_maxfov)));
-}
-
 //==========================================================================
 //
 // CCMD warp

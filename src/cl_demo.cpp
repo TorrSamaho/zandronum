@@ -986,7 +986,7 @@ void CLIENTDEMO_SpawnFreeSpectatorPlayer( void )
 
 	p->mo->flags |= (MF_NOGRAVITY);
 	p->mo->player = p;
-	p->DesiredFOV = p->FOV = 90.f;
+	p->DesiredFOV = p->FOV = fov;
 	p->crouchfactor = FRACUNIT;
 	PLAYER_SetDefaultSpectatorValues( p );
 	p->camera = p->mo;

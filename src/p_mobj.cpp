@@ -5386,6 +5386,7 @@ void AActor::AdjustFloorClip ()
 // Most of the player structure stays unchanged between levels.
 //
 EXTERN_CVAR (Bool, chasedemo)
+EXTERN_CVAR(Float, fov)
 
 extern bool demonew;
 
@@ -5582,8 +5583,8 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 		mobj->sprite = skins[lSkin].sprite;
 	}
 
-	// [RK] Clamp the standard 90 degrees according to min and max FOV
-	p->DesiredFOV = p->FOV = clamp<float> (90.f, sv_minfov, sv_maxfov);
+	// [RK] Clamp the player's FOV according to min and max FOV.
+	p->DesiredFOV = p->FOV = clamp<float> (fov, sv_minfov, sv_maxfov);
 	p->camera = p->mo;
 	p->playerstate = PST_LIVE;
 	p->refire = 0;

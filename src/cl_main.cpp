@@ -3707,8 +3707,8 @@ void ServerCommands::SpawnPlayer::Execute()
 		pActor->sprite = skins[lSkin].sprite;
 	}
 
-	// [RK] Clamp the standard 90 degrees according to min and max FOV
-	pPlayer->DesiredFOV = pPlayer->FOV = clamp<float> ( 90.f, sv_minfov, sv_maxfov );
+	// [RK] Clamp the player's FOV according to min and max FOV.
+	pPlayer->DesiredFOV = pPlayer->FOV = clamp<float>( fov, sv_minfov, sv_maxfov );
 	// If the console player was watching another player in demo mode, continue to follow
 	// that other player.
 	// [AK] And also if the console player just became a dead spectator.

@@ -86,6 +86,14 @@ static FRandom pr_skullpop ("SkullPop");
 
 // Variables for prediction
 CVAR (Bool, cl_noprediction, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
+
+// [Nash] FOV cvar setting
+CUSTOM_CVAR(Float, fov, 90.f, CVAR_ARCHIVE | CVAR_USERINFO | CVAR_NOINITCALL)
+{
+	player_t *p = &players[consoleplayer];
+	p->SetFOV(fov);
+}
+
 static player_t PredictionPlayerBackup;
 static BYTE PredictionActorBackup[sizeof(AActor)];
 static TArray<sector_t *> PredictionTouchingSectorsBackup;
@@ -670,6 +678,55 @@ int player_t::GetSpawnClass()
 	const PClass * type = PlayerClasses[CurrentPlayerClass].Type;
 	return static_cast<APlayerPawn*>(GetDefaultByType(type))->SpawnMask;
 }
+
+// [Nash] Set FOV
+void player_t::SetFOV(float fov)
+{
+	player_t *p = &players[consoleplayer];
+	if (p != nullptr && p->mo != nullptr)
+	{
+		// [AK] Allow unconditional FOV changes while in free spectate mode.
+		if (CLIENTDEMO_IsInFreeSpectateMode())
+		{
+			CLIENTDEMO_GetFreeSpectatorPlayer()->DesiredFOV = clamp<float>(fov, 5.f, 179.f);
+			return;
+		}
+
+		if (dmflags & DF_NO_FOV)
+		{
+			if (consoleplayer == Net_Arbitrator)
+			{
+				Net_WriteByte(DEM_MYFOV);
+			}
+			else
+			{
+				Printf("A setting controller has disabled FOV changes.\n");
+				return;
+			}
+		}
+		else
+		{
+			// [AK] Just do this here in client games.
+			// [RK] Use the server's allowed min and max FOV
+			if (NETWORK_GetState() == NETSTATE_CLIENT)
+				p->DesiredFOV = clamp<float>(fov, sv_minfov, sv_maxfov);
+
+			Net_WriteByte(DEM_MYFOV);
+		}
+		// [RK] Use the server's allowed min and max FOV offline too.
+		Net_WriteByte((BYTE)clamp<float>(fov, sv_minfov, sv_maxfov));
+	}
+}
+
+/* [AK] This doesn't work in Zandronum, yet.
+DEFINE_ACTION_FUNCTION(_PlayerInfo, SetFOV)
+{
+	PARAM_SELF_STRUCT_PROLOGUE(player_t);
+	PARAM_FLOAT(fov);
+	self->SetFOV((float)fov);
+	return 0;
+}
+*/
 
 //===========================================================================
 //

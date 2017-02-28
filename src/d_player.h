@@ -850,6 +850,9 @@ public:
 	}
 
 	int GetSpawnClass();
+
+	// [Nash] set player FOV
+	void SetFOV(float fov);
 };
 
 // Bookkeeping on players - state.
@@ -940,5 +943,6 @@ void P_ResetPlayerPitchLimits(void); // [AK]
 void P_ResetPlayerFOVLimits(void); // [RK]
 
 EXTERN_CVAR( Int, cl_spectatormode ) // [AK]
+EXTERN_CVAR( Float, fov ) // [AK]
 
 #endif // __D_PLAYER_H__
