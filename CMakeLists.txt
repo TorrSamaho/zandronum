@@ -8,7 +8,6 @@ if( COMMAND cmake_policy )
 endif( COMMAND cmake_policy )
 
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR} )
-include( CreateLaunchers )
 include( FindPackageHandleStandardArgs )
 
 # Generator expression are available some time in CMake 2.8. Due to
