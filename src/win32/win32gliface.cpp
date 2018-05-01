@@ -324,6 +324,7 @@ bool Win32GLVideo::GoFullscreen(bool yes)
 	return yes;
 }
 
+CVAR(Bool, vid_activeinbackground, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
 //==========================================================================
 //
@@ -959,7 +960,7 @@ void Win32GLFrameBuffer::InitializeState()
 
 bool Win32GLFrameBuffer::CanUpdate()
 {
-	if (!AppActive) return false;
+	if (!AppActive && (IsFullscreen() || !vid_activeinbackground)) return false;
 	return true;
 }
 
