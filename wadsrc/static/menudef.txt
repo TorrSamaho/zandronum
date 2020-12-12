@@ -482,6 +482,7 @@ OptionMenu "CustomizeControls"
 	StaticText 	"Chat", 1
 	Control 	"Say",					"messagemode"
 	Control 	"Team say",				"messagemode2"
+	Control		"Private say",				"messagemode3" // [AK]
 	StaticText 	""
 	StaticText 	"Weapons", 1
 	Control 	"Next weapon",			"weapnext"
@@ -1137,6 +1138,10 @@ OptionValue MessageLevels
 	0.0, "Item Pickup"
 	1.0, "Obituaries"
 	2.0, "Critical Messages"
+	// [AK] Added chat levels.
+	3.0, "Chat Messages"
+	4.0, "Team Messages"
+	5.0, "Private Messages"
 }
 
 // [TP]
@@ -1163,6 +1168,7 @@ OptionMenu MessageOptions
 	Option "Show messages",				"show_messages", "OnOff"
 	Option "Show obituaries",			"show_obituaries", "OnOff"
 	Option "Chat sound",				"chat_sound", "ZA_ChatSound" // [TP]
+	Option "Private chat sound",			"privatechat_sound", "ZA_ChatSound" // [AK]
 	// [EP] con_scaletext is moved to the "Text scaling" submenu
 	// Option "Scale text in high res", 	"con_scaletext", "ScaleValues"
 	Option "Minimum message level", 	"msg", "MessageLevels"
@@ -1176,6 +1182,7 @@ OptionMenu MessageOptions
 	Option "Critical Messages",			"msg2color", "TextColors"
 	Option "Chat Messages",				"msg3color", "TextColors"
 	Option "Team Messages",				"msg4color", "TextColors"
+	Option "Private Messages",			"msg5color", "TextColors" // [AK]
 	Option "Centered Messages",			"msgmidcolor", "TextColors"
 	StaticText " "
 	Option "Screenshot messages",		"screenshot_quiet",	"OffOn"

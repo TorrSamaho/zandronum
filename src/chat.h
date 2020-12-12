@@ -65,6 +65,8 @@ typedef enum
 	CHATMODE_NONE,
 	CHATMODE_GLOBAL,
 	CHATMODE_TEAM,
+	CHATMODE_PRIVATE_SEND,		// [AK] We're send a private message.
+	CHATMODE_PRIVATE_RECEIVE,	// [AK] We're receiving a private message.
 
 	NUM_CHATMODES
 

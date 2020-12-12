@@ -16,6 +16,7 @@
 ---
 
 *+	- Added a new server administration menu, from which server settings can be changed without needing to use the console. The menu will ask for the RCON password if necessary. Gameplay and compatibility settings are now grayed out unless the user has RCON access and work online properly. Added various Zandronum-specific gameplay settings to the menu. [Dusk]
+*+	- Added a new chat mode that lets players send private messages to each other. The sender can either pass the player's name with "sayto" or a player's number with "sayto_idx". Alternatively, players can send private messages to the server by passing "server" as a name. [Kaminsky]
 +	- "stat nettraffic" now also shows information on the number of many missing packets the client requests from the servers. [Torr Samaho]
 +	- The server can now broadcast the MD5 hashes of loaded PWADs to launchers. [Sean]
 +	- Added new console commands "demo_ticsplayed" to show the current position in demo playback and "demo_skipto" to skip to such a position.

@@ -142,7 +142,9 @@ enum
 	PRINT_HIGH,		// critical messages
 	PRINT_CHAT,		// chat messages
 	PRINT_TEAMCHAT,	// chat messages from a teammate
-		
+	
+	// [AK] Private chat messages from another player.
+	PRINT_PRIVATECHAT,
 	// [BC] Output for OpenGL messages.
 	PRINT_OPENGL,
 };
@@ -151,7 +153,8 @@ enum
 #define PRINT_HIGH				2				// critical messages
 #define PRINT_CHAT				3				// chat messages
 #define PRINT_TEAMCHAT			4				// chat messages from a teammate
-#define PRINT_LOG				5				// only to logfile
+#define PRINT_PRIVATECHAT		5				// private chat messages from another player
+#define PRINT_LOG				6				// only to logfile
 #define PRINT_BOLD				200				// What Printf_Bold used
 
 // [BC] heh, why did I define this here?

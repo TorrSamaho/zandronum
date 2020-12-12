@@ -1092,7 +1092,7 @@ void SERVER_GetPackets( void )
 
 //*****************************************************************************
 //
-void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString )
+void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString, ULONG ulReceiver )
 {
 	// [BB] Ignore any chat messages with invalid chat mode. This is crucial because
 	// the rest of the code assumes that only valid chat modes are used.
@@ -1120,7 +1120,15 @@ void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString
 	// This way the code below doesn't need to be altered.
 	pszString = cleanedChatString.GetChars();
 
-	SERVERCOMMANDS_PlayerSay( ulPlayer, pszString, ulMode, bFordidChatToPlayers );
+	// [AK] Check if we're sending a private message.
+	if( ulMode == CHATMODE_PRIVATE_SEND )
+		SERVERCOMMANDS_PrivateSay( ulPlayer, ulReceiver, pszString, bFordidChatToPlayers );
+	else
+		SERVERCOMMANDS_PlayerSay( ulPlayer, pszString, ulMode, bFordidChatToPlayers );
+
+	// [AK] Don't log private messages that aren't sent to/from the server.
+	if (( ulMode == CHATMODE_PRIVATE_SEND ) && ( ulPlayer != MAXPLAYERS ) && ( ulReceiver != MAXPLAYERS ))
+		return;
 
 	// [BB] This is to make the lines readily identifiable, necessary
 	// for MiX-MaN's IRC server control tool for example.
@@ -1130,17 +1138,29 @@ void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString
 	if ( strnicmp( "/me", pszString, 3 ) == 0 )
 	{
 		pszString += 3;
-		if ( ulPlayer == MAXPLAYERS )
-			Printf( "* <server>%s\n", pszString );
-		else
-			Printf( "* %s%s\n", players[ulPlayer].userinfo.GetName(), pszString );
+		if ( ulMode == CHATMODE_PRIVATE_SEND )
+		{
+			if ( ulPlayer == MAXPLAYERS )
+				Printf( "<To %s> ", players[ulReceiver].userinfo.GetName() );
+			else
+				Printf( "<From %s> ", players[ulPlayer].userinfo.GetName() );
+		}
+
+		Printf( "* %s%s\n", ulPlayer != MAXPLAYERS ? players[ulPlayer].userinfo.GetName() : "<Server>", pszString );
 	}
 	else
 	{
-		if ( ulPlayer == MAXPLAYERS )
-			Printf( "<server>: %s\n", pszString );
+		if ( ulMode == CHATMODE_PRIVATE_SEND )
+		{
+			if ( ulPlayer == MAXPLAYERS )
+				Printf( "<To %s>: %s\n", players[ulReceiver].userinfo.GetName(), pszString );
+			else
+				Printf( "<From %s>: %s\n", players[ulPlayer].userinfo.GetName(), pszString );
+		}
 		else
-			Printf( "%s: %s\n", players[ulPlayer].userinfo.GetName(), pszString );
+		{
+			Printf( "%s: %s\n", ulPlayer != MAXPLAYERS ? players[ulPlayer].userinfo.GetName() : "<Server>", pszString );
+		}
 	}
 }
 
@@ -5059,9 +5079,14 @@ static bool server_CheckForChatFlood( ULONG ulPlayer )
 static bool server_Say( BYTESTREAM_s *pByteStream )
 {
 	ULONG ulPlayer = g_lCurrentClient;
+	ULONG ulReceiver = MAXPLAYERS;
 
 	// Read in the chat mode (normal, team, etc.)
 	ULONG ulChatMode = pByteStream->ReadByte();
+
+	// [AK] If we're sending a private message to a player, get their index number.
+	if ( ulChatMode == CHATMODE_PRIVATE_SEND )
+		ulReceiver = pByteStream->ReadByte();
 
 	// Read in the chat string.
 	const char	*pszChatString = pByteStream->ReadString();
@@ -5141,7 +5166,7 @@ static bool server_Say( BYTESTREAM_s *pByteStream )
 			return ( true );
 		}
 
-		SERVER_SendChatMessage( ulPlayer, ulChatMode, pszChatString );
+		SERVER_SendChatMessage( ulPlayer, ulChatMode, pszChatString, ulReceiver );
 		return ( false );
 	}
 }

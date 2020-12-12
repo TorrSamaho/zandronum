@@ -2568,6 +2568,10 @@ EColorRange V_ParseFontColor (const BYTE *&color_value, int normalcolor, int bol
 	{
 		newcolor = boldcolor;
 	}
+	else if (newcolor == '?')		// [AK] Private chat
+	{
+		newcolor = PrintColors[PRINT_PRIVATECHAT];
+	}
 	else if (newcolor == '!')		// Team chat
 	{
 		newcolor = PrintColors[PRINT_TEAMCHAT];

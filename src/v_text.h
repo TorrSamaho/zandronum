@@ -75,6 +75,9 @@ struct FBrokenLines
 #define TEXTCOLOR_CHAT			"\034*"
 #define TEXTCOLOR_TEAMCHAT		"\034!"
 
+// [AK] New text color for private chat messages.
+#define TEXTCOLOR_PRIVATECHAT	"\034?"
+
 // [BC] New text functions.
 void	V_ApplyCharArrayFunctionToFString ( FString &String, void (*CharArrayFunction) ( char *pszString ) );
 void	V_ColorizeString( char *pszString );

@@ -448,7 +448,7 @@ ULONG		SERVER_CountPlayers( bool bCountBots );
 ULONG		SERVER_CalcNumNonSpectatingPlayers( ULONG ulExcludePlayer );
 void		SERVER_CheckTimeouts( void );
 void		SERVER_GetPackets( void );
-void		SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString );
+void		SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString, ULONG ulReceiver = MAXPLAYERS );
 void		SERVER_DetermineConnectionType( BYTESTREAM_s *pByteStream );
 void		SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer );
 void		SERVER_RequestClientToAuthenticate( ULONG ulClient );

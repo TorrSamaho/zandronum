@@ -284,6 +284,22 @@ void CLIENTCOMMANDS_Say( ULONG ulMode, const char *pszString )
 
 //*****************************************************************************
 //
+void CLIENTCOMMANDS_PrivateSay( ULONG ulPlayer, const char *pszString )
+{
+	// [AK] Limit messages to certain length.
+	FString chatstring ( pszString );
+
+	if ( chatstring.Len() > MAX_CHATBUFFER_LENGTH )
+		chatstring = chatstring.Left( MAX_CHATBUFFER_LENGTH );
+
+	CLIENT_GetLocalBuffer()->ByteStream.WriteByte( CLC_SAY );
+	CLIENT_GetLocalBuffer()->ByteStream.WriteByte( CHATMODE_PRIVATE_SEND );
+	CLIENT_GetLocalBuffer()->ByteStream.WriteByte( ulPlayer );
+	CLIENT_GetLocalBuffer()->ByteStream.WriteString( chatstring );
+}
+
+//*****************************************************************************
+//
 void CLIENTCOMMANDS_Ignore( ULONG ulPlayer, bool bIgnore, LONG lTicks )
 {
 	CLIENT_GetLocalBuffer( )->ByteStream.WriteByte( CLC_IGNORE );
