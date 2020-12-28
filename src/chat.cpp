@@ -891,7 +891,8 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 	Printf( ulChatLevel, "%s\n", OutString.GetChars() );
 
 	// [BB] If the user doesn't want to see the messages, they shouldn't make a sound.
-	if ( show_messages )
+	// [AK] Also take into account the minimum message level.
+	if (( show_messages ) && ( ulChatLevel >= C_GetMessageLevel() ))
 	{
 		// [RC] User can choose the chat sound.
 		int sound = ( ulMode > CHATMODE_TEAM ) ? privatechat_sound : chat_sound;

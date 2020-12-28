@@ -2511,3 +2511,11 @@ bool C_IsCapturing()
 {
 	return g_IsCapturing;
 }
+
+//
+// [AK] Gets the minimum message level.
+//
+unsigned int C_GetMessageLevel()
+{
+	return msglevel;
+}

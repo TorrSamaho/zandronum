@@ -98,4 +98,7 @@ void C_StartCapture();
 const char* C_EndCapture();
 bool C_IsCapturing();
 
+// [AK]
+unsigned int C_GetMessageLevel();
+
 #endif
