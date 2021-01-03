@@ -609,17 +609,23 @@ bool CHAT_Input( event_t *pEvent )
 			{
 				if (( g_ulChatMode == CHATMODE_PRIVATE_SEND ) && ( g_ulChatPlayer != MAXPLAYERS ))
 				{
-					ULONG oldPlayer = g_ulChatPlayer;
+					int tempPlayer = g_ulChatPlayer;
+					int direction = ( pEvent->data3 & GKM_SHIFT ) ? -1 : 1;
 
 					do
 					{
-						if ( ++g_ulChatPlayer >= MAXPLAYERS )
-							g_ulChatPlayer = 0;
+						tempPlayer += direction;
 
-						if ( g_ulChatPlayer == oldPlayer )
+						if ( tempPlayer < 0 )
+							tempPlayer = MAXPLAYERS - 1;
+						else if ( tempPlayer >= MAXPLAYERS )
+							tempPlayer = 0;
+
+						if ( tempPlayer == g_ulChatPlayer )
 							break;
 					}
-					while (( PLAYER_IsValidPlayer( g_ulChatPlayer ) == false ) || ( g_ulChatPlayer == consoleplayer ));
+					while (( PLAYER_IsValidPlayer( tempPlayer ) == false ) || ( tempPlayer == consoleplayer ));
+					g_ulChatPlayer = static_cast<ULONG>( tempPlayer );
 				}
 				else
 				{
@@ -973,10 +979,7 @@ void chat_SendMessage( ULONG ulMode, const char *pszString )
 	// If we're the client, let the server handle formatting/sending the msg to other players.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 	{
-		if ( ulMode == CHATMODE_PRIVATE_SEND )
-			CLIENTCOMMANDS_PrivateSay( g_ulChatPlayer, ChatMessage.GetChars( ));
-		else
-			CLIENTCOMMANDS_Say( ulMode, ChatMessage.GetChars( ));
+		CLIENTCOMMANDS_Say( ulMode, ChatMessage.GetChars( ), g_ulChatPlayer );
 	}
 	else if ( demorecording )
 	{

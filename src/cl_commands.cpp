@@ -269,7 +269,7 @@ void CLIENTCOMMANDS_ExitConsole( void )
 
 //*****************************************************************************
 //
-void CLIENTCOMMANDS_Say( ULONG ulMode, const char *pszString )
+void CLIENTCOMMANDS_Say( ULONG ulMode, const char *pszString, ULONG ulPlayer )
 {
 	// [TP] Limit messages to certain length.
 	FString chatstring ( pszString );
@@ -279,23 +279,12 @@ void CLIENTCOMMANDS_Say( ULONG ulMode, const char *pszString )
 
 	CLIENT_GetLocalBuffer( )->ByteStream.WriteByte( CLC_SAY );
 	CLIENT_GetLocalBuffer( )->ByteStream.WriteByte( ulMode );
+
+	// [AK] If we're sending a private message, also send the receiver's number.
+	if ( ulMode == CHATMODE_PRIVATE_SEND )
+		CLIENT_GetLocalBuffer()->ByteStream.WriteByte( ulPlayer );
+
 	CLIENT_GetLocalBuffer( )->ByteStream.WriteString( chatstring );
-}
-
-//*****************************************************************************
-//
-void CLIENTCOMMANDS_PrivateSay( ULONG ulPlayer, const char *pszString )
-{
-	// [AK] Limit messages to certain length.
-	FString chatstring ( pszString );
-
-	if ( chatstring.Len() > MAX_CHATBUFFER_LENGTH )
-		chatstring = chatstring.Left( MAX_CHATBUFFER_LENGTH );
-
-	CLIENT_GetLocalBuffer()->ByteStream.WriteByte( CLC_SAY );
-	CLIENT_GetLocalBuffer()->ByteStream.WriteByte( CHATMODE_PRIVATE_SEND );
-	CLIENT_GetLocalBuffer()->ByteStream.WriteByte( ulPlayer );
-	CLIENT_GetLocalBuffer()->ByteStream.WriteString( chatstring );
 }
 
 //*****************************************************************************

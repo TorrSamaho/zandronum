@@ -153,7 +153,9 @@ enum
 #define PRINT_HIGH				2				// critical messages
 #define PRINT_CHAT				3				// chat messages
 #define PRINT_TEAMCHAT			4				// chat messages from a teammate
-#define PRINT_PRIVATECHAT		5				// private chat messages from another player
+#define PRINT_PRIVATECHAT		5				// [AK] Private chat messages from another player.
+
+// [AK] Increased PRINT_LOG (originally 5) to 6 in order to make room for PRINT_PRIVATECHAT.
 #define PRINT_LOG				6				// only to logfile
 #define PRINT_BOLD				200				// What Printf_Bold used
 

@@ -286,9 +286,9 @@ CUSTOM_CVAR (Int, msg4color, 0, CVAR_ARCHIVE)
 	setmsgcolor (4, self);
 }
 
+// [AK] Private chat message color.
 CUSTOM_CVAR (Int, msg5color, 21, CVAR_ARCHIVE)
 {
-	// [AK] Private chat message color.
 	setmsgcolor (5, self);
 }
 
