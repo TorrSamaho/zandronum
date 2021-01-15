@@ -176,6 +176,7 @@ void	chat_SetChatMode( ULONG ulMode );
 void	chat_SendMessage( ULONG ulMode, const char *pszString );
 void	chat_GetIgnoredPlayers( FString &Destination ); // [RC]
 void	chat_DoSubstitution( FString &Input ); // [CW]
+bool	chat_IsPlayerValidReceiver( ULONG ulPlayer ); // [AK]
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -607,7 +608,7 @@ bool CHAT_Input( event_t *pEvent )
 			}
 			else if ( pEvent->data1 == '\t' )
 			{
-				if (( g_ulChatMode == CHATMODE_PRIVATE_SEND ) && ( g_ulChatPlayer != MAXPLAYERS ))
+				if (( g_ulChatMode == CHATMODE_PRIVATE_SEND ) && ( SERVER_CountPlayers( false ) >= 2 ))
 				{
 					int tempPlayer = g_ulChatPlayer;
 					int direction = ( pEvent->data3 & GKM_SHIFT ) ? -1 : 1;
@@ -617,14 +618,14 @@ bool CHAT_Input( event_t *pEvent )
 						tempPlayer += direction;
 
 						if ( tempPlayer < 0 )
-							tempPlayer = MAXPLAYERS - 1;
-						else if ( tempPlayer >= MAXPLAYERS )
+							tempPlayer = MAXPLAYERS;
+						else if ( tempPlayer > MAXPLAYERS )
 							tempPlayer = 0;
 
-						if ( tempPlayer == g_ulChatPlayer )
+						if (( tempPlayer == MAXPLAYERS ) || ( tempPlayer == g_ulChatPlayer ))
 							break;
 					}
-					while (( PLAYER_IsValidPlayer( tempPlayer ) == false ) || ( tempPlayer == consoleplayer ));
+					while ( chat_IsPlayerValidReceiver( tempPlayer ) == false );
 					g_ulChatPlayer = static_cast<ULONG>( tempPlayer );
 				}
 				else
@@ -812,7 +813,7 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 		else
 		{
 			if ( ulChatLevel == PRINT_PRIVATECHAT )
-				OutString.Format( TEXTCOLOR_GREY "<%s Server> ", ulMode == CHATMODE_PRIVATE_SEND ? "To" : "From" );
+				OutString.Format( TEXTCOLOR_GREY "<%s Server>: ", ulMode == CHATMODE_PRIVATE_SEND ? "To" : "From" );
 			else
 				OutString = "<Server>: ";
 		}
@@ -989,7 +990,7 @@ void chat_SendMessage( ULONG ulMode, const char *pszString )
 	}
 	else
 	{
-		ULONG ulPlayer = ulMode == CHATMODE_PRIVATE_SEND ? g_ulChatPlayer : (ULONG)consoleplayer;
+		ULONG ulPlayer = ulMode == CHATMODE_PRIVATE_SEND ? g_ulChatPlayer : static_cast<ULONG>( consoleplayer );
 		CHAT_PrintChatString( ulPlayer, ulMode, ChatMessage.GetChars( ));
 	}
 
@@ -1227,41 +1228,73 @@ CCMD( say_team )
 
 //*****************************************************************************
 //
-// [AK] Allows players (or the server) to send private messages to other players.
+// [AK] Checks if the player is eligible to receive private messages from us.
 //
-bool chat_CanSendPrivateMessage( ULONG ulPlayer )
+bool chat_IsPlayerValidReceiver( ULONG ulPlayer )
 {
-	if ( ulPlayer == MAXPLAYERS )
-		return true;
+	// [AK] If the player doesn't exist, they can't be a receiver.
+	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
+		return false;
 
-	if ( g_ulChatPlayer == MAXPLAYERS )
-		g_ulChatPlayer = 0;
-
-	// [AK] If we're still trying to send a message to an invalid player, find another player.
-	if (( PLAYER_IsValidPlayer( g_ulChatPlayer ) == false ) || ( g_ulChatPlayer == (ULONG)consoleplayer ))
-	{
-		ULONG oldPlayer = g_ulChatPlayer;
-
-		do
-		{
-			// [AK] Keep looping until we find another player who we can send a message to.
-			if ( ++g_ulChatPlayer >= MAXPLAYERS )
-				g_ulChatPlayer = 0;
-
-			// [AK] If we're back to the old value, then there's nobody else to send a message to.
-			if ( g_ulChatPlayer == oldPlayer )
-			{
-				Printf( "There's no other player to send a private message to.\n" );
-				return false;
-			}
-		}
-		while (( PLAYER_IsValidPlayer( g_ulChatPlayer ) == false ) || ( g_ulChatPlayer == (ULONG)consoleplayer ));
-	}
+	// [AK] The receiver can't be ourselves or a bot.
+	if (( ulPlayer == static_cast<ULONG>( consoleplayer )) || ( players[ulPlayer].bIsBot ))
+		return false;
 
 	return true;
 }
 
-void chat_PrivateMessage( FCommandLine &argv, const ULONG ulPlayer )
+//*****************************************************************************
+//
+// [AK] Finds a valid player whom we can send private messages to.
+//
+void chat_FindValidReceiver( void )
+{
+	bool nobodyFound = true;
+
+	if ( SERVER_CountPlayers( false ) >= 2 )
+	{
+		// [AK] We can always send private messages to the server.
+		if ( g_ulChatPlayer == MAXPLAYERS )
+			return;
+
+		nobodyFound = false;
+
+		// [AK] If we're trying to send a message to an invalid player, find another one.
+		if ( chat_IsPlayerValidReceiver( g_ulChatPlayer ) == false )
+		{
+			ULONG oldPlayer = g_ulChatPlayer;
+
+			do
+			{
+				// [AK] Keep looping until we find another player who we can send a message to.
+				if ( ++g_ulChatPlayer >= MAXPLAYERS )
+					g_ulChatPlayer = 0;
+
+				// [AK] If we're back to the old value for some reason, then there's no other
+				// players to send a message to, so set the receiver to the server instead.
+				if ( g_ulChatPlayer == oldPlayer )
+				{
+					nobodyFound = true;
+					break;
+				}
+			}
+			while ( chat_IsPlayerValidReceiver( g_ulChatPlayer ) == false );
+		}
+	}
+
+	if ( nobodyFound )
+	{
+		Printf( "There's no other clients to send private messages to. "
+			"The server will be selected instead.\n" );
+		g_ulChatPlayer = MAXPLAYERS;
+	}
+}
+
+//*****************************************************************************
+//
+// [AK] Allows players (or the server) to send private messages to other players.
+//
+void chat_PrivateMessage( FCommandLine &argv, const ULONG ulReceiver, const bool bServerSelected )
 {
 	ULONG		ulIdx;
 	FString		ChatString;
@@ -1277,23 +1310,40 @@ void chat_PrivateMessage( FCommandLine &argv, const ULONG ulPlayer )
 		return;
 	}
 
+	// [AK] No sending private messages in a singleplayer game.
+	if (( NETWORK_GetState( ) == NETSTATE_SINGLE ) || ( NETWORK_GetState( ) == NETSTATE_SINGLE_MULTIPLAYER ))
+	{
+		Printf ( "You can't send private messages in a singleplayer game.\n" );
+		return;
+	}
+
 	if ( argv.argc( ) >= 2 )
 	{
-		// [AK] Don't send private messages to invalid players.
-		if ( ulPlayer == MAXPLAYERS + 1 )
+		if ( !bServerSelected )
 		{
-			Printf( "There isn't a player named %s" TEXTCOLOR_NORMAL ".\n", argv[1] );
-			return;
+			// [AK] Don't send private messages to invalid players.
+			if ( ulReceiver == MAXPLAYERS + 1 )
+			{
+				Printf( "There isn't a player named %s" TEXTCOLOR_NORMAL ".\n", argv[1] );
+				return;
+			}
+
+			// [AK] Don't send private messages to bots.
+			if (( ulReceiver != MAXPLAYERS ) && ( players[ulReceiver].bIsBot ))
+			{
+				Printf( "You can't send private messages to bots.\n" );
+				return;
+			}
+
+			// [AK] Don't send private messages to ourselves.
+			if (( ulReceiver == static_cast<ULONG>( consoleplayer )) && ( NETWORK_GetState( ) != NETSTATE_SERVER ))
+			{
+				Printf( "You can't send private messages to yourself.\n" );
+				return;
+			}
 		}
 
-		// [AK] Don't send private messages to ourselves.
-		if (( ulPlayer == (ULONG)consoleplayer ) && ( NETWORK_GetState( ) != NETSTATE_SERVER ))
-		{
-			Printf( "You can't send a private message to yourself.\n" );
-			return;
-		}
-
-		g_ulChatPlayer = ulPlayer;
+		g_ulChatPlayer = ulReceiver;
 
 		if ( argv.argc( ) > 2 )
 		{
@@ -1311,8 +1361,11 @@ void chat_PrivateMessage( FCommandLine &argv, const ULONG ulPlayer )
 		}
 	}
 	
-	if (( NETWORK_GetState( ) != NETSTATE_SERVER ) && ( chat_CanSendPrivateMessage( ulPlayer ) ))
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
+		// [AK] Find a valid receiver, if necessary.
+		if ( !bServerSelected ) chat_FindValidReceiver( );
+
 		// The message we send will only be for the player who we wish to chat with.
 		chat_SetChatMode( CHATMODE_PRIVATE_SEND );
 
@@ -1327,6 +1380,7 @@ void chat_PrivateMessage( FCommandLine &argv, const ULONG ulPlayer )
 CCMD( sayto )
 {
 	ULONG ulPlayer = 0;
+	bool serverSelected = false;
 
 	if ( argv.argc() >= 2 )
 	{
@@ -1334,16 +1388,12 @@ CCMD( sayto )
 		{
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
-				Printf( "You can't send a private message to yourself.\n" );
-				return;
-			}
-			else if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
-			{
-				Printf( "You can't send a private message to the server in an offline game.\n" );
+				Printf( "The server can't send private messages to itself.\n" );
 				return;
 			}
 
 			ulPlayer = MAXPLAYERS;
+			serverSelected = true;
 		}
 		else
 		{
@@ -1352,23 +1402,37 @@ CCMD( sayto )
 		}
 	}
 
-	chat_PrivateMessage( argv, ulPlayer );
+	chat_PrivateMessage( argv, ulPlayer, serverSelected );
 }
 
 CCMD( sayto_idx )
 {
 	int playerIndex = 0;
+	bool serverSelected = false;
 
 	if ( argv.argc() >= 2 )
 	{
 		if ( argv.SafeGetNumber( 1, playerIndex ) == false )
 			return;
 
-		if ( PLAYER_IsValidPlayer( playerIndex ) == false )
+		if ( playerIndex == -1 )
+		{
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
+				Printf( "The server can't send private messages to itself.\n" );
+				return;
+			}
+
+			playerIndex = MAXPLAYERS;
+			serverSelected = true;
+		}
+		else if ( PLAYER_IsValidPlayer( playerIndex ) == false )
+		{
 			return;
+		}
 	}
 
-	chat_PrivateMessage( argv, playerIndex );
+	chat_PrivateMessage( argv, playerIndex, serverSelected );
 }
 
 //*****************************************************************************
@@ -1520,27 +1584,7 @@ CCMD( messagemode )
 	}
 }
 
-// [AK]
-CCMD( messagemode3 )
-{
-	// [AK] Mods are not allowed to say anything in the player's name.
-	if ( ACS_IsCalledFromConsoleCommand( ))
-		return;
-
-	// [AK] No chatting while playing a demo.
-	if ( CLIENTDEMO_IsPlaying( ) == true )
-	{
-		Printf( "You can't send private messages during demo playback.\n" );
-		return;
-	}
-
-	if (( NETWORK_GetState( ) != NETSTATE_SERVER ) && ( chat_CanSendPrivateMessage( 0 ) ))
-	{
-		chat_SetChatMode( CHATMODE_PRIVATE_SEND );
-		C_HideConsole( );
-		g_ChatBuffer.Clear();
-	}
-}// [TP]
+// [TP]
 CCMD( messagemode2 )
 {
 	// [AK] Mods are not allowed to say anything in the player's name.
@@ -1559,6 +1603,38 @@ CCMD( messagemode2 )
 		chat_SetChatMode( CHATMODE_TEAM );
 		C_HideConsole( );
 		g_ChatBuffer.Clear();
+	}
+}
+
+// [AK]
+CCMD( messagemode3 )
+{
+	// [AK] Mods are not allowed to say anything in the player's name.
+	if ( ACS_IsCalledFromConsoleCommand( ))
+		return;
+
+	// [AK] No chatting while playing a demo.
+	if ( CLIENTDEMO_IsPlaying( ) == true )
+	{
+		Printf( "You can't send private messages during demo playback.\n" );
+		return;
+	}
+
+	// [AK] No sending private messages in a singleplayer game.
+	if (( NETWORK_GetState( ) == NETSTATE_SINGLE ) || ( NETWORK_GetState( ) == NETSTATE_SINGLE_MULTIPLAYER ))
+	{
+		Printf ( "You can't send private messages in a singleplayer game.\n" );
+		return;
+	}
+
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	{
+		// [AK] Find a valid receiver, if necessary.
+		chat_FindValidReceiver( );
+
+		chat_SetChatMode( CHATMODE_PRIVATE_SEND );
+		C_HideConsole( );
+		g_ChatBuffer.Clear( );
 	}
 }
 
