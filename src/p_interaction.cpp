@@ -3279,6 +3279,16 @@ void PLAYER_ClearEnemySoundFields( const ULONG ulPlayer )
 
 //*****************************************************************************
 //
+bool PLAYER_NameMatchesServer( const FString &Name )
+{
+	FString nameNoColor = Name;
+	V_RemoveColorCodes( nameNoColor );
+
+	return (( !nameNoColor.CompareNoCase( "server" )) || ( !nameNoColor.CompareNoCase( "<server>" )));
+}
+
+//*****************************************************************************
+//
 bool PLAYER_NameUsed( const FString &Name, const ULONG ulIgnorePlayer )
 {
 	FString nameNoColor = Name;
