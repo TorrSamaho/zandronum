@@ -131,6 +131,9 @@ static	ULONG	g_ulChatMode;
 // [AK] The index of the player we're sending a private chat message to.
 static	ULONG	g_ulChatPlayer = 0;
 
+// [AK] A ticker that's used for controlling the blink of the cursor.
+static	ULONG	g_ulChatTicker = 0;
+
 //*****************************************************************************
 //	CONSOLE VARIABLES
 
@@ -336,6 +339,9 @@ void ChatBuffer::MoveCursorTo( int position )
 
 	if ( IsInTabCompletion == false )
 		ResetTabCompletion();
+
+	// [AK] Ensure that the cursor is always visible while typing.
+	g_ulChatTicker = 0;
 }
 
 //*****************************************************************************
@@ -515,6 +521,10 @@ void CHAT_Tick( void )
 		}
 	}
 
+	// [AK] Reset the chat cursor's ticker if it goes too high.
+	if (( g_ulChatMode != CHATMODE_NONE ) && ( ++g_ulChatTicker >= TICRATE ))
+		g_ulChatTicker = 0;
+
 	// [AK] If we're typing a chat message to another player, we must constantly check if
 	// they're in the game. If not, cancel the message entirely.
 	if ( g_ulChatMode == CHATMODE_PRIVATE_SEND )
@@ -675,6 +685,8 @@ void CHAT_Render( void )
 	else if ( g_ulChatMode == CHATMODE_PRIVATE_SEND )
 		prompt.Format( "Say <to %s>: ", g_ulChatPlayer != MAXPLAYERS ? players[g_ulChatPlayer].userinfo.GetName() : "Server" );
 
+	int positionX = SmallFont->StringWidth( prompt );
+
 	if ( scale )
 	{
 		scaleX = static_cast<float>( *con_virtualwidth ) / SCREENWIDTH;
@@ -692,8 +704,14 @@ void CHAT_Render( void )
 
 	// Build the message that we will display to clients.
 	FString displayString = g_ChatBuffer.GetMessage();
+
+	// [AK] Split the message string into two components, from where the cursor is.
+	int cursorPosition = g_ChatBuffer.GetPosition();
+	FString messageFront = displayString.Mid( 0, cursorPosition );
+	FString messageBack = displayString.Mid( cursorPosition );
+
 	// Insert the cursor string into the message.
-	displayString = displayString.Mid( 0, g_ChatBuffer.GetPosition() ) + cursor + displayString.Mid( g_ChatBuffer.GetPosition() );
+	displayString = messageFront + cursor + messageBack;
 	EColorRange promptColor = CR_GREEN;
 	EColorRange messageColor = CR_GRAY;
 
@@ -721,19 +739,69 @@ void CHAT_Render( void )
 		// Break it onto multiple lines, if necessary.
 		const BYTE *bytes = reinterpret_cast<const BYTE*>( displayString.GetChars() );
 		FBrokenLines *lines = V_BreakLines( SmallFont, chatWidth, bytes );
+		FString lineText;
 		int messageY = positionY;
+		int index = 0;
 
 		for ( int i = 0; lines[i].Width != -1; ++i )
 		{
-			HUD_DrawText( SmallFont, messageColor, SmallFont->StringWidth( prompt ), messageY, lines[i].Text );
+			lineText = lines[i].Text;
+
+			// [AK] If the cursor is supposed to be invisible, check if the cursor
+			// is on this line. If so, we need to split the line between it.
+			if (( g_ulChatTicker >= C_BLINKRATE ) && ( cursorPosition >= index ) && 
+				( cursorPosition < static_cast<int>( index + lineText.Len() )))
+			{
+				messageFront = lineText.Mid( 0, cursorPosition - index );
+				messageBack = lineText.Mid( cursorPosition - index + 1 );
+
+				// [AK] Start by drawing the first half of the message like normal.
+				if ( messageFront.Len() > 0 )
+					HUD_DrawText( SmallFont, messageColor, positionX, messageY, messageFront );
+
+				// [AK] Next, draw the second half of the message. We'll offset this
+				// text by the width of the first half and the cursor combined.
+				if ( messageBack.Len() > 0 )
+				{
+					positionX += SmallFont->GetCharWidth( '_' ) + SmallFont->StringWidth( messageFront );
+					HUD_DrawText( SmallFont, messageColor, positionX, messageY, messageBack );
+				}
+
+				positionX = SmallFont->StringWidth( prompt );
+			}
+			else
+			{
+				HUD_DrawText( SmallFont, messageColor, positionX, messageY, lineText );
+			}
+
 			messageY += SmallFont->GetHeight();
+			index += lineText.Len();
 		}
 
 		V_FreeBrokenLines( lines );
 	}
 	else
 	{
-		HUD_DrawText( SmallFont, messageColor, SmallFont->StringWidth( prompt ), positionY, displayString );
+		// [AK] If the cursor is supposed to be invisible, we'll need to draw
+		// the message string a little differently.
+		if ( g_ulChatTicker >= C_BLINKRATE )
+		{
+			// [AK] Start by drawing the first half of the message like normal.
+			if ( messageFront.Len() > 0 )
+				HUD_DrawText( SmallFont, messageColor, positionX, positionY, messageFront );
+
+			// [AK] Next, draw the second half of the message. We'll offset this
+			// text by the width of the first half and the cursor combined.
+			if ( messageBack.Len() > 0 )
+			{
+				positionX += SmallFont->GetCharWidth( '_' ) + SmallFont->StringWidth( messageFront );
+				HUD_DrawText( SmallFont, messageColor, positionX, positionY, messageBack );
+			}
+		}
+		else
+		{
+			HUD_DrawText( SmallFont, messageColor, positionX, positionY, displayString );
+		}
 	}
 
 	// [RC] Tell chatters about the iron curtain of LMS chat.
@@ -952,6 +1020,9 @@ void chat_SetChatMode( ULONG ulMode )
 			// Tell the server we're beginning to chat.
 			if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
 				CLIENTCOMMANDS_StartChat( );
+
+			// [AK] Ensure that the cursor is visible.
+			g_ulChatTicker = 0;
 		}
 		else
 		{
