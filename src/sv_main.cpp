@@ -2016,16 +2016,28 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick, bool bEnfor
 				kickReason = "User name contains illegal characters." ;
 			}
 
+			FString message;
+
+			// [AK] Don't allow players to name themselves as "server" in order to avert
+			// any potential impersonation of the server.
+			if ( PLAYER_NameMatchesServer ( value ) )
+			{
+				message.Format ( "You can't name yourself as the server. " );
+				bOverriddenName = true;
+			}
 			// [BB] Check whether the requested name is already in use.
 			// If so, give the player a generic unused name and inform the client.
-			if ( PLAYER_NameUsed ( value, g_lCurrentClient ) )
+			else if ( PLAYER_NameUsed ( value, g_lCurrentClient ) )
 			{
-				FString message;
 				message.Format ( "The name '%s' is already in use. ", value.GetChars() );
+				bOverriddenName = true;
+			}
+
+			if ( bOverriddenName )
+			{
 				value = PLAYER_GenerateUniqueName();
 				message.AppendFormat ( "You are renamed to '%s'.\n", value.GetChars() );
 				SERVERCOMMANDS_PrintMid( message, true, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
-				bOverriddenName = true;
 			}
 
 			// [BB] It's extremely critical that we NEVER use the uncleaned player name!

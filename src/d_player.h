@@ -802,6 +802,7 @@ bool	PLAYER_IsAliveOrCanRespawn( player_t *pPlayer );
 void	PLAYER_RemoveFriends( const ULONG ulPlayer );
 void	PLAYER_LeavesGame( const ULONG ulPlayer );
 void	PLAYER_ClearEnemySoundFields( const ULONG ulPlayer );
+bool	PLAYER_NameMatchesServer( const FString &Name );
 bool	PLAYER_NameUsed( const FString &Name, const ULONG ulIgnorePlayer = MAXPLAYERS );
 FString	PLAYER_GenerateUniqueName( void );
 
