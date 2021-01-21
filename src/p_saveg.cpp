@@ -512,10 +512,7 @@ void P_SerializeWorld (FArchive &arc)
 				<< si->Index;
 			DBaseDecal::SerializeChain (arc, &si->AttachedDecals);
 			// [BC]
-			arc << si->SavedFlags
-				<< si->SavedTopTexture
-				<< si->SavedMidTexture
-				<< si->SavedBottomTexture;
+			arc << si->SavedFlags;
 		}
 	}
 

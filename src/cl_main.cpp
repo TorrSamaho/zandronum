@@ -6657,6 +6657,124 @@ void ServerCommands::SetLineTextureByID::Execute()
 
 //*****************************************************************************
 //
+void ServerCommands::SetLineTextureOffset::Execute()
+{
+	if ( line->sidedef[side] == NULL )
+		return;
+
+	line->sidedef[side]->textures[position].xoffset = XOffset;
+	line->sidedef[side]->textures[position].yoffset = YOffset;
+}
+
+//*****************************************************************************
+//
+void ServerCommands::SetLineTextureOffsetByID::Execute()
+{
+	int linenum = -1;
+	const fixed_t NO_CHANGE = 32767 << FRACBITS;
+
+	while (( linenum = P_FindLineFromID( lineID, linenum )) >= 0 )
+	{
+		side_t *sidedef = lines[linenum].sidedef[side];
+		if ( sidedef != NULL )
+		{
+			if (( flags & 8 ) == 0 )
+			{
+				if ( XOffset != NO_CHANGE )
+				{
+					if ( flags & 1 ) sidedef->SetTextureXOffset( side_t::top, XOffset );
+					if ( flags & 2 ) sidedef->SetTextureXOffset( side_t::mid, XOffset );
+					if ( flags & 4 ) sidedef->SetTextureXOffset( side_t::bottom, XOffset );
+				}
+
+				if ( YOffset != NO_CHANGE )
+				{
+					if ( flags & 1 ) sidedef->SetTextureYOffset( side_t::top, YOffset );
+					if ( flags & 2 ) sidedef->SetTextureYOffset( side_t::mid, YOffset );
+					if ( flags & 4 ) sidedef->SetTextureYOffset( side_t::bottom, YOffset );
+				}
+			}
+			else
+			{
+				if ( XOffset != NO_CHANGE )
+				{
+					if ( flags & 1 ) sidedef->AddTextureXOffset( side_t::top, XOffset );
+					if ( flags & 2 ) sidedef->AddTextureXOffset( side_t::mid, XOffset );
+					if ( flags & 4 ) sidedef->AddTextureXOffset( side_t::bottom, XOffset );
+				}
+
+				if ( YOffset != NO_CHANGE )
+				{
+					if ( flags & 1 ) sidedef->AddTextureYOffset( side_t::top, YOffset );
+					if ( flags & 2 ) sidedef->AddTextureYOffset( side_t::mid, YOffset );
+					if ( flags & 4 ) sidedef->AddTextureYOffset( side_t::bottom, YOffset );
+				}
+			}
+		}
+	}
+}
+
+//*****************************************************************************
+//
+void ServerCommands::SetLineTextureScale::Execute()
+{
+	if ( line->sidedef[side] == NULL )
+		return;
+
+	line->sidedef[side]->textures[position].xscale = XScale;
+	line->sidedef[side]->textures[position].yscale = YScale;
+}
+
+//*****************************************************************************
+//
+void ServerCommands::SetLineTextureScaleByID::Execute()
+{
+	int linenum = -1;
+	const fixed_t NO_CHANGE = 32767 << FRACBITS;
+
+	while (( linenum = P_FindLineFromID( lineID, linenum )) >= 0 )
+	{
+		side_t *sidedef = lines[linenum].sidedef[side];
+		if ( sidedef != NULL )
+		{
+			if (( flags & 8 ) == 0 )
+			{
+				if ( XScale != NO_CHANGE )
+				{
+					if ( flags & 1 ) sidedef->SetTextureXScale( side_t::top, XScale );
+					if ( flags & 2 ) sidedef->SetTextureXScale( side_t::mid, XScale );
+					if ( flags & 4 ) sidedef->SetTextureXScale( side_t::bottom, XScale );
+				}
+
+				if ( YScale != NO_CHANGE )
+				{
+					if ( flags & 1 ) sidedef->SetTextureYScale( side_t::top, YScale );
+					if ( flags & 2 ) sidedef->SetTextureYScale( side_t::mid, YScale );
+					if ( flags & 4 ) sidedef->SetTextureYScale( side_t::bottom, YScale );
+				}
+			}
+			else
+			{
+				if ( XScale != NO_CHANGE )
+				{
+					if ( flags & 1 ) sidedef->MultiplyTextureXScale( side_t::top, XScale );
+					if ( flags & 2 ) sidedef->MultiplyTextureXScale( side_t::mid, XScale );
+					if ( flags & 4 ) sidedef->MultiplyTextureXScale( side_t::bottom, XScale );
+				}
+
+				if ( YScale != NO_CHANGE )
+				{
+					if ( flags & 1 ) sidedef->MultiplyTextureYScale( side_t::top, YScale);
+					if ( flags & 2 ) sidedef->MultiplyTextureYScale( side_t::mid, YScale);
+					if ( flags & 4 ) sidedef->MultiplyTextureYScale( side_t::bottom, YScale);
+				}
+			}
+		}
+	}
+}
+
+//*****************************************************************************
+//
 void ServerCommands::SetSomeLineFlags::Execute()
 {
 	line->flags &= ~(ML_BLOCKING|ML_BLOCK_PLAYERS|ML_BLOCKEVERYTHING|ML_RAILING|ML_ADDTRANS);
