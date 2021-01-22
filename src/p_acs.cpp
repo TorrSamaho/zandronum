@@ -4211,12 +4211,6 @@ void DLevelScript::DoSetFont (int fontnum)
 	// [TP] activefont is a member, it cannot be stored as a single variable on the server.
 	activefontname = activefont ? fontname : "SmallFont";
 
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		SERVER_SetCurrentFont( activefontname );
-		return;
-	}
-
 	if (activefont == NULL)
 	{
 		activefont = SmallFont;
@@ -7762,11 +7756,6 @@ int DLevelScript::RunScript ()
 	const char *lookup;
 	int optstart = -1;
 	int temp;
-
-	// [BC] Since the server doesn't have a screen, we have to save the active font some
-	// other way.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVER_SetCurrentFont( activefontname );
 
 	while (state == SCRIPT_Running)
 	{
@@ -11553,11 +11542,6 @@ scriptwait:
 		this->pc = pc;
 		assert (sp == 0);
 	}
-
-	// [BC] Since the server doesn't have a screen, we have to save the active font some
-	// other way.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVER_SetCurrentFont( "SmallFont" );
 
 	// [BB] Stop the net traffic measurement and add the result to this script's traffic.
 	NETTRAFFIC_AddACSScriptTraffic ( script, NETWORK_StopTrafficMeasurement ( ) );
