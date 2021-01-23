@@ -2837,7 +2837,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Print)
 			// SERVERCOMMANDS_PrintHUDMessage and fill it with the default arguments of used
 			// in C_MidPrint.
 			if ( player >= 0 )
-				SERVERCOMMANDS_PrintHUDMessage( text, 1.5f, 0.375f, 0, 0, CR_GOLD, con_midtime, (fontname != NAME_None) ? fontname.GetChars() : "SmallFont", true, MAKE_ID('C','N','T','R'), ULONG(player), SVCF_ONLYTHISCLIENT );
+				SERVERCOMMANDS_PrintHUDMessage( text, 1.5f, 0.375f, 0, 0, HUDMESSAGETYPE_NORMAL | HUDMSG_LOG, CR_GOLD, con_midtime, NULL, NULL, (fontname != NAME_None) ? fontname.GetChars() : "SmallFont", MAKE_ID('C', 'N', 'T', 'R'), ULONG(player), SVCF_ONLYTHISCLIENT );
 		}
 
 		con_midtime = saved;
