@@ -519,7 +519,7 @@ void CHAT_Tick( void )
 	// they're in the game. If not, cancel the message entirely.
 	if ( g_ulChatMode == CHATMODE_PRIVATE_SEND )
 	{
-		if (( g_ulChatPlayer != MAXPLAYERS ) && ( PLAYER_IsValidPlayer( g_ulChatPlayer ) == false ))
+		if (( g_ulChatPlayer != MAXPLAYERS ) && ( chat_IsPlayerValidReceiver( g_ulChatPlayer ) == false ))
 			chat_SetChatMode( CHATMODE_NONE );
 	}
 }
