@@ -2083,6 +2083,7 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 	APlayerPawn *actor;
 	const PClass *cls;
 	FString		log;
+	TArray<FString>	ChatMessages;
 	bool		bOnTeam;
 	bool		bSpectating;
 	bool		bDeadSpectator;
@@ -2120,6 +2121,7 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 
 	bOnTeam = p->bOnTeam;
 	const bool bChatting = p->bChatting;
+	ChatMessages = p->ChatMessages;
 	const bool bInConsole = p->bInConsole;
 	bSpectating = p->bSpectating;
 	bDeadSpectator = p->bDeadSpectator;
@@ -2169,6 +2171,7 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 
 	p->bOnTeam = bOnTeam;
 	p->bChatting = bChatting;
+	p->ChatMessages = ChatMessages;
 	p->bInConsole = bInConsole;
 	p->bSpectating = bSpectating;
 	p->bDeadSpectator = bDeadSpectator;

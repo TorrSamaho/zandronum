@@ -487,6 +487,8 @@ bool		SERVER_IsPlayerVisible( ULONG ulPlayer, ULONG ulPlayer2 );
 bool		SERVER_IsPlayerAllowedToKnowHealth( ULONG ulPlayer, ULONG ulPlayer2 );
 const char	*SERVER_GetCurrentFont( void );
 void		SERVER_SetCurrentFont( const char *pszFont );
+FString		SERVER_GetChatMessage( int index );
+void		SERVER_AddChatMessage( const char *pszMessage );
 LONG		SERVER_AdjustDoorDirection( LONG lDirection );
 LONG		SERVER_AdjustFloorDirection( LONG lDirection );
 LONG		SERVER_AdjustCeilingDirection( LONG lDirection );

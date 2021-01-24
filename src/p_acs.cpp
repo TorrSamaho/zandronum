@@ -5351,6 +5351,7 @@ enum EACSFunctions
 	ACSF_NamedExecuteClientScript,
 	ACSF_SendNetworkString,
 	ACSF_NamedSendNetworkString,
+	ACSF_GetChatMessage,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -7572,7 +7573,6 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 		case ACSF_GetPlayerScore:
 			{
 				const ULONG ulPlayer = static_cast<ULONG> ( args[0] );
-
 				if ( PLAYER_IsValidPlayer( ulPlayer ) )
 				{
 					switch ( args[1] )
@@ -7613,6 +7613,26 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				const int client = argCount > 2 ? args[2] : -1;
 
 				return SendNetworkString( activeBehavior, activator, -scriptName, args[1], client );
+			}
+
+		case ACSF_GetChatMessage:
+			{
+				const int player = static_cast<ULONG> ( args[0] );
+				const int index = args[1] >= 0 ? ( args[1] <= 2 ? args[1] : 2 ) : 0;
+
+				if ( player < 0 )
+				{
+					// [AK] Return a chat message sent by the server.
+					return GlobalACSStrings.AddString( SERVER_GetChatMessage( index ) );
+				}
+				else if ( PLAYER_IsValidPlayer( player ) )
+				{
+					// [AK] Return a chat message we received from this player.
+					if ( index < static_cast<int>( players[player].ChatMessages.Size() ) )
+						return GlobalACSStrings.AddString( players[player].ChatMessages( index ) );
+				}
+
+				return GlobalACSStrings.AddString( "" );
 			}
 
 		case ACSF_GetActorFloorTexture:

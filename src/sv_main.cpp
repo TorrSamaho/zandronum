@@ -231,6 +231,9 @@ static	LONG		g_lInboundDataTransferLastSecond = 0;
 // This is the current font the "screen" is using when it displays messages.
 static	char		g_szCurrentFont[16];
 
+// The last chat messages the server sent using RCON.
+static	TArray<FString>		g_ChatMessages;
+
 // This is the music the loaded map is currently using.
 static	FString		g_MapMusic;
 static	int			g_MapMusicOrder;
@@ -1121,10 +1124,33 @@ void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString
 	pszString = cleanedChatString.GetChars();
 
 	// [AK] Check if we're sending a private message.
-	if( ulMode == CHATMODE_PRIVATE_SEND )
+	if ( ulMode == CHATMODE_PRIVATE_SEND )
+	{
 		SERVERCOMMANDS_PrivateSay( ulPlayer, ulReceiver, pszString, bFordidChatToPlayers );
+	}
 	else
+	{
 		SERVERCOMMANDS_PlayerSay( ulPlayer, pszString, ulMode, bFordidChatToPlayers );
+
+		// [AK] Store the last chat message we received from this player, or from ourselves.
+		if ( ulPlayer == MAXPLAYERS )
+		{
+			SERVER_AddChatMessage( pszString );
+		}
+		else
+		{
+			FString message = pszString;
+
+			// [AK] If there's too many stored messages, remove the oldest one.
+			if ( players[ulPlayer].ChatMessages.Size() >= MAX_STORED_MESSAGES )
+				players[ulPlayer].ChatMessages.Delete( MAX_STORED_MESSAGES - 1 );
+
+			players[ulPlayer].ChatMessages.Insert( 0, message );
+		}
+
+		// [AK] Trigger an event script indicating that a chat message was received.
+		GAMEMODE_HandleEvent( GAMEEVENT_CHAT, 0, ulPlayer != MAXPLAYERS ? ulPlayer : -1, ulMode - CHATMODE_GLOBAL );
+	}
 
 	// [AK] Don't log private messages that aren't sent to/from the server.
 	if (( ulMode == CHATMODE_PRIVATE_SEND ) && ( ulPlayer != MAXPLAYERS ) && ( ulReceiver != MAXPLAYERS ))
@@ -3724,6 +3750,30 @@ const char *SERVER_GetCurrentFont( void )
 void SERVER_SetCurrentFont( const char *pszFont )
 {
 	sprintf( g_szCurrentFont, "%s", pszFont );
+}
+
+//*****************************************************************************
+//
+FString SERVER_GetChatMessage( int index )
+{
+	// [AK] If we're using an invalid index, return an empty string instead.
+	if ( static_cast<ULONG>( index ) >= g_ChatMessages.Size() )
+		return "";
+
+	return ( g_ChatMessages( index ) );
+}
+
+//*****************************************************************************
+//
+void SERVER_AddChatMessage( const char *pszMessage )
+{
+	FString message = pszMessage;
+
+	// [AK] If there's too many stored messages, remove the oldest one.
+	if ( g_ChatMessages.Size() >= MAX_STORED_MESSAGES )
+		g_ChatMessages.Delete( MAX_STORED_MESSAGES - 1 );
+
+	g_ChatMessages.Insert( 0, message );
 }
 
 //*****************************************************************************

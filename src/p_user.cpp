@@ -495,6 +495,7 @@ player_t &player_t::operator=(const player_t &p)
 	ulDeathsWithoutFrag = p.ulDeathsWithoutFrag;
 	ulUnrewardedDamageDealt = p.ulUnrewardedDamageDealt;
 	bChatting = p.bChatting;
+	ChatMessages = p.ChatMessages;
 	bInConsole = p.bInConsole;
 	bSpectating = p.bSpectating;
 	bDeadSpectator = p.bDeadSpectator;

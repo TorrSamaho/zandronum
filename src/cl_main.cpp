@@ -2983,6 +2983,7 @@ void PLAYER_ResetPlayerData( player_t *pPlayer )
 	pPlayer->ulDeathCount = 0;
 	PLAYER_ResetSpecialCounters ( pPlayer );
 	pPlayer->bChatting = 0;
+	pPlayer->ChatMessages.Clear();
 	pPlayer->bInConsole = 0;
 	pPlayer->bSpectating = 0;
 	pPlayer->bIgnoreChat = 0;

@@ -980,13 +980,31 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 			S_Sound( CHAN_VOICE | CHAN_UI, "misc/chat", 1, ATTN_NONE );
 	}
 
-	BOTCMD_SetLastChatString( pszString );
-	BOTCMD_SetLastChatPlayer( PLAYER_IsValidPlayer( ulPlayer ) ? players[ulPlayer].userinfo.GetName() : "" );
-
+	// [AK] Only save chat messages for non-private chat messages.
+	if (( ulMode != CHATMODE_PRIVATE_SEND ) && ( ulMode != CHATMODE_PRIVATE_RECEIVE ))
 	{
-		ULONG	ulIdx;
+		if ( ulPlayer == MAXPLAYERS )
+		{
+			SERVER_AddChatMessage( pszString );
+		}
+		else
+		{
+			FString message = pszString;
 
-		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+			// [AK] If there's too many stored messages, remove the oldest one.
+			if ( players[ulPlayer].ChatMessages.Size() >= MAX_STORED_MESSAGES )
+				players[ulPlayer].ChatMessages.Delete( MAX_STORED_MESSAGES - 1 );
+
+			players[ulPlayer].ChatMessages.Insert( 0, message );
+		}
+
+		// [AK] Trigger an event script indicating that a chat message was received.
+		GAMEMODE_HandleEvent( GAMEEVENT_CHAT, 0, ulPlayer != MAXPLAYERS ? ulPlayer : -1, ulMode - CHATMODE_GLOBAL );
+
+		BOTCMD_SetLastChatString( pszString );
+		BOTCMD_SetLastChatPlayer( PLAYER_IsValidPlayer( ulPlayer ) ? players[ulPlayer].userinfo.GetName() : "" );
+
+		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{
 			if ( playeringame[ulIdx] == false )
 				continue;

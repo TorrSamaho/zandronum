@@ -59,6 +59,9 @@
 // Maximum size of the chat buffer.
 #define	MAX_CHATBUFFER_LENGTH		128
 
+// [AK] Maximum number of messages from this player that are stored in memory.
+#define MAX_STORED_MESSAGES			3
+
 //*****************************************************************************
 typedef enum
 {

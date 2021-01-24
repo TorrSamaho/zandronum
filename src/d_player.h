@@ -636,6 +636,9 @@ public:
 	// This player is chatting.
 	bool		bChatting;
 
+	// [AK] The last few chat messages we received from this player.
+	TArray<FString>		ChatMessages;
+
 	// [RC] This player is in the console or menu.
 	bool		bInConsole;
 
