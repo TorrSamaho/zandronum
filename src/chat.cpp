@@ -1294,10 +1294,11 @@ void chat_FindValidReceiver( void )
 //
 // [AK] Allows players (or the server) to send private messages to other players.
 //
-void chat_PrivateMessage( FCommandLine &argv, const ULONG ulReceiver, const bool bServerSelected )
+void chat_PrivateMessage( FCommandLine &argv, const ULONG ulReceiver )
 {
 	ULONG		ulIdx;
 	FString		ChatString;
+	const bool	bServerSelected = ( ulReceiver == MAXPLAYERS );
 
 	// [AK] Mods are not allowed to say anything in the player's name.
 	if ( ACS_IsCalledFromConsoleCommand( ) )
@@ -1380,7 +1381,6 @@ void chat_PrivateMessage( FCommandLine &argv, const ULONG ulReceiver, const bool
 CCMD( sayto )
 {
 	ULONG ulPlayer = 0;
-	bool serverSelected = false;
 
 	if ( argv.argc() >= 2 )
 	{
@@ -1393,7 +1393,6 @@ CCMD( sayto )
 			}
 
 			ulPlayer = MAXPLAYERS;
-			serverSelected = true;
 		}
 		else
 		{
@@ -1402,13 +1401,12 @@ CCMD( sayto )
 		}
 	}
 
-	chat_PrivateMessage( argv, ulPlayer, serverSelected );
+	chat_PrivateMessage( argv, ulPlayer );
 }
 
 CCMD( sayto_idx )
 {
 	int playerIndex = 0;
-	bool serverSelected = false;
 
 	if ( argv.argc() >= 2 )
 	{
@@ -1424,7 +1422,6 @@ CCMD( sayto_idx )
 			}
 
 			playerIndex = MAXPLAYERS;
-			serverSelected = true;
 		}
 		else if ( PLAYER_IsValidPlayer( playerIndex ) == false )
 		{
@@ -1432,7 +1429,7 @@ CCMD( sayto_idx )
 		}
 	}
 
-	chat_PrivateMessage( argv, playerIndex, serverSelected );
+	chat_PrivateMessage( argv, playerIndex );
 }
 
 //*****************************************************************************
