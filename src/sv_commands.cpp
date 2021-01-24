@@ -2146,6 +2146,55 @@ void SERVERCOMMANDS_PrintHUDMessageTypeOnFadeOut( const char *pszString, float f
 }
 
 //*****************************************************************************
+//
+void SERVERCOMMANDS_PrintACSHUDMessage( DLevelScript *pScript, const char *pszString, float fX, float fY, LONG lType, LONG lColor, float fHoldTime, float fInTime, float fOutTime, fixed_t Alpha, LONG lID, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	ServerCommands::PrintACSHUDMessage command;
+	command.SetMessage( pszString );
+	command.SetX( fX );
+	command.SetY( fY );
+	command.SetColor( lColor );
+	command.SetHoldTime( fHoldTime );
+	command.SetId( lID );
+
+	// [AK] Send the in and out times if they're needed.
+	command.SetInTime( fInTime );
+	command.SetOutTime( fOutTime );
+
+	// [AK] Send the HUD size if it's non-zero.
+	if (( pScript->hudwidth != 0 ) || ( pScript->hudheight != 0 ))
+		lType |= HUDMESSAGE_SEND_HUDSIZE;
+	command.SetHudWidth( pScript->hudwidth );
+	command.SetHudHeight( pScript->hudheight );
+
+	// [AK] Send the clipping rectangle and wrap width if necessary.
+	if (( pScript->ClipRectWidth != 0 ) || ( pScript->ClipRectHeight != 0 ))
+		lType |= HUDMESSAGE_SEND_CLIPRECT;
+	command.SetClipRectLeft( pScript->ClipRectLeft );
+	command.SetClipRectTop( pScript->ClipRectTop );
+	command.SetClipRectWidth( pScript->ClipRectWidth );
+	command.SetClipRectHeight( pScript->ClipRectHeight );
+
+	// [AK] Don't send the wrap width if we don't need to.
+	if ((( lType & HUDMESSAGE_NOSEND_WRAP ) == false ) && ( pScript->WrapWidth == 0 ))
+		lType |= HUDMESSAGE_NOSEND_WRAP;
+	command.SetWrapWidth( pScript->WrapWidth );
+
+	// [AK] Send the name of the font if it isn't SMALLFONT.
+	if ( pScript->activefont != SmallFont )
+		lType |= HUDMESSAGE_SEND_FONT;
+	command.SetFontName( pScript->activefontname.GetChars( ));
+
+	// [AK] Don't send the alpha if it's not used or less than 1.0.
+	if (( lType & HUDMESSAGE_SEND_ALPHA ) && ( Alpha >= 65536 ))
+		lType &= ~HUDMESSAGE_SEND_ALPHA;
+	command.SetAlpha( Alpha );
+
+	command.SetType( lType );
+	command.sendCommandToClients( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetGameMode( ULONG ulPlayerExtra, ServerCommandFlags flags )

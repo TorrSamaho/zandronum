@@ -5664,6 +5664,64 @@ void ServerCommands::PrintHUDMessageTypeOnFadeOut::Execute()
 
 //*****************************************************************************
 //
+void ServerCommands::PrintACSHUDMessage::Execute()
+{
+	// We cannot create the message if there's no status bar to attach it to.
+	if ( StatusBar == NULL )
+		return;
+
+	// [AK] We can't create the message if the font doesn't exist.
+	FFont *font = V_GetFont( fontName.IsNotEmpty() ? fontName : "SmallFont" );
+	if ( font == NULL )
+		return;
+
+	DHUDMessage *hudMessage;
+
+	// [AK] Set the width and height of the HUD to zero if they weren't sent to us.
+	if (( type & HUDMESSAGE_SEND_HUDSIZE ) == false )
+		hudWidth = hudHeight = 0;
+
+	switch ( type & HUDMESSAGE_TYPE_MASK )
+	{
+		default:
+			hudMessage = new DHUDMessage( font, message, x, y, hudWidth, hudHeight, (EColorRange)color, holdTime );
+			break;
+
+		case HUDMESSAGETYPE_FADEOUT:
+			hudMessage = new DHUDMessageFadeOut( font, message, x, y, hudWidth, hudHeight, (EColorRange)color, holdTime, outTime);
+			break;
+
+		case HUDMESSAGETYPE_TYPEONFADEOUT:
+			hudMessage = new DHUDMessageTypeOnFadeOut( font, message, x, y, hudWidth, hudHeight, (EColorRange)color, inTime, holdTime, outTime );
+			break;
+
+		case HUDMESSAGETYPE_FADEINOUT:
+			hudMessage = new DHUDMessageFadeInOut( font, message, x, y, hudWidth, hudHeight, (EColorRange)color, holdTime, inTime, outTime );
+			break;
+	}
+
+	// [AK] Disable the clipping rectangle if it wasn't sent to us.
+	if (( type & HUDMESSAGE_SEND_CLIPRECT ) == false )
+		clipRectLeft = clipRectTop = clipRectWidth = clipRectHeight = 0;
+
+	hudMessage->SetClipRect( clipRectLeft, clipRectTop, clipRectWidth, clipRectHeight );
+
+	// [AK] Only set the wrap width if it was sent to us.
+	if ((( type & HUDMSG_NOWRAP ) == false ) && ( wrapWidth != 0 )) hudMessage->SetWrapWidth( wrapWidth );
+
+	hudMessage->SetVisibility(( type & HUDMSG_VISIBILITY_MASK ) >> HUDMSG_VISIBILITY_SHIFT );
+
+	if ( type & HUDMSG_NOWRAP ) hudMessage->SetNoWrap( true );
+	if ( type & HUDMSG_ALPHA ) hudMessage->SetAlpha( alpha );
+	if ( type & HUDMSG_ADDBLEND ) hudMessage->SetRenderStyle( STYLE_Add );
+
+	StatusBar->AttachMessage( hudMessage, id, ( type & HUDMSG_LAYER_MASK ) >> HUDMSG_LAYER_SHIFT );
+
+	if ( type & HUDMSG_LOG ) CLIENT_LogHUDMessage( message, color );
+}
+
+//*****************************************************************************
+//
 static void client_SetGameMode( BYTESTREAM_s *pByteStream )
 {
 	UCVarValue	Value;

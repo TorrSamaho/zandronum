@@ -68,3 +68,53 @@ Command PrintHUDMessageTypeOnFadeOut
 	Bool log
 	Long id
 EndCommand
+
+Command PrintACSHUDMessage
+	String message
+	Float x
+	Float y
+	Long type
+	Byte color
+	Float holdTime
+	Long id
+
+	# [AK] Send the fade in and/or fade out times if this isn't just a plain message.
+	If((type & HUDMESSAGE_TYPE_MASK) == HUDMESSAGETYPE_TYPEONFADEOUT || (type & HUDMESSAGE_TYPE_MASK) == HUDMESSAGETYPE_FADEINOUT)
+		Float inTime
+	EndIf
+
+	If((type & HUDMESSAGE_TYPE_MASK) != HUDMESSAGETYPE_NORMAL)
+		Float outTime
+	EndIf
+
+	# [AK] Only send the HUD dimensions if we need to.
+	If(type & HUDMESSAGE_SEND_HUDSIZE)
+		CheckFunction ContainsHUDSize
+		Short hudWidth
+		Short hudHeight
+	EndIf
+
+	# [AK] Only send the HUD clipping rectangle if we need to.
+	If(type & HUDMESSAGE_SEND_CLIPRECT)
+		CheckFunction ContainsClippingRectangle
+		Short clipRectLeft
+		Short clipRectTop
+		Short clipRectWidth
+		Short clipRectHeight
+	EndIf
+
+	# [AK] Only send the wrap width if we need to.
+	If((type & HUDMESSAGE_NOSEND_WRAP) == false)
+		Short wrapWidth
+	EndIf
+
+	# [AK] Only send the font's name if it isn't SMALLFONT (default).
+	If(type & HUDMESSAGE_SEND_FONT)
+		String fontName
+	EndIf
+
+	# [AK] Only send the alpha if we need to.
+	If(type & HUDMESSAGE_SEND_ALPHA)
+		Fixed alpha
+	EndIf
+EndCommand
