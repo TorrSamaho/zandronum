@@ -3072,6 +3072,76 @@ void SERVERCOMMANDS_SetLineTextureByID( ULONG ulLineID, ULONG ulSide, ULONG ulPo
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetLineTextureOffset( ULONG ulLine, ULONG ulSide, ULONG ulPosition, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	if (( ulLine >= (ULONG)numlines ) || ( lines[ulLine].sidedef[ulSide] == NULL ))
+		return;
+
+	if ( ulSide > 1 )
+		SERVER_PrintWarning( "SERVERCOMMANDS_SetLineTextureOffset: invalid side: %lu!\n", ulSide );
+
+	ServerCommands::SetLineTextureOffset command;
+	command.SetLine( &lines[ulLine] );
+	command.SetXOffset( lines[ulLine].sidedef[!!ulSide]->textures[ulPosition].xoffset );
+	command.SetYOffset( lines[ulLine].sidedef[!!ulSide]->textures[ulPosition].yoffset );
+	command.SetSide( !!ulSide );
+	command.SetPosition( ulPosition );
+	command.sendCommandToClients( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_SetLineTextureOffsetByID( ULONG ulLineID, fixed_t XOffset, fixed_t YOffset, ULONG ulSide, ULONG ulFlags, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	if ( ulSide > 1 )
+		SERVER_PrintWarning( "SERVERCOMMANDS_SetLineTextureOffsetByID: invalid side: %lu!\n", ulSide );
+
+	ServerCommands::SetLineTextureOffsetByID command;
+	command.SetLineID( ulLineID );
+	command.SetXOffset( XOffset );
+	command.SetYOffset( YOffset );
+	command.SetSide( !!ulSide );
+	command.SetFlags( ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_SetLineTextureScale( ULONG ulLine, ULONG ulSide, ULONG ulPosition, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	if (( ulLine >= (ULONG)numlines ) || ( lines[ulLine].sidedef[ulSide] == NULL ))
+		return;
+
+	if ( ulSide > 1 )
+		SERVER_PrintWarning( "SERVERCOMMANDS_SetLineTextureScale: invalid side: %lu!\n", ulSide );
+
+	ServerCommands::SetLineTextureScale command;
+	command.SetLine( &lines[ulLine] );
+	command.SetXScale( lines[ulLine].sidedef[!!ulSide]->textures[ulPosition].xscale );
+	command.SetYScale( lines[ulLine].sidedef[!!ulSide]->textures[ulPosition].yscale );
+	command.SetSide( !!ulSide );
+	command.SetPosition( ulPosition );
+	command.sendCommandToClients( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_SetLineTextureScaleByID( ULONG ulLineID, fixed_t XScale, fixed_t YScale, ULONG ulSide, ULONG ulFlags, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	if ( ulSide > 1 )
+		SERVER_PrintWarning( "SERVERCOMMANDS_SetLineTextureScaleByID: invalid side: %lu!\n", ulSide );
+
+	ServerCommands::SetLineTextureScaleByID command;
+	command.SetLineID( ulLineID );
+	command.SetXScale( XScale );
+	command.SetYScale( YScale );
+	command.SetSide( !!ulSide );
+	command.SetFlags( ulFlags );
+	command.sendCommandToClients( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_SetSomeLineFlags( ULONG ulLine, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( ulLine >= (ULONG)numlines )

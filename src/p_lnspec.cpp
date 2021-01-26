@@ -2765,6 +2765,11 @@ FUNC(LS_Line_SetTextureOffset)
 			}
 		}
 	}
+
+	// [AK] Tell clients to set the texture's offsets for all lines with tag arg0.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetLineTextureOffsetByID( arg0, arg1, arg2, arg3, arg4 );
+
 	return true;
 }
 
@@ -2815,6 +2820,11 @@ FUNC(LS_Line_SetTextureScale)
 			}
 		}
 	}
+
+	// [AK] Tell clients to set the texture's scale for all lines with tag arg0.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetLineTextureScaleByID( arg0, arg1, arg2, arg3, arg4 );
+
 	return true;
 }
 

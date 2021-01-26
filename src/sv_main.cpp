@@ -3313,6 +3313,27 @@ void SERVER_UpdateLines( ULONG ulClient )
 		if ( lines[ulLine].ulTexChangeFlags )
 			SERVERCOMMANDS_SetLineTexture( ulLine, ulClient, SVCF_ONLYTHISCLIENT );
 
+		// [AK] Check if we need to update this line's texture offsets or scale.
+		for ( int side = 0; side <= 1; side++ )
+		{
+			// [AK] Don't update this side if it doesn't exist.
+			if ( lines[ulLine].sidedef[side] == NULL )
+				continue;
+
+			for ( int position = side_t::top; position <= side_t::bottom; position++ )
+			{
+				side_t::part *texture = &lines[ulLine].sidedef[side]->textures[position];
+
+				// [AK] If this texture's offsets were changed, send the update.
+				if (( texture->xoffset != texture->SavedXOffset ) || ( texture->yoffset != texture->SavedYOffset ))
+					SERVERCOMMANDS_SetLineTextureOffset( ulLine, side, position, ulClient, SVCF_ONLYTHISCLIENT );
+
+				// [AK] If this texture's scale was changed, send the update.
+				if (( texture->xscale != texture->SavedXScale ) || ( texture->yscale != texture->SavedYScale ))
+					SERVERCOMMANDS_SetLineTextureScale( ulLine, side, position, ulClient, SVCF_ONLYTHISCLIENT );
+			}
+		}
+
 		// Is the alpha of this line altered?
 		if ( lines[ulLine].Alpha != lines[ulLine].SavedAlpha )
 			SERVERCOMMANDS_SetLineAlpha( ulLine, ulClient, SVCF_ONLYTHISCLIENT );

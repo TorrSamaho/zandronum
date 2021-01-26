@@ -2695,10 +2695,17 @@ void P_ProcessSideTextures(bool checktranmap, side_t *sd, sector_t *sec, mapside
 		break;
 	}
 
-	// [BC/BB] Backup certain properties.
-	sd->SavedTopTexture = sd->GetTexture(side_t::top);
-	sd->SavedMidTexture = sd->GetTexture(side_t::mid);
-	sd->SavedBottomTexture = sd->GetTexture(side_t::bottom);
+	// [BC/BB/AK] Backup certain properties.
+	for (int position = side_t::top; position <= side_t::bottom; position++)
+	{
+		sd->textures[position].SavedXOffset = sd->GetTextureXOffset(position);
+		sd->textures[position].SavedYOffset = sd->GetTextureYOffset(position);
+
+		sd->textures[position].SavedXScale = sd->GetTextureXScale(position);
+		sd->textures[position].SavedYScale = sd->GetTextureYScale(position);
+
+		sd->textures[position].SavedTexture = sd->GetTexture(position);
+	}
 }
 
 // killough 4/4/98: delay using texture names until

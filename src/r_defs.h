@@ -900,6 +900,14 @@ struct side_t
 		FTextureID texture;
 		TObjPtr<DInterpolation> interpolation;
 		//int Light;
+
+		// [AK] Saved properties for when a map resets, or when we need to give updates
+		// to new clients connecting.
+		fixed_t SavedXOffset;
+		fixed_t SavedYOffset;
+		fixed_t SavedXScale;
+		fixed_t SavedYScale;
+		FTextureID SavedTexture;
 	};
 
 	sector_t*	sector;			// Sector the SideDef is facing.
@@ -913,12 +921,9 @@ struct side_t
 	BYTE		Flags;
 	int			Index;		// needed to access custom UDMF fields which are stored in loading order.
 
-	// [BC] Saved properties for when a map resets, or when we need to give updates
+	// [BC] Saved flags for when a map resets, or when we need to give updates
 	// to new clients connecting.
 	BYTE		SavedFlags;
-	FTextureID	SavedTopTexture;
-	FTextureID	SavedMidTexture;
-	FTextureID	SavedBottomTexture;
 
 	int GetLightLevel (bool foggy, int baselight, bool noabsolute=false, int *pfakecontrast_usedbygzdoom=NULL) const;
 

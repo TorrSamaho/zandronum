@@ -213,6 +213,38 @@ Command SetLineTextureByID
 	Byte position
 EndCommand
 
+Command SetLineTextureOffset
+	Line line
+	Fixed XOffset
+	Fixed YOffset
+	Bool side
+	Byte position
+EndCommand
+
+Command SetLineTextureOffsetByID
+	UShort lineID
+	Fixed XOffset
+	Fixed YOffset
+	Bool side
+	Byte flags
+EndCommand
+
+Command SetLineTextureScale
+	Line line
+	Fixed XScale
+	Fixed YScale
+	Bool side
+	Byte position
+EndCommand
+
+Command SetLineTextureScaleByID
+	UShort lineID
+	Fixed XScale
+	Fixed YScale
+	Bool side
+	Byte flags
+EndCommand
+
 Command SetSomeLineFlags
 	Line line
 	Long blockFlags

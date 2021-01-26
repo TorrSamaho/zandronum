@@ -3475,16 +3475,16 @@ void GAME_ResetMap( bool bRunEnterScripts )
 		{
 			if ( lines[ulIdx].sidedef[0] != NULL )
 			{
-				lines[ulIdx].sidedef[0]->SetTexture(side_t::top, lines[ulIdx].sidedef[0]->SavedTopTexture);
-				lines[ulIdx].sidedef[0]->SetTexture(side_t::mid, lines[ulIdx].sidedef[0]->SavedMidTexture);
-				lines[ulIdx].sidedef[0]->SetTexture(side_t::bottom, lines[ulIdx].sidedef[0]->SavedBottomTexture);
+				lines[ulIdx].sidedef[0]->SetTexture(side_t::top, lines[ulIdx].sidedef[0]->textures[side_t::top].SavedTexture);
+				lines[ulIdx].sidedef[0]->SetTexture(side_t::mid, lines[ulIdx].sidedef[0]->textures[side_t::mid].SavedTexture);
+				lines[ulIdx].sidedef[0]->SetTexture(side_t::bottom, lines[ulIdx].sidedef[0]->textures[side_t::bottom].SavedTexture);
 			}
 
 			if ( lines[ulIdx].sidedef[1] != NULL )
 			{
-				lines[ulIdx].sidedef[1]->SetTexture(side_t::top, lines[ulIdx].sidedef[1]->SavedTopTexture);
-				lines[ulIdx].sidedef[1]->SetTexture(side_t::mid, lines[ulIdx].sidedef[1]->SavedMidTexture);
-				lines[ulIdx].sidedef[1]->SetTexture(side_t::bottom, lines[ulIdx].sidedef[1]->SavedBottomTexture);
+				lines[ulIdx].sidedef[1]->SetTexture(side_t::top, lines[ulIdx].sidedef[1]->textures[side_t::top].SavedTexture);
+				lines[ulIdx].sidedef[1]->SetTexture(side_t::mid, lines[ulIdx].sidedef[1]->textures[side_t::mid].SavedTexture);
+				lines[ulIdx].sidedef[1]->SetTexture(side_t::bottom, lines[ulIdx].sidedef[1]->textures[side_t::bottom].SavedTexture);
 			}
 
 			// If we're the server, tell clients about this texture change.
@@ -3493,6 +3493,41 @@ void GAME_ResetMap( bool bRunEnterScripts )
 
 			// Mark the texture as no being changed.
 			lines[ulIdx].ulTexChangeFlags = 0;
+		}
+
+		// [AK] Check if we need to restore this line's texture offsets or scale.
+		for ( int side = 0; side <= 1; side++ )
+		{
+			// [AK] Don't update this side if it doesn't exist.
+			if ( lines[ulIdx].sidedef[side] == NULL )
+				continue;
+
+			for ( int position = side_t::top; position <= side_t::bottom; position++ )
+			{
+				side_t::part *texture = &lines[ulIdx].sidedef[side]->textures[position];
+
+				// [AK] Restore the line's texture offset if they changed.
+				if (( texture->xoffset != texture->SavedXOffset ) || ( texture->yoffset != texture->SavedYOffset ))
+				{
+					texture->xoffset = texture->SavedXOffset;
+					texture->yoffset = texture->SavedYOffset;
+
+					// [AK] If we're the server, tell clients about this offset change.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_SetLineTextureOffset( ulIdx, side, position );
+				}
+
+				// [AK] Restore the line's texture scale if it changed.
+				if (( texture->xscale != texture->SavedXScale ) || ( texture->yscale != texture->SavedYScale ))
+				{
+					texture->xscale = texture->SavedXScale;
+					texture->yscale = texture->SavedYScale;
+
+					// [AK] If we're the server, tell clients about this scale change.
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVERCOMMANDS_SetLineTextureScale( ulIdx, side, position );
+				}
+			}
 		}
 
 		// Restore the line's alpha if it changed.
