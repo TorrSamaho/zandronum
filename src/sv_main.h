@@ -485,8 +485,6 @@ bool		SERVER_IsEveryoneReadyToGoOn( void );
 LONG		SERVER_GetPlayerIgnoreTic( ULONG ulPlayer, NETADDRESS_s Address ); // [RC]
 bool		SERVER_IsPlayerVisible( ULONG ulPlayer, ULONG ulPlayer2 );
 bool		SERVER_IsPlayerAllowedToKnowHealth( ULONG ulPlayer, ULONG ulPlayer2 );
-const char	*SERVER_GetCurrentFont( void );
-void		SERVER_SetCurrentFont( const char *pszFont );
 LONG		SERVER_AdjustDoorDirection( LONG lDirection );
 LONG		SERVER_AdjustFloorDirection( LONG lDirection );
 LONG		SERVER_AdjustCeilingDirection( LONG lDirection );

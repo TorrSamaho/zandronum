@@ -175,23 +175,6 @@ FRandom pr_acs ("ACS");
 #define CLAMPCOLOR(c)		(EColorRange)((unsigned)(c) >= NUM_TEXT_COLORS ? CR_UNTRANSLATED : (c))
 #define LANGREGIONMASK		MAKE_ID(0,0,0xff,0xff)
 
-// HUD message flags
-#define HUDMSG_LOG					(0x80000000)
-#define HUDMSG_COLORSTRING			(0x40000000)
-#define HUDMSG_ADDBLEND				(0x20000000)
-#define HUDMSG_ALPHA				(0x10000000)
-#define HUDMSG_NOWRAP				(0x08000000)
-
-// HUD message layers; these are not flags
-#define HUDMSG_LAYER_SHIFT			12
-#define HUDMSG_LAYER_MASK			(0x0000F000)
-// See HUDMSGLayer enumerations in sbar.h
-
-// HUD message visibility flags
-#define HUDMSG_VISIBILITY_SHIFT		16
-#define HUDMSG_VISIBILITY_MASK		(0x00070000)
-// See HUDMSG visibility enumerations in sbar.h
-
 // Flags for ReplaceTextures
 #define NOT_BOTTOM			1
 #define NOT_MIDDLE			2
@@ -4228,12 +4211,6 @@ void DLevelScript::DoSetFont (int fontnum)
 	// [TP] activefont is a member, it cannot be stored as a single variable on the server.
 	activefontname = activefont ? fontname : "SmallFont";
 
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		SERVER_SetCurrentFont( activefontname );
-		return;
-	}
-
 	if (activefont == NULL)
 	{
 		activefont = SmallFont;
@@ -7783,11 +7760,6 @@ int DLevelScript::RunScript ()
 	int optstart = -1;
 	int temp;
 
-	// [BC] Since the server doesn't have a screen, we have to save the active font some
-	// other way.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVER_SetCurrentFont( activefontname );
-
 	while (state == SCRIPT_Running)
 	{
 		if (++runaway > 2000000)
@@ -9562,6 +9534,9 @@ scriptwait:
 					fixed_t alpha;
 					DHUDMessage *msg = NULL;
 
+					// [AK] This id will get sent to the clients if needed.
+					int serverId = id ? 0xFF000000 | id : 0;
+
 					if (type & HUDMSG_COLORSTRING)
 					{
 						color = V_FindFontColor(FBehavior::StaticLookupString(Stack[optstart-4]));
@@ -9580,9 +9555,9 @@ scriptwait:
 						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 						{
 							if (( pcd == PCD_ENDHUDMESSAGEBOLD ) || ( screen == NULL ))
-								SERVERCOMMANDS_PrintHUDMessage( work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, SERVER_GetCurrentFont( ), !!( type & HUDMSG_LOG ), id );
+								SERVERCOMMANDS_PrintACSHUDMessage( this, work.GetChars( ), x, y, type, color, holdTime, NULL, NULL, alpha, serverId );
 							else if ( screen->player )
-								SERVERCOMMANDS_PrintHUDMessage( work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, SERVER_GetCurrentFont( ), !!( type & HUDMSG_LOG ), id, screen->player - players, SVCF_ONLYTHISCLIENT );
+								SERVERCOMMANDS_PrintACSHUDMessage( this, work.GetChars( ), x, y, type, color, holdTime, NULL, NULL, alpha, serverId, screen->player - players, SVCF_ONLYTHISCLIENT );
 						}
 						else
 							msg = new DHUDMessage (activefont, work, x, y, hudwidth, hudheight, color, holdTime);
@@ -9596,9 +9571,9 @@ scriptwait:
 							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 							{
 								if (( pcd == PCD_ENDHUDMESSAGEBOLD ) || ( screen == NULL ))
-									SERVERCOMMANDS_PrintHUDMessageFadeOut( work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, fadeTime, SERVER_GetCurrentFont( ), !!( type & HUDMSG_LOG ), id );
+									SERVERCOMMANDS_PrintACSHUDMessage( this, work.GetChars( ), x, y, type, color, holdTime, NULL, fadeTime, alpha, serverId );
 								else if ( screen->player )
-									SERVERCOMMANDS_PrintHUDMessageFadeOut( work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, fadeTime, SERVER_GetCurrentFont( ), !!( type & HUDMSG_LOG ), id, screen->player - players, SVCF_ONLYTHISCLIENT );
+									SERVERCOMMANDS_PrintACSHUDMessage( this, work.GetChars( ), x, y, type, color, holdTime, NULL, fadeTime, alpha, serverId, screen->player - players, SVCF_ONLYTHISCLIENT );
 							}
 							else
 								msg = new DHUDMessageFadeOut (activefont, work, x, y, hudwidth, hudheight, color, holdTime, fadeTime);
@@ -9614,9 +9589,9 @@ scriptwait:
 							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 							{
 								if (( pcd == PCD_ENDHUDMESSAGEBOLD ) || ( screen == NULL ))
-									SERVERCOMMANDS_PrintHUDMessageTypeOnFadeOut( work.GetChars( ), x, y, hudwidth, hudheight, color, typeTime, holdTime, fadeTime, SERVER_GetCurrentFont( ), !!( type & HUDMSG_LOG ), id );
+									SERVERCOMMANDS_PrintACSHUDMessage( this, work.GetChars( ), x, y, type, color, holdTime, typeTime, fadeTime, alpha, serverId );
 								else if ( screen->player )
-									SERVERCOMMANDS_PrintHUDMessageTypeOnFadeOut( work.GetChars( ), x, y, hudwidth, hudheight, color, typeTime, holdTime, fadeTime, SERVER_GetCurrentFont( ), !!( type & HUDMSG_LOG ), id, screen->player - players, SVCF_ONLYTHISCLIENT );
+									SERVERCOMMANDS_PrintACSHUDMessage( this, work.GetChars( ), x, y, type, color, holdTime, typeTime, fadeTime, alpha, serverId, screen->player - players, SVCF_ONLYTHISCLIENT );
 							}
 							else
 								msg = new DHUDMessageTypeOnFadeOut (activefont, work, x, y, hudwidth, hudheight, color, typeTime, holdTime, fadeTime);
@@ -9632,9 +9607,9 @@ scriptwait:
 							if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 							{
 								if (( pcd == PCD_ENDHUDMESSAGEBOLD ) || ( screen == NULL ))
-									SERVERCOMMANDS_PrintHUDMessageFadeInOut( work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, inTime, outTime, SERVER_GetCurrentFont( ), !!( type & HUDMSG_LOG ), id );
+									SERVERCOMMANDS_PrintACSHUDMessage( this, work.GetChars( ), x, y, type, color, holdTime, inTime, outTime, alpha, serverId );
 								else if ( screen->player )
-									SERVERCOMMANDS_PrintHUDMessageFadeInOut( work.GetChars( ), x, y, hudwidth, hudheight, color, holdTime, inTime, outTime, SERVER_GetCurrentFont( ), !!( type & HUDMSG_LOG ), id, screen->player - players, SVCF_ONLYTHISCLIENT );
+									SERVERCOMMANDS_PrintACSHUDMessage( this, work.GetChars( ), x, y, type, color, holdTime, inTime, outTime, alpha, serverId, screen->player - players, SVCF_ONLYTHISCLIENT );
 							}
 							else
 								msg = new DHUDMessageFadeInOut (activefont, work, x, y, hudwidth, hudheight, color, holdTime, inTime, outTime);
@@ -11570,11 +11545,6 @@ scriptwait:
 		this->pc = pc;
 		assert (sp == 0);
 	}
-
-	// [BC] Since the server doesn't have a screen, we have to save the active font some
-	// other way.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVER_SetCurrentFont( "SmallFont" );
 
 	// [BB] Stop the net traffic measurement and add the result to this script's traffic.
 	NETTRAFFIC_AddACSScriptTraffic ( script, NETWORK_StopTrafficMeasurement ( ) );

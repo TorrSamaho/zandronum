@@ -3705,20 +3705,6 @@ LONG SERVER_GetPlayerIgnoreTic( ULONG ulPlayer, NETADDRESS_s Address )
 
 //*****************************************************************************
 //
-const char *SERVER_GetCurrentFont( void )
-{
-	return ( g_szCurrentFont );
-}
-
-//*****************************************************************************
-//
-void SERVER_SetCurrentFont( const char *pszFont )
-{
-	sprintf( g_szCurrentFont, "%s", pszFont );
-}
-
-//*****************************************************************************
-//
 LONG SERVER_AdjustDoorDirection( LONG lDirection )
 {
 	// Not a valid door direction.

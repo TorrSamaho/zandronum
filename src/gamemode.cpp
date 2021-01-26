@@ -953,7 +953,7 @@ void GAMEMODE_DisplayStandardMessage( const char *pszMessage, const bool bInform
 	// If necessary, send it to clients.
 	else if ( bInformClients )
 	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( pszMessage, 160.4f, 75.0f, 320, 200, CR_RED, 3.0f, 2.0f, "BigFont", false, MAKE_ID('C','N','T','R') );
+		SERVERCOMMANDS_PrintHUDMessage( pszMessage, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, NULL, 2.0f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
 	}
 }
 
@@ -976,7 +976,7 @@ void GAMEMODE_DisplayCNTRMessage( const char *pszMessage, const bool bInformClie
 	// If necessary, send it to clients.
 	else if ( bInformClients )
 	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( pszMessage, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "BigFont", false, MAKE_ID('C','N','T','R'), ulPlayerExtra, ServerCommandFlags::FromInt( ulFlags ) );
+		SERVERCOMMANDS_PrintHUDMessage( pszMessage, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_UNTRANSLATED, 3.0f, NULL, 0.25f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ), ulPlayerExtra, ServerCommandFlags::FromInt( ulFlags ) );
 	}
 }
 
@@ -999,7 +999,7 @@ void GAMEMODE_DisplaySUBSMessage( const char *pszMessage, const bool bInformClie
 	// If necessary, send it to clients.
 	else if ( bInformClients )
 	{
-		SERVERCOMMANDS_PrintHUDMessageFadeOut( pszMessage, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.25f, "SmallFont", false, MAKE_ID( 'S','U','B','S' ), ulPlayerExtra, ServerCommandFlags::FromInt( ulFlags ) );
+		SERVERCOMMANDS_PrintHUDMessage( pszMessage, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_UNTRANSLATED, 3.0f, NULL, 0.25f, "SmallFont", MAKE_ID( 'S', 'U', 'B', 'S' ), ulPlayerExtra, ServerCommandFlags::FromInt( ulFlags ) );
 	}
 }
 

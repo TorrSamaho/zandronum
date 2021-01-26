@@ -148,11 +148,25 @@ enum PLAYERSTATE_e
 	STATE_PLAYER_ATTACK_ALTFIRE,
 };
 
-// HUD message types.
-#define	HUDMESSAGETYPE_NORMAL			1
-#define	HUDMESSAGETYPE_FADEOUT			2
-#define	HUDMESSAGETYPE_TYPEONFADEOUT	3
-#define	HUDMESSAGETYPE_FADEINOUT		4
+// HUD message types and flags.
+#define	HUDMESSAGETYPE_NORMAL			0
+#define	HUDMESSAGETYPE_FADEOUT			1
+#define	HUDMESSAGETYPE_TYPEONFADEOUT	2
+#define	HUDMESSAGETYPE_FADEINOUT		3
+
+#define HUDMESSAGETYPE_MASK				0x0000000F
+// Was this a HUD message created using ACS?
+#define HUDMESSAGE_ACS					0x00000010
+// Should we send the HUD width and height?
+#define HUDMESSAGE_SEND_HUDSIZE			0x00000020
+// Should we send the clipping rectangle?
+#define HUDMESSAGE_SEND_CLIPRECT		0x00000040
+// Should we send the name of the font used?
+#define HUDMESSAGE_SEND_FONT			0x00000080
+// Should we send the alpha?
+#define HUDMESSAGE_SEND_ALPHA			0x10000000
+// Should we not send the wrap width?
+#define HUDMESSAGE_DONTSEND_WRAP		0x08000000
 
 // Different levels of network messages.
 #define	NETMSG_LITE		0

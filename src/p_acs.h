@@ -43,6 +43,7 @@
 #include <algorithm>
 #include <iterator>
 #include "i_system.h"
+#include "sv_commands.h"
 
 #define LOCAL_SIZE				20
 #define NUM_MAPVARS				128
@@ -350,6 +351,24 @@ enum
 };
 
 enum ACSFormat { ACS_Old, ACS_Enhanced, ACS_LittleEnhanced, ACS_Unknown };
+
+// [AK] Moved all HUD message definitions here from p_acs.cpp
+// HUD message flags
+#define HUDMSG_LOG					(0x80000000)
+#define HUDMSG_COLORSTRING			(0x40000000)
+#define HUDMSG_ADDBLEND				(0x20000000)
+#define HUDMSG_ALPHA				(0x10000000)
+#define HUDMSG_NOWRAP				(0x08000000)
+
+// HUD message layers; these are not flags
+#define HUDMSG_LAYER_SHIFT			12
+#define HUDMSG_LAYER_MASK			(0x0000F000)
+// See HUDMSGLayer enumerations in sbar.h
+
+// HUD message visibility flags
+#define HUDMSG_VISIBILITY_SHIFT		16
+#define HUDMSG_VISIBILITY_MASK		(0x00070000)
+// See HUDMSG visibility enumerations in sbar.h
 
 // [BB] Moved here from p_acs.cpp
 enum
@@ -1084,6 +1103,8 @@ private:
 
 	// [BB/TP] The client needs to call DLevelScript::ReplaceTextures.
 	friend class ServerCommands::ReplaceTextures;
+	// [AK] We need to access protected variables from this class when we tell the clients to print a HUD message.
+	friend void SERVERCOMMANDS_PrintACSHUDMessage( DLevelScript *pScript, const char *pszString, float fX, float fY, LONG lType, LONG lColor, float fHoldTime, float fInTime, float fOutTime, fixed_t Alpha, LONG lID, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 };
 
 class DACSThinker : public DThinker

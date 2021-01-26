@@ -5553,119 +5553,66 @@ void ServerCommands::PrintHUDMessage::Execute()
 		return;
 
 	// [BB] We can't create the message if the font doesn't exist.
-	FFont *font = V_GetFont( fontName );
+	FFont *font = V_GetFont( fontName.IsNotEmpty() ? fontName : "SmallFont" );
 	if ( font == NULL )
 		return;
 
-	// Create the message.
-	DHUDMessage *hudMessage = new DHUDMessage( font, message,
-		x,
-		y,
-		hudWidth,
-		hudHeight,
-		(EColorRange)color,
-		holdTime );
+	DHUDMessage *hudMessage;
 
-	// Now attach the message.
-	StatusBar->AttachMessage( hudMessage, id );
-
-	// Log the message if desired.
-	if ( log )
-		CLIENT_LogHUDMessage( message, color );
-}
-
-//*****************************************************************************
-//
-void ServerCommands::PrintHUDMessageFadeOut::Execute()
-{
-	// We cannot create the message if there's no status bar to attach it to.
-	if ( StatusBar == NULL )
-		return;
-
-	// [BB] We can't create the message if the font doesn't exist.
-	FFont *font = V_GetFont( fontName );
-	if ( font == NULL )
-		return;
+	// [AK] Set the width and height of the HUD to zero if they weren't sent to us.
+	if (( type & HUDMESSAGE_SEND_HUDSIZE ) == false )
+		hudWidth = hudHeight = 0;
 
 	// Create the message.
-	DHUDMessageFadeOut *hudMessage = new DHUDMessageFadeOut( font, message,
-		x,
-		y,
-		hudWidth,
-		hudHeight,
-		(EColorRange)color,
-		holdTime,
-		fadeOutTime );
+	switch ( type & HUDMESSAGETYPE_MASK )
+	{
+		default:
+			hudMessage = new DHUDMessage( font, message, x, y, hudWidth, hudHeight, (EColorRange)color, holdTime );
+			break;
+
+		case HUDMESSAGETYPE_FADEOUT:
+			hudMessage = new DHUDMessageFadeOut( font, message, x, y, hudWidth, hudHeight, (EColorRange)color, holdTime, outTime );
+			break;
+
+		case HUDMESSAGETYPE_TYPEONFADEOUT:
+			hudMessage = new DHUDMessageTypeOnFadeOut( font, message, x, y, hudWidth, hudHeight, (EColorRange)color, inTime, holdTime, outTime );
+			break;
+
+		case HUDMESSAGETYPE_FADEINOUT:
+			hudMessage = new DHUDMessageFadeInOut( font, message, x, y, hudWidth, hudHeight, (EColorRange)color, holdTime, inTime, outTime );
+			break;
+	}
+
+	// [AK] Extra stuff to do if this is supposed to be an ACS HUD message.
+	if ( type & HUDMESSAGE_ACS )
+	{
+		// [AK] Disable the clipping rectangle if it wasn't sent to us.
+		if (( type & HUDMESSAGE_SEND_CLIPRECT ) == false )
+			clipRectLeft = clipRectTop = clipRectWidth = clipRectHeight = 0;
+
+		hudMessage->SetClipRect( clipRectLeft, clipRectTop, clipRectWidth, clipRectHeight );
+
+		// [AK] Only set the wrap width if it was sent to us.
+		if ((( type & HUDMSG_NOWRAP ) == false ) && ( wrapWidth != 0 ))
+			hudMessage->SetWrapWidth( wrapWidth );
+
+		hudMessage->SetVisibility(( type & HUDMSG_VISIBILITY_MASK ) >> HUDMSG_VISIBILITY_SHIFT );
+
+		if ( type & HUDMSG_NOWRAP ) 
+			hudMessage->SetNoWrap( true );
+
+		if ( type & HUDMSG_ALPHA ) 
+			hudMessage->SetAlpha( alpha );
+
+		if ( type & HUDMSG_ADDBLEND ) 
+			hudMessage->SetRenderStyle( STYLE_Add );
+	}
 
 	// Now attach the message.
-	StatusBar->AttachMessage( hudMessage, id );
+	StatusBar->AttachMessage( hudMessage, id, ( type & HUDMSG_LAYER_MASK ) >> HUDMSG_LAYER_SHIFT );
 
 	// Log the message if desired.
-	if ( log )
-		CLIENT_LogHUDMessage( message, color );
-}
-
-//*****************************************************************************
-//
-void ServerCommands::PrintHUDMessageFadeInOut::Execute()
-{
-	// We cannot create the message if there's no status bar to attach it to.
-	if ( StatusBar == NULL )
-		return;
-
-	// [BB] We can't create the message if the font doesn't exist.
-	FFont *font = V_GetFont( fontName );
-	if ( font == NULL )
-		return;
-
-	// Create the message.
-	DHUDMessageFadeInOut *hudMessage = new DHUDMessageFadeInOut( font, message,
-		x,
-		y,
-		hudWidth,
-		hudHeight,
-		(EColorRange)color,
-		holdTime,
-		fadeInTime,
-		fadeOutTime );
-
-	// Now attach the message.
-	StatusBar->AttachMessage( hudMessage, id );
-
-	// Log the message if desired.
-	if ( log )
-		CLIENT_LogHUDMessage( message, color );
-}
-
-//*****************************************************************************
-//
-void ServerCommands::PrintHUDMessageTypeOnFadeOut::Execute()
-{
-	// We cannot create the message if there's no status bar to attach it to.
-	if ( StatusBar == NULL )
-		return;
-
-	// [BB] We can't create the message if the font doesn't exist.
-	FFont *font = V_GetFont( fontName );
-	if ( font == NULL )
-		return;
-
-	// Create the message.
-	DHUDMessageTypeOnFadeOut *hudMessage = new DHUDMessageTypeOnFadeOut( font, message,
-		x,
-		y,
-		hudWidth,
-		hudHeight,
-		(EColorRange)color,
-		typeOnTime,
-		holdTime,
-		fadeOutTime );
-
-	// Now attach the message.
-	StatusBar->AttachMessage( hudMessage, id );
-
-	// Log the message if desired.
-	if ( log )
+	if ( type & HUDMSG_LOG ) 
 		CLIENT_LogHUDMessage( message, color );
 }
 
