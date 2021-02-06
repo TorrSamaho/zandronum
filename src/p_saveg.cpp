@@ -552,7 +552,11 @@ void extsector_t::Serialize(FArchive &arc)
 FArchive &operator<< (FArchive &arc, side_t::part &p)
 {
 	arc << p.xoffset << p.yoffset << p.interpolation << p.texture 
-		<< p.xscale << p.yscale;// << p.Light;
+		<< p.xscale << p.yscale 
+		
+		// [AK] Store the saved offsets, scale, and texture too.
+		<< p.SavedXOffset << p.SavedYOffset
+		<< p.SavedTexture << p.SavedXScale << p.SavedYScale; // << p.Light;
 	return arc;
 }
 

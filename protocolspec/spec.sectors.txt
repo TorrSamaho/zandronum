@@ -222,6 +222,7 @@ Command SetLineTextureOffset
 EndCommand
 
 Command SetLineTextureOffsetByID
+	ExtendedCommand
 	UShort lineID
 	Fixed XOffset
 	Fixed YOffset
@@ -238,6 +239,7 @@ Command SetLineTextureScale
 EndCommand
 
 Command SetLineTextureScaleByID
+	ExtendedCommand
 	UShort lineID
 	Fixed XScale
 	Fixed YScale
