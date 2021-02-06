@@ -695,10 +695,10 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 						}
 						else
 						{
-							SERVERCOMMANDS_PrintHUDMessage( szString, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_WHITE, 3.0f, NULL, 2.0f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
+							SERVERCOMMANDS_PrintHUDMessage( szString, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_WHITE, 3.0f, 0.0f, 2.0f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
 							szString[0] = 0;
-							SERVERCOMMANDS_PrintHUDMessage( szString, 0.0f, 0.0f, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_WHITE, 3.0f, NULL, 2.0f, "BigFont", MAKE_ID( 'F', 'R', 'A', 'G' ) );
-							SERVERCOMMANDS_PrintHUDMessage( szString, 0.0f, 0.0f, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_WHITE, 3.0f, NULL, 2.0f, "BigFont", MAKE_ID( 'P', 'L', 'A', 'C' ) );
+							SERVERCOMMANDS_PrintHUDMessage( szString, 0.0f, 0.0f, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_WHITE, 3.0f, 0.0f, 2.0f, "BigFont", MAKE_ID( 'F', 'R', 'A', 'G' ) );
+							SERVERCOMMANDS_PrintHUDMessage( szString, 0.0f, 0.0f, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_WHITE, 3.0f, 0.0f, 2.0f, "BigFont", MAKE_ID( 'P', 'L', 'A', 'C' ) );
 						}
 
 						GAME_SetEndLevelDelay( 5 * TICRATE );
@@ -2324,7 +2324,7 @@ void PLAYER_GivePossessionPoint( player_t *pPlayer )
 			}
 			else
 			{
-				SERVERCOMMANDS_PrintHUDMessage( szString, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, NULL, 2.0f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
+				SERVERCOMMANDS_PrintHUDMessage( szString, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, 0.0f, 2.0f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
 			}
 
 			// End the level after five seconds.
@@ -2356,7 +2356,7 @@ void PLAYER_GivePossessionPoint( player_t *pPlayer )
 			}
 			else
 			{
-				SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, 0.375f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, NULL, 2.0f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
+				SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, 0.375f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, 0.0f, 2.0f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
 			}
 
 			// End the level after five seconds.

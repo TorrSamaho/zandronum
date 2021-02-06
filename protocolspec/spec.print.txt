@@ -16,7 +16,7 @@ Command PrintHUDMessage
 	String message
 	Float x
 	Float y
-	Long type
+	Short type
 	Byte color
 	Float holdTime
 	Long id
@@ -48,7 +48,7 @@ Command PrintHUDMessage
 	EndIf
 
 	# [AK] Wrap width, for ACS only.
-	If((type & HUDMESSAGE_ACS) && ((type & HUDMESSAGE_DONTSEND_WRAP) == false))
+	If((type & HUDMESSAGE_ACS) && (type & HUDMESSAGE_SEND_WRAPWIDTH))
 		Short wrapWidth
 	EndIf
 
@@ -58,7 +58,7 @@ Command PrintHUDMessage
 	EndIf
 
 	# [AK] Alpha, for ACS only.
-	If((type & HUDMESSAGE_ACS) && (type & HUDMESSAGE_SEND_ALPHA))
+	If((type & HUDMESSAGE_ACS) && (type & HUDMESSAGE_NET_ALPHA))
 		Fixed alpha
 	EndIf
 EndCommand

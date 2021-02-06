@@ -148,25 +148,39 @@ enum PLAYERSTATE_e
 	STATE_PLAYER_ATTACK_ALTFIRE,
 };
 
-// HUD message types and flags.
+// [AK] HUD message types and flags.
 #define	HUDMESSAGETYPE_NORMAL			0
 #define	HUDMESSAGETYPE_FADEOUT			1
 #define	HUDMESSAGETYPE_TYPEONFADEOUT	2
 #define	HUDMESSAGETYPE_FADEINOUT		3
 
-#define HUDMESSAGETYPE_MASK				0x0000000F
+#define HUDMESSAGETYPE_MASK				0x00000003
 // Was this a HUD message created using ACS?
-#define HUDMESSAGE_ACS					0x00000010
+#define HUDMESSAGE_ACS					0x00000004
 // Should we send the HUD width and height?
-#define HUDMESSAGE_SEND_HUDSIZE			0x00000020
+#define HUDMESSAGE_SEND_HUDSIZE			0x00000008
 // Should we send the clipping rectangle?
-#define HUDMESSAGE_SEND_CLIPRECT		0x00000040
+#define HUDMESSAGE_SEND_CLIPRECT		0x00000010
+// Should we send the wrap width?
+#define HUDMESSAGE_SEND_WRAPWIDTH		0x00000020
 // Should we send the name of the font used?
-#define HUDMESSAGE_SEND_FONT			0x00000080
-// Should we send the alpha?
-#define HUDMESSAGE_SEND_ALPHA			0x10000000
-// Should we not send the wrap width?
-#define HUDMESSAGE_DONTSEND_WRAP		0x08000000
+#define HUDMESSAGE_SEND_FONT			0x00000040
+
+// [AK] These are redefines of some the ACS HUD message flags. This is so all the flags
+// can be stored into a single short instead of sending a long.
+#define HUDMESSAGE_NET_ALPHA			0x00000080
+#define HUDMESSAGE_NET_NOWRAP			0x00000100
+#define HUDMESSAGE_NET_LOG				0x00000200
+#define HUDMESSAGE_NET_ADDBLEND			0x00000400
+
+// [AK] These are redefines of the ACS HUD message layer and visibility flags. This way,
+// everything can fit into a single short instead of sending a long.
+// Note that only two layer flags are sent, not three. This is because HUDMSG_LAYER_OVERHUD
+// is default and standard behaviour, and doesn't do anything, so we don't need to send it.
+#define HUDMESSAGE_NET_LAYERSHIFT		11
+#define HUDMESSAGE_NET_LAYERMASK		0x00001800
+#define HUDMESSAGE_NET_VISIBLESHIFT		13
+#define HUDMESSAGE_NET_VISIBLEMASK		0x0000E000
 
 // Different levels of network messages.
 #define	NETMSG_LITE		0

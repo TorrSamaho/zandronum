@@ -560,7 +560,7 @@ void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPil
 	// If necessary, send it to clients.
 	else
 	{
-		SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_BLUE, 3.0f, NULL, 0.5f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
+		SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_BLUE, 3.0f, 0.0f, 0.5f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
 	}
 
 	// Create the "scored by / assisted by" message.
@@ -591,7 +591,7 @@ void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPil
 	}
 	// If necessary, send it to clients.
 	else
-		SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_BLUE, 3.0f, NULL, 0.5f, "SmallFont", MAKE_ID( 'S', 'U', 'B', 'S' ) );
+		SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_BLUE, 3.0f, 0.0f, 0.5f, "SmallFont", MAKE_ID( 'S', 'U', 'B', 'S' ) );
 
 	// Give his team a point.
 	TEAM_SetScore( pPlayer->ulTeam, TEAM_GetScore( pPlayer->ulTeam ) + ulNumPoints, true );
@@ -703,7 +703,7 @@ void TEAM_DisplayNeedToReturnSkullMessage( player_t *pPlayer )
 	// If necessary, send it to clients.
 	else
 	{
-		SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_RED, 1.0f, NULL, 0.25f, "SmallFont", MAKE_ID( 'C', 'N', 'T', 'R' ), ULONG( pPlayer - players ), SVCF_ONLYTHISCLIENT );
+		SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_RED, 1.0f, 0.0f, 0.25f, "SmallFont", MAKE_ID( 'C', 'N', 'T', 'R' ), ULONG( pPlayer - players ), SVCF_ONLYTHISCLIENT );
 	}
 }
 
@@ -797,7 +797,7 @@ void TEAM_DoWinSequence( ULONG ulTeamIdx )
 	}
 	else
 	{
-		SERVERCOMMANDS_PrintHUDMessage( szString, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, NULL, 0.25f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
+		SERVERCOMMANDS_PrintHUDMessage( szString, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, 0.0f, 0.25f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
 	}
 }
 
@@ -868,7 +868,7 @@ void TEAM_TimeExpired( void )
 				}
 				else
 				{
-					SERVERCOMMANDS_PrintHUDMessage( szString, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, NULL, 2.0f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
+					SERVERCOMMANDS_PrintHUDMessage( szString, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, 0.0f, 2.0f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
 				}
 			}
 

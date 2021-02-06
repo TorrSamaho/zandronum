@@ -599,7 +599,7 @@ void LASTMANSTANDING_TimeExpired( void )
 			}
 			else
 			{
-				SERVERCOMMANDS_PrintHUDMessage( szString, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, NULL, 2.0f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
+				SERVERCOMMANDS_PrintHUDMessage( szString, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, 0.0f, 2.0f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
 			}
 		}
 

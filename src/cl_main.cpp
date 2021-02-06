@@ -5593,26 +5593,26 @@ void ServerCommands::PrintHUDMessage::Execute()
 		hudMessage->SetClipRect( clipRectLeft, clipRectTop, clipRectWidth, clipRectHeight );
 
 		// [AK] Only set the wrap width if it was sent to us.
-		if ((( type & HUDMSG_NOWRAP ) == false ) && ( wrapWidth != 0 ))
+		if (( type & HUDMESSAGE_SEND_WRAPWIDTH ) && ( wrapWidth != 0 ))
 			hudMessage->SetWrapWidth( wrapWidth );
 
-		hudMessage->SetVisibility(( type & HUDMSG_VISIBILITY_MASK ) >> HUDMSG_VISIBILITY_SHIFT );
+		hudMessage->SetVisibility(( type & HUDMESSAGE_NET_VISIBLEMASK ) >> HUDMESSAGE_NET_VISIBLESHIFT );
 
-		if ( type & HUDMSG_NOWRAP ) 
+		if ( type & HUDMESSAGE_NET_NOWRAP ) 
 			hudMessage->SetNoWrap( true );
 
-		if ( type & HUDMSG_ALPHA ) 
+		if ( type & HUDMESSAGE_NET_ALPHA ) 
 			hudMessage->SetAlpha( alpha );
 
-		if ( type & HUDMSG_ADDBLEND ) 
+		if ( type & HUDMESSAGE_NET_ADDBLEND ) 
 			hudMessage->SetRenderStyle( STYLE_Add );
 	}
 
 	// Now attach the message.
-	StatusBar->AttachMessage( hudMessage, id, ( type & HUDMSG_LAYER_MASK ) >> HUDMSG_LAYER_SHIFT );
+	StatusBar->AttachMessage( hudMessage, id, ( type & HUDMESSAGE_NET_LAYERMASK ) >> HUDMESSAGE_NET_LAYERSHIFT );
 
 	// Log the message if desired.
-	if ( type & HUDMSG_LOG ) 
+	if ( type & HUDMESSAGE_NET_LOG ) 
 		CLIENT_LogHUDMessage( message, color );
 }
 

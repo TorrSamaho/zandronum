@@ -806,9 +806,9 @@ void possession_DisplayScoreInfo( ULONG ulPlayer )
 	}
 	else
 	{
-		SERVERCOMMANDS_PrintHUDMessage( szString, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, NULL, 2.0f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
+		SERVERCOMMANDS_PrintHUDMessage( szString, 160.4f, 75.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, 0.0f, 2.0f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
 		if ( teampossession && ( players[ulPlayer].bOnTeam ))
-			SERVERCOMMANDS_PrintHUDMessage( szScorer, 160.4f, 90.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, NULL, 2.0f, "SmallFont", MAKE_ID( 'S', 'U', 'B', 'S' ) );
+			SERVERCOMMANDS_PrintHUDMessage( szScorer, 160.4f, 90.0f, 320, 200, HUDMESSAGETYPE_FADEOUT, CR_RED, 3.0f, 0.0f, 2.0f, "SmallFont", MAKE_ID( 'S', 'U', 'B', 'S' ) );
 	}
 }
 
