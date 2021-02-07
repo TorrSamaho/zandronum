@@ -1121,10 +1121,18 @@ void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString
 	pszString = cleanedChatString.GetChars();
 
 	// [AK] Check if we're sending a private message.
-	if( ulMode == CHATMODE_PRIVATE_SEND )
+	if ( ulMode == CHATMODE_PRIVATE_SEND )
+	{
 		SERVERCOMMANDS_PrivateSay( ulPlayer, ulReceiver, pszString, bFordidChatToPlayers );
+	}
 	else
+	{
 		SERVERCOMMANDS_PlayerSay( ulPlayer, pszString, ulMode, bFordidChatToPlayers );
+		CHAT_AddChatMessage( ulPlayer, pszString );
+
+		// [AK] Trigger an event script indicating that a chat message was received.
+		GAMEMODE_HandleEvent( GAMEEVENT_CHAT, 0, ulPlayer != MAXPLAYERS ? ulPlayer : -1, ulMode - CHATMODE_GLOBAL );
+	}
 
 	// [AK] Don't log private messages that aren't sent to/from the server.
 	if (( ulMode == CHATMODE_PRIVATE_SEND ) && ( ulPlayer != MAXPLAYERS ) && ( ulReceiver != MAXPLAYERS ))
@@ -2874,6 +2882,9 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo )
 
 	// [RK] Disconnectd players need their vote removed/cancelled.
 	CALLVOTE_DisconnectedVoter( ulClient );
+
+	// [AK] Clear all the saved chat messages this player said.
+	CHAT_ClearChatMessages( ulClient );
 
 	// [BB] Morphed players need to be unmorphed before disconnecting.
 	if (players[ulClient].morphTics)

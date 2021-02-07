@@ -106,6 +106,7 @@
 #include "gi.h"
 #include "survival.h"
 #include "network/nettraffic.h"
+#include "chat.h"
 #include <set> // [CK] For CCMD listmusic
 
 #include "g_hub.h"
@@ -428,6 +429,10 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 
 	// [BC] Clear out the called vote if one is taking place.
 	CALLVOTE_ClearVote( );
+
+	// [AK] Clear out the saved chat messages from all players and the server.
+	for ( ULONG ulPlayer = 0; ulPlayer <= MAXPLAYERS; ulPlayer++ )
+		CHAT_ClearChatMessages( ulPlayer );
 
 	if (StatusBar != NULL)
 	{

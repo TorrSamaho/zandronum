@@ -88,6 +88,7 @@
 #include "p_trace.h"
 #include "sbar.h"
 #include "doomerrors.h"
+#include "chat.h"
 
 //*****************************************************************************
 //	VARIABLES
@@ -590,6 +591,9 @@ void BOTS_RemoveBot( ULONG ulPlayerIdx, bool bExitMsg )
 		else
 			SERVER_Printf( "%s left the game.\n", players[ulPlayerIdx].userinfo.GetName() );
 	}
+
+	// [AK] Clear all the saved chat messages this bot said.
+	CHAT_ClearChatMessages( ulPlayerIdx );
 
 	// [BB] Morphed bots need to be unmorphed before disconnecting.
 	if (players[ulPlayerIdx].morphTics)

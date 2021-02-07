@@ -105,6 +105,7 @@ typedef enum
 	GAMEEVENT_ROUND_STARTS,
 	GAMEEVENT_ROUND_ENDS,
 	GAMEEVENT_ROUND_ABORTED,
+	GAMEEVENT_CHAT,
 } GAMEEVENT_e;
 
 //*****************************************************************************

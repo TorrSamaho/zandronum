@@ -134,6 +134,9 @@ static	ULONG	g_ulChatPlayer = 0;
 // [AK] A ticker that's used for controlling the blink of the cursor.
 static	ULONG	g_ulChatTicker = 0;
 
+// [AK] A collection of previously sent chat message from each player plus the server.
+static	RingBuffer<FString, MAX_SAVED_MESSAGES> g_SavedChatMessages[MAXPLAYERS + 1];
+
 //*****************************************************************************
 //	CONSOLE VARIABLES
 
@@ -851,6 +854,28 @@ ULONG CHAT_GetChatMode( void )
 
 //*****************************************************************************
 //
+const char *CHAT_GetChatMessage( ULONG ulPlayer, ULONG ulOffset )
+{
+	FString message = g_SavedChatMessages[ulPlayer].getOldestEntry( ulOffset );
+	return ( message.GetChars( ));
+}
+
+//*****************************************************************************
+//
+void CHAT_AddChatMessage( ULONG ulPlayer, const char *pszString )
+{
+	g_SavedChatMessages[ulPlayer].put( pszString );
+}
+
+//*****************************************************************************
+//
+void CHAT_ClearChatMessages( ULONG ulPlayer )
+{
+	g_SavedChatMessages[ulPlayer].clear();
+}
+
+//*****************************************************************************
+//
 void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 {
 	ULONG		ulChatLevel = 0;
@@ -980,13 +1005,18 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 			S_Sound( CHAN_VOICE | CHAN_UI, "misc/chat", 1, ATTN_NONE );
 	}
 
-	BOTCMD_SetLastChatString( pszString );
-	BOTCMD_SetLastChatPlayer( PLAYER_IsValidPlayer( ulPlayer ) ? players[ulPlayer].userinfo.GetName() : "" );
-
+	// [AK] Only save chat messages for non-private chat messages.
+	if (( ulMode != CHATMODE_PRIVATE_SEND ) && ( ulMode != CHATMODE_PRIVATE_RECEIVE ))
 	{
-		ULONG	ulIdx;
+		g_SavedChatMessages[ulPlayer].put( pszString );
 
-		for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+		// [AK] Trigger an event script indicating that a chat message was received.
+		GAMEMODE_HandleEvent( GAMEEVENT_CHAT, 0, ulPlayer != MAXPLAYERS ? ulPlayer : -1, ulMode - CHATMODE_GLOBAL );
+
+		BOTCMD_SetLastChatString( pszString );
+		BOTCMD_SetLastChatPlayer( PLAYER_IsValidPlayer( ulPlayer ) ? players[ulPlayer].userinfo.GetName() : "" );
+
+		for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
 		{
 			if ( playeringame[ulIdx] == false )
 				continue;

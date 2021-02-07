@@ -4452,6 +4452,9 @@ void ServerCommands::DisconnectPlayer::Execute()
 
 	playeringame[player - players] = false;
 
+	// [AK] Clear all the saved chat messages this player said.
+	CHAT_ClearChatMessages( player - players );
+
 	// Zero out all the player information.
 	PLAYER_ResetPlayerData( player );
 

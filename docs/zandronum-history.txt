@@ -32,6 +32,7 @@
 +	- Added new SBARINFO commands: IfSpectator [not] [dead] and IfSpying [not] that execute a sub block if the local player is (not) a (dead) spectator, or (not) spying on another player respectively. [Kaminsky]
 +	- Added ACS functions: ExecuteClientScript and NamedExecuteClientScript which let the server execute clientside scripts for only one client as opposed to everyone. This allows net traffic to be greatly optimized, such that the server only sends out commands to the client(s) that matter. [Kaminsky]
 +	- Added ACS functions: SendNetworkString and NamedSendNetworkString, allowing strings to be sent from the server to the client(s) and vice versa, which are passed as the first argument of script to also be executed. Note that sending strings from client to server works just like puking scripts and there's no guarantee they are sent to the server successfully. [Kaminsky]
++	- Added a new EVENT script type: GAMEEVENT_CHAT that triggers when a non-private chat message is sent. Use this in conjunction with the ACS function: GetChatMessage(int player, int offset) to get the last chat message received by the player (or the server if -1 is passed). [Kaminsky]
 -	- Fixed: Bots tries to jump to reach item when sv_nojump is true. [sleep]
 -	- Fixed: ACS function SetSkyScrollSpeed didn't work online. [Edward-san]
 -	- Fixed: color codes in callvote reasons weren't terminated properly. [Dusk]

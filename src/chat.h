@@ -59,6 +59,9 @@
 // Maximum size of the chat buffer.
 #define	MAX_CHATBUFFER_LENGTH		128
 
+// [AK] Maximum saved chat messages for each player.
+#define MAX_SAVED_MESSAGES		5
+
 //*****************************************************************************
 typedef enum
 {
@@ -75,13 +78,16 @@ typedef enum
 //*****************************************************************************
 //	PROTOTYPES
 
-void	CHAT_Construct( void );
-void	CHAT_Tick( void );
-bool	CHAT_Input( event_t *pEvent );
-void	CHAT_Render( void );
+void		CHAT_Construct( void );
+void		CHAT_Tick( void );
+bool		CHAT_Input( event_t *pEvent );
+void		CHAT_Render( void );
 
-ULONG	CHAT_GetChatMode( void );
-void	CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString );
+ULONG		CHAT_GetChatMode( void );
+const char	*CHAT_GetChatMessage( ULONG ulPlayer, ULONG ulOffset ); // [AK]
+void		CHAT_AddChatMessage( ULONG ulPlayer, const char *pszString ); // [AK]
+void		CHAT_ClearChatMessages( ULONG ulPlayer ); // [AK]
+void		CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString );
 
 //*****************************************************************************
 //  EXTERNAL CONSOLE VARIABLES

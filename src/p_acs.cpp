@@ -89,6 +89,7 @@
 #include "za_database.h"
 #include "cl_commands.h"
 #include "cl_main.h"
+#include "chat.h"
 
 #include "g_shared/a_pickups.h"
 
@@ -5354,6 +5355,7 @@ enum EACSFunctions
 	ACSF_NamedExecuteClientScript,
 	ACSF_SendNetworkString,
 	ACSF_NamedSendNetworkString,
+	ACSF_GetChatMessage,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -7616,6 +7618,20 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				const int client = argCount > 2 ? args[2] : -1;
 
 				return SendNetworkString( activeBehavior, activator, -scriptName, args[1], client );
+			}
+
+		case ACSF_GetChatMessage:
+			{
+				const int offset = ( MAX_SAVED_MESSAGES - 1 ) - clamp<int>( args[1], 0, MAX_SAVED_MESSAGES - 1 );
+
+				// [AK] Get the chat message from the server via RCON.
+				if ( args[0] < 0 )
+					return GlobalACSStrings.AddString( CHAT_GetChatMessage( MAXPLAYERS, offset ) );
+				// [AK] Only get chat messages from valid players.
+				else if ( PLAYER_IsValidPlayer( args[0] ) )
+					return GlobalACSStrings.AddString( CHAT_GetChatMessage( args[0], offset ) );
+
+				return GlobalACSStrings.AddString( "" );
 			}
 
 		case ACSF_GetActorFloorTexture:
