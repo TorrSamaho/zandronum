@@ -856,8 +856,7 @@ ULONG CHAT_GetChatMode( void )
 //
 const char *CHAT_GetChatMessage( ULONG ulPlayer, ULONG ulOffset )
 {
-	FString message = g_SavedChatMessages[ulPlayer].getOldestEntry( ulOffset );
-	return ( message.GetChars( ));
+	return ( g_SavedChatMessages[ulPlayer].getOldestEntry( ulOffset ).GetChars( ));
 }
 
 //*****************************************************************************
