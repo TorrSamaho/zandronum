@@ -557,6 +557,10 @@ public:
 	{
 		clear();
 	}
+	~RingBuffer ( )
+	{
+		clear();
+	}
 	void clear ( )
 	{
 		if ( _data != NULL )
