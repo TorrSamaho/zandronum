@@ -559,6 +559,9 @@ public:
 	}
 	void clear ( )
 	{
+		if ( _data != NULL )
+			delete[] _data;
+
 		_data = new DataType[Length];
 		_position = 0;
 	}
