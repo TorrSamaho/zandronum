@@ -431,8 +431,11 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 	CALLVOTE_ClearVote( );
 
 	// [AK] Clear out the saved chat messages from all players and the server.
-	for ( ULONG ulPlayer = 0; ulPlayer <= MAXPLAYERS; ulPlayer++ )
-		CHAT_ClearChatMessages( ulPlayer );
+	if ( NETWORK_InClientMode( ) == false )
+	{
+		for ( ULONG ulPlayer = 0; ulPlayer <= MAXPLAYERS; ulPlayer++ )
+			CHAT_ClearChatMessages( ulPlayer );
+	}
 
 	if (StatusBar != NULL)
 	{

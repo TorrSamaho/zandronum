@@ -559,7 +559,7 @@ public:
 	}
 	~RingBuffer ( )
 	{
-		clear();
+		delete[] _data;
 	}
 	void clear ( )
 	{

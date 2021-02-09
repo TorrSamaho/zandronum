@@ -393,7 +393,13 @@ void CLIENT_ClearAllPlayers( void )
 
 		// Zero out all the player information.
 		PLAYER_ResetPlayerData( &players[ulIdx] );
+
+		// [AK] Clear out saved chat messages from the players.
+		CHAT_ClearChatMessages( ulIdx );
 	}
+
+	// [AK] Also clear out saved chat messages from the server.
+	CHAT_ClearChatMessages( MAXPLAYERS );
 }
 
 //*****************************************************************************
