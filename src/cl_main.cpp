@@ -2272,6 +2272,18 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 					g_HasRCONAccess = false;
 				}
 				break;
+			
+				case SVC2_SETSOUNDCLASS:
+				{
+					const ULONG ulPlayer = pByteStream->ReadByte();
+					const char *soundclass = pByteStream->ReadString();
+
+					if (PLAYER_IsValidPlayerWithMo(ulPlayer) == false)
+						return;
+
+					players[ulPlayer].mo->SoundClass = soundclass;
+				}
+				break;
 
 			default:
 				sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", static_cast<int> (lExtCommand), static_cast<int> (g_lLastCmd) );

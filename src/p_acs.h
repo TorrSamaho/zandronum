@@ -415,6 +415,7 @@ enum
 	APROP_ViewHeight	= 39,
 	APROP_AttackZOffset	= 40,
 	APROP_StencilColor	= 41,
+	APROP_SoundClass	= 47, //Added by Shiny Metagross
 };	
 
 // [Dusk] Enumeration for GetTeamProperty

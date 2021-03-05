@@ -4745,6 +4745,27 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 		actor->SetShade(value);
 		break;
 
+	case APROP_SoundClass:
+		if (actor->IsKindOf(RUNTIME_CLASS(APlayerPawn)))
+		{
+			APlayerPawn *playerActor = static_cast<APlayerPawn *>(actor);
+			// [AK] Save the original value.
+			oldValue = (int)playerActor->SoundClass.GetChars();
+
+			playerActor->SoundClass = FBehavior::StaticLookupString(value);
+
+			// [BB] If we're the server, tell clients to update this actor property.
+			// Note: Don't do this if the actor is a voodoo doll, the client would
+			// alter the value of the real player body in this case.
+			// [AK] Only bother the clients if the sound class has actually changed.
+			if ((NETWORK_GetState() == NETSTATE_SERVER) && actor->player &&
+				(actor->player->mo == actor) && (oldValue != (int)playerActor->SoundClass.GetChars()))
+				{
+					SERVERCOMMANDS_SetSoundClass(actor->player - players);
+				}
+		}
+		break;
+
 	default:
 		// do nothing.
 		break;
@@ -4843,7 +4864,13 @@ int DLevelScript::GetActorProperty (int tid, int property)
 	case APROP_Species:		return GlobalACSStrings.AddString(actor->GetSpecies());
 	case APROP_NameTag:		return GlobalACSStrings.AddString(actor->GetTag());
 	case APROP_StencilColor:return actor->fillcolor;
-
+	case APROP_SoundClass:
+							if (actor->IsKindOf(RUNTIME_CLASS(APlayerPawn)))
+							{
+								//return (int)static_cast<APlayerPawn *>(actor)->SoundClass;
+								return static_cast<APlayerPawn *>(actor)->SoundClass.IsEmpty() ? GlobalACSStrings.AddString(static_cast<APlayerPawn *>(actor)->GetSoundClass()) : GlobalACSStrings.AddString(static_cast<APlayerPawn *>(actor)->SoundClass);
+							}
+	
 	default:				return 0;
 	}
 }
@@ -4913,6 +4940,7 @@ int DLevelScript::CheckActorProperty (int tid, int property, int value)
 		case APROP_ActiveSound:	string = actor->ActiveSound; break; 
 		case APROP_Species:		string = actor->GetSpecies(); break;
 		case APROP_NameTag:		string = actor->GetTag(); break;
+		case APROP_SoundClass:  string = static_cast<APlayerPawn *>(actor)->SoundClass.IsEmpty() ? static_cast<APlayerPawn *>(actor)->GetSoundClass() : static_cast<APlayerPawn *>(actor)->SoundClass; break;
 	}
 	if (string == NULL) string = "";
 	return (!stricmp(string, FBehavior::StaticLookupString(value)));

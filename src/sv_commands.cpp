@@ -3849,6 +3849,19 @@ void SERVERCOMMANDS_SetThingSpecies( AActor* mobj, ULONG ulPlayerExtra, ServerCo
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetSoundClass(ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags)
+{
+	if (PLAYER_IsValidPlayerWithMo(ulPlayer) == false)
+		return;
+
+	NetCommand command(SVC2_SETSOUNDCLASS);
+	command.addByte(ulPlayer);
+	command.addString(players[ulPlayer].mo->SoundClass);
+	command.sendCommandToClients(ulPlayerExtra, flags);
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_UpdateThingScaleNotAtDefault( AActor* pActor, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	// [BB] Sanity check.
