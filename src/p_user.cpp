@@ -719,7 +719,9 @@ void APlayerPawn::Serialize (FArchive &arc)
 		<< MorphWeapon
 		<< DamageFade
 		<< PlayerFlags
-		<< FlechetteType;
+		<< FlechetteType
+		<< SoundClass;
+
 	if (SaveVersion < 3829)
 	{
 		GruntSpeed = 12*FRACUNIT;
