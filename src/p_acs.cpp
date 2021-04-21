@@ -4753,8 +4753,6 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 			oldValue = (int)playerActor->SoundClass.GetChars();
 
 			playerActor->SoundClass = FBehavior::StaticLookupString(value);
-			if (playerActor->SoundClass.IsEmpty() || !strcmp(playerActor->SoundClass, playerActor->GetSoundClass()))
-				playerActor->SoundClass = "";
 
 			// [BB] If we're the server, tell clients to update this actor property.
 			// Note: Don't do this if the actor is a voodoo doll, the client would
@@ -4870,7 +4868,7 @@ int DLevelScript::GetActorProperty (int tid, int property)
 							if (actor->IsKindOf(RUNTIME_CLASS(APlayerPawn)))
 							{
 								APlayerPawn *playerActor = static_cast<APlayerPawn *>(actor);
-								return playerActor->SoundClass.IsEmpty() ? GlobalACSStrings.AddString(playerActor->GetSoundClass()) : GlobalACSStrings.AddString(playerActor->SoundClass);
+								return GlobalACSStrings.AddString(playerActor->GetSoundClass());
 							}
 	
 	default:				return 0;
@@ -4919,7 +4917,6 @@ int DLevelScript::CheckActorProperty (int tid, int property, int value)
 		case APROP_ViewHeight:
 		case APROP_AttackZOffset:
 		case APROP_StencilColor:
-		case APROP_SoundClass: //Because of how this property works, there's no real good reason not to run it here
 			return (GetActorProperty(tid, property) == value);
 
 		// Boolean values need to compare to a binary version of value
@@ -4943,6 +4940,7 @@ int DLevelScript::CheckActorProperty (int tid, int property, int value)
 		case APROP_ActiveSound:	string = actor->ActiveSound; break; 
 		case APROP_Species:		string = actor->GetSpecies(); break;
 		case APROP_NameTag:		string = actor->GetTag(); break;
+		case APROP_SoundClass:  string = static_cast<APlayerPawn *>(actor)->GetSoundClass();
 	}
 	if (string == NULL) string = "";
 	return (!stricmp(string, FBehavior::StaticLookupString(value)));

@@ -2412,6 +2412,9 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		// [TP] Account name.
 		if ( g_aClients[ulIdx].WantHideAccount == false )
 			SERVERCOMMANDS_SetPlayerAccountName( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
+
+		// [ShinyMetagross] It's possible that the SoundClass property was changed dynamically with ACS, so send it.
+		SERVERCOMMANDS_SetSoundClass(ulIdx, ulClient, SVCF_ONLYTHISCLIENT);
 	}
 
 	// Server may have already picked a team for the incoming player. If so, tell him!

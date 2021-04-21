@@ -1814,7 +1814,7 @@ int S_FindSkinnedSound (AActor *actor, FSoundID refid)
 	int gender = GENDER_MALE;
 	if (actor != NULL && actor->IsKindOf(RUNTIME_CLASS(APlayerPawn)))
 	{
-		static_cast<APlayerPawn *>(actor)->SoundClass.IsEmpty() ? pclass = static_cast<APlayerPawn*>(actor)->GetSoundClass() : pclass = static_cast<APlayerPawn*>(actor)->SoundClass;
+		pclass = static_cast<APlayerPawn*>(actor)->GetSoundClass();
 		if (actor->player != NULL) gender = actor->player->userinfo.GetGender();
 	}
 	else
