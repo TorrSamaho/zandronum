@@ -152,6 +152,9 @@ static GeoIP * g_GeoIPDB = NULL;
 // [BB]
 extern int restart;
 
+// [AK] Did we need to authenticate a lump that has a duplicate?
+static bool g_bDuplicateLumpAuthenticated = false;
+
 // [TP] Named ACS scripts share the name pool with all other names in the engine, which means named script numbers may
 // differ wildly between systems, e.g. if the server and client have different vid_renderer values the names will
 // already be off. So we create a special index of script names here.
@@ -165,6 +168,7 @@ static	void			network_Error( const char *pszError );
 static	SOCKET			network_AllocateSocket( void );
 static	bool			network_BindSocketToPort( SOCKET Socket, ULONG ulInAddr, USHORT usPort, bool bReUse );
 static	bool			network_GenerateLumpMD5HashAndWarnIfNeeded( const int LumpNum, const char *LumpName, FString &MD5Hash );
+static	void			network_CheckIfDuplicateLump( const int LumpNum ); // [AK]
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -359,20 +363,6 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 
 	for ( unsigned int i = 0; i < lumpsToAuthenticate.size(); i++ )
 	{
-		// [AK] Check if we're authenticating any duplicate lumps on the server.
-		if ( NETWORK_GetState() == NETSTATE_SERVER )
-		{
-			for ( unsigned int j = 0; j < DuplicateLumps.Size(); j++ )
-			{
-				// [AK] If there's a match, throw a fatal error instead.
-				if ( stricmp( DuplicateLumps[j], lumpsToAuthenticate[i].c_str() ) == 0 )
-				{
-					I_Error( "Attempt to authenticate duplicate protected lump '%s'.\n", lumpsToAuthenticate[i].c_str() );
-					return;
-				}
-			}
-		}
-
 		switch ( lumpsToAuthenticateMode[i] ){
 			case LAST_LUMP:
 				int lump;
@@ -387,6 +377,9 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 				}
 				if ( !network_GenerateLumpMD5HashAndWarnIfNeeded( lump, lumpsToAuthenticate[i].c_str(), checksum ) )
 					noProtectedLumpsAutoloaded = false;
+
+				// [AK] Check if we're trying to authenticate a duplicate lump.
+				network_CheckIfDuplicateLump( lump );
 
 				// [TP] The wad that had this lump is no longer optional.
 				Wads.LumpIsMandatory( lump );
@@ -418,6 +411,9 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 					if ( !network_GenerateLumpMD5HashAndWarnIfNeeded( workingLump, lumpsToAuthenticate[i].c_str(), checksum ) )
 						noProtectedLumpsAutoloaded = false;
 
+					// [AK] Check if we're trying to authenticate a duplicate lump.
+					network_CheckIfDuplicateLump( workingLump );
+
 					// [BB] To make Doom and Freedoom network compatible, we need to ignore its DEHACKED lump.
 					// Since this lump only changes some strings, this should cause no problems.
 					if ( ( stricmp ( lumpsToAuthenticate[i].c_str(), "DEHACKED" ) == 0 )
@@ -438,6 +434,22 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 		}
 	}
 	CMD5Checksum::GetMD5( reinterpret_cast<const BYTE *>(longChecksum.GetChars()), longChecksum.Len(), g_lumpsAuthenticationChecksum );
+
+	// [AK] If we needed to authenticate any duplicate lumps, either throw a fatal error if we're
+	// the server, or just print a warning message that urges modders to fix them.
+	if ( g_bDuplicateLumpAuthenticated )
+	{
+		FString message = "There are files containing duplicate lumps that require authentication. ";
+
+		if ( NETWORK_GetState() == NETSTATE_SERVER )
+		{
+			message.AppendFormat( "Please resolve these issues before hosting again.\n" );
+			I_FatalError( message );
+		}
+
+		message.AppendFormat( "These issues must be resolved if you plan on hosting these files in online games.\n" );
+		Printf( TEXTCOLOR_RED "%s", message.GetChars() );
+	}
 
 	// [BB] Warn the user about problematic auto-loaded files.
 	if ( noProtectedLumpsAutoloaded == false )
@@ -1002,23 +1014,8 @@ void NETWORK_AddLumpForAuthentication( const LONG LumpNumber )
 	if ( LumpNumber == -1 )
 		return;
 
-	// [AK] Check if we're trying to authenticate a duplicate lump on the server.
-	if ( NETWORK_GetState() == NETSTATE_SERVER )
-	{
-		const char *lumpName = Wads.GetLumpFullName( LumpNumber );
-		for ( unsigned int i = 0; i < DuplicateLumps.Size(); i++ )
-		{
-			// [AK] If there's a match, throw a fatal error instead.
-			if ( DuplicateLumps[i].CompareNoCase( lumpName ) == 0 )
-			{
-				FString fullPath = Wads.GetLumpFullPath( LumpNumber );
-				const char *fileName = fullPath.Left( fullPath.Len() - strlen( lumpName ) - 1 );
-
-				I_Error( "Attempt to authenticate duplicate lump '%s' found in '%s'.\n", lumpName, fileName );
-				return;
-			}
-		}
-	}
+	// [AK] Check if we're trying to authenticate a duplicate lump.
+	network_CheckIfDuplicateLump( LumpNumber );
 
 	g_LumpNumsToAuthenticate.Push ( LumpNumber );
 }
@@ -1057,6 +1054,33 @@ bool network_GenerateLumpMD5HashAndWarnIfNeeded( const int LumpNum, const char *
 	else
 		return true;
 
+}
+
+void network_CheckIfDuplicateLump( const int LumpNum )
+{
+	const char *lumpName = Wads.GetLumpFullName( LumpNum );
+
+	for ( unsigned int i = 0; i < DuplicateLumps.Size(); i++ )
+	{
+		// [AK] Check if the name of this lump matches that of any duplicate lumps on the list.
+		// We'll also need to check if these lumps match the same file.
+		if ( DuplicateLumps[i].CompareNoCase( lumpName ) == 0 )
+		{
+			FString fullPath = Wads.GetLumpFullPath( LumpNum );
+			const char *fileName = fullPath.Left( fullPath.Len() - strlen( lumpName ) - 1 );
+
+			// [AK] If the lumps belong to the same file, print a message into the console and
+			// remove it from the list.
+			if ( DuplicateLumpFilenames[i].CompareNoCase( fileName ) == 0 )
+			{
+				Printf( TEXTCOLOR_YELLOW "%s contains duplicate protected lump %s\n", fileName, lumpName );
+				g_bDuplicateLumpAuthenticated = true;
+
+				DuplicateLumps.Delete( i );
+				DuplicateLumpFilenames.Delete( i-- );
+			}
+		}
+	}
 }
 
 //*****************************************************************************

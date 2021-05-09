@@ -426,6 +426,9 @@ typedef struct
 	// Bot's player color (in form of a string).
 	char			szColor[16];
 
+	// Name of the color set this bot will use.
+	char			szColorSet[32];
+
 	// Male/female/it :)
 	char			szGender[16];
 
@@ -654,6 +657,7 @@ BOTSKILL_e		BOTINFO_GetPerception( ULONG ulIdx );
 char			*BOTINFO_GetFavoriteWeapon( ULONG ulIdx );
 char			*BOTINFO_GetClass( ULONG ulIdx );
 char			*BOTINFO_GetColor( ULONG ulIdx );
+char			*BOTINFO_GetColorSet( ULONG ulIdx );
 char			*BOTINFO_GetGender( ULONG ulIdx );
 char			*BOTINFO_GetSkin( ULONG ulIdx );
 ULONG			BOTINFO_GetRailgunColor( ULONG ulIdx );

@@ -1078,8 +1078,9 @@ int PrintString (int printlevel, const char *outline)
 		{			
 			// [RC] Send this to any connected RCON clients.
 			SERVER_RCON_Print( outlinecopy );
-			if ( g_ulRCONPlayer != MAXPLAYERS )
-				SERVER_PrintfPlayer( printlevel, g_ulRCONPlayer, "%s", outlinecopy );
+			// [AK] We shouldn't broadcast the same message twice for the player who issued an RCON command.
+			//if ( g_ulRCONPlayer != MAXPLAYERS )
+			//	SERVER_PrintfPlayer( printlevel, g_ulRCONPlayer, "%s", outlinecopy );
 
 			SERVERCONSOLE_Print( outlinecopy );
 		}

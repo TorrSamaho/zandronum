@@ -916,6 +916,11 @@ static void ParseOptionMenuBody(FScanner &sc, FOptionMenuDescriptor *desc)
 		{
 			desc->mNetgameOnly = true;
 		}
+		// [AK] This menu can only be opened by clients with RCON access.
+		else if ( sc.Compare ( "RequiresRconAccess" ))
+		{
+			desc->mRequiresRCON = true;
+		}
 		// [BB]
 		else if ( sc.Compare ( "ServerBrowserSlot" ) )
 		{
@@ -952,6 +957,7 @@ static void ParseOptionMenu(FScanner &sc)
 	desc->mIndent =  DefaultOptionMenuSettings.mIndent;
 	desc->mDontDim =  DefaultOptionMenuSettings.mDontDim;
 	desc->mNetgameOnly = false; // [TP]
+	desc->mRequiresRCON = false; // [AK]
 
 	ParseOptionMenuBody(sc, desc);
 	bool scratch = ReplaceMenu(sc, desc);

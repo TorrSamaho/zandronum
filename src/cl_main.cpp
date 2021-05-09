@@ -2272,18 +2272,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 					g_HasRCONAccess = false;
 				}
 				break;
-			
-				case SVC2_SETSOUNDCLASS:
-				{
-					const ULONG ulPlayer = pByteStream->ReadByte();
-					const char *soundclass = pByteStream->ReadString();
-
-					if (PLAYER_IsValidPlayerWithMo(ulPlayer) == false)
-						return;
-
-					players[ulPlayer].mo->SoundClass = soundclass;
-				}
-				break;
 
 			default:
 				sprintf( szString, "CLIENT_ParsePacket: Illegible server message: %d\nLast command: %d\n", static_cast<int> (lExtCommand), static_cast<int> (g_lLastCmd) );
@@ -2405,6 +2393,10 @@ void CLIENT_QuitNetworkGame( const char *pszString )
 
 	// [AK] Since we disconnected, we don't have RCON access anymore.
 	g_HasRCONAccess = false;
+
+	// [AK] Close the server setup menu if we're still in it.
+	if ( M_InServerSetupMenu( ))
+		M_ClearMenus( );
 
 	// Set the network state back to single player.
 	NETWORK_SetState( NETSTATE_SINGLE );
@@ -4027,6 +4019,8 @@ void ServerCommands::SetPlayerUserInfo::Execute()
 			player->userinfo.GenderNumChanged ( value.ToLong() );
 		else if ( name == NAME_Color )
 			player->userinfo.ColorChanged ( value );
+		else if ( name == NAME_ColorSet )
+			player->userinfo.ColorSetChanged ( value.ToLong() );
 		else if ( name == NAME_RailColor )
 			player->userinfo.RailColorChanged ( value.ToLong() );
 		// Make sure the skin is valid.
@@ -5200,6 +5194,11 @@ void ServerCommands::SetThingProperty::Execute()
 	case APROP_JumpZ:
 		if ( actor->IsKindOf( RUNTIME_CLASS( APlayerPawn )))
 			static_cast<APlayerPawn *>( actor )->JumpZ = value;
+		break;
+
+	case APROP_StencilColor:
+		// [AK] We can't use DWORD as an unsigned int here, so split the value into its RGB components.
+		actor->SetShade(( value >> 16 ) & 0xFF, ( value >> 8 ) & 0xFF, value & 0xFF );
 		break;
 
 	default:
@@ -6948,6 +6947,13 @@ void ServerCommands::MapNew::Execute()
 		CLIENTDEMO_SetSkippingToNextMap ( false );
 	}
 
+	// [AK] We're reconnecting so we don't have RCON access anymore.
+	g_HasRCONAccess = false;
+
+	// [AK] Close the server setup menu if we're still in it.
+	if ( M_InServerSetupMenu( ))
+		M_ClearMenus( );
+
 	// Clear out our local buffer.
 	g_LocalBuffer.Clear();
 
@@ -7400,7 +7406,10 @@ static void client_DoInventoryPickup( BYTESTREAM_s *pByteStream )
 
 	// Play the inventory pickup sound and blend the screen.
 	pInventory->PlayPickupSound( players[ulPlayer].mo );
-	players[ulPlayer].bonuscount = BONUSADD;
+	if (( pInventory->ItemFlags & IF_NOSCREENFLASH ) == false )
+	{
+		players[ulPlayer].bonuscount = BONUSADD;
+	}
 
 	// Play the announcer pickup entry as well.
 	if ( players[ulPlayer].mo->CheckLocalView( consoleplayer ) && cl_announcepickups )
@@ -9223,6 +9232,10 @@ CCMD( connect )
 	// Put the game in client mode.
 	NETWORK_SetState( NETSTATE_CLIENT );
 
+	// [AK] Make sure the server setup menu is closed if we're connecting.
+	if ( M_InServerSetupMenu( ))
+		M_SetMenu( NAME_ZA_RconLoginMenu );
+
 	// Make sure cheats are off.
 	Val.Bool = false;
 	sv_cheats.ForceSet( Val, CVAR_Bool );
@@ -9305,6 +9318,10 @@ CCMD( reconnect )
 
 	// Put the game in client mode.
 	NETWORK_SetState( NETSTATE_CLIENT );
+
+	// [AK] Make sure the server setup menu is closed if we're reconnecting.
+	if ( M_InServerSetupMenu( ))
+		M_SetMenu( NAME_ZA_RconLoginMenu );
 
 	// Make sure cheats are off.
 	Val.Bool = false;

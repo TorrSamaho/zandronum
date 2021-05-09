@@ -214,37 +214,6 @@ public:
 	{
 		return false;
 	}
-
-	virtual int getClientTic ( ) const
-	{ 
-		return 0;
-	}
-};
-
-//*****************************************************************************
-class ClientCommandRegulator
-{
-	static const int TimeoutTics = 5 * TICRATE;
-
-	int SafeLatency = 0;
-	int BaseTic = 0;
-
-	struct CMDGap
-	{
-		int Tics;
-		int Count;
-		int Gametic;
-	};
-	TArray<CMDGap> Gaps;
-	TArray<ClientCommand *> MoveCMDs;
-
-	void processGap( int tics );
-
-public:
-	template<typename CommandType> bool parseBufferedCommand( BYTESTREAM_s *pByteStream );
-	void reset( );
-	void tick( );
-	void move( int client );
 };
 
 //*****************************************************************************
@@ -358,8 +327,8 @@ struct CLIENT_s
 	// [K6] Last tic we got some action from the client. Used to determine his presence.
 	LONG			lLastActionTic;
 
-	// To keep the movement smooth even for lagging players.
-	ClientCommandRegulator	MoveCMDRegulator;
+	// [BB] Buffer storing all movement commands received from the client we haven't executed yet.
+	TArray<ClientCommand*>	MoveCMDs;
 
 	// [BB] Variables for the account system
 	FString username;

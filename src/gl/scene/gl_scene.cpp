@@ -93,7 +93,12 @@ EXTERN_CVAR (Bool, cl_capfps)
 EXTERN_CVAR (Bool, r_deathcamera)
 
 // [BB]
-CVAR( Bool, cl_disallowfullpitch, false, CVAR_ARCHIVE )
+CUSTOM_CVAR( Bool, cl_disallowfullpitch, false, CVAR_ARCHIVE )
+{
+	// [AK] Reimpose the new pitch limits for all active players.
+	P_ResetPlayerPitchLimits();
+}
+
 EXTERN_CVAR (Bool, cl_oldfreelooklimit)
 
 extern int viewpitch;
@@ -1205,7 +1210,9 @@ EXTERN_CVAR(Float, maxviewpitch)
 int FGLInterface::GetMaxViewPitch(bool down)
 {
 	// [BB] Zandronum clamps the pitch differently
-	if (cl_disallowfullpitch) return down? 56 : ( cl_oldfreelooklimit ? 32 : 56 );
+	// [AK] Check if we should limit the pitch based on ZADF_FORCE_SOFTWARE_PITCH_LIMITS.
+	if (cl_disallowfullpitch || zadmflags & ZADF_FORCE_SOFTWARE_PITCH_LIMITS)
+		return down ? 56 : ( cl_oldfreelooklimit ? 32 : 56 );
 	else return maxviewpitch;
 }
 

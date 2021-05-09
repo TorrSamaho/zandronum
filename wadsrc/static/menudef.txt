@@ -414,8 +414,7 @@ ListMenu "PlayerMenu"
 	
 	// [TP] Zandronum does not store team in userinfo
 	// ValueText "Team", "Team"
-	// [TP] For now Zandronum doesn't support colorsets either.
-	// ValueText "Color", "Color"
+	ValueText "Color", "Color"
 	Linespacing 10
 	Slider "Red", "Red", 0, 255, 16
 	Slider "Green", "Green", 0, 255, 16
@@ -487,6 +486,7 @@ OptionMenu "CustomizeControls"
 	StaticText 	"Weapons", 1
 	Control 	"Next weapon",			"weapnext"
 	Control 	"Previous weapon",		"weapprev"
+	Control		"Swap weapon", 			"weapswap" // [AK]
 	Control		"Weapon Slot 1",		"slot 1"
 	Control		"Weapon Slot 2",		"slot 2"
 	Control		"Weapon Slot 3",		"slot 3"
@@ -814,6 +814,7 @@ OptionMenu "HUDOptions"
 	Option "Crosshair shows health",	"crosshairhealth", "OnOff"
 	Option "Scale crosshair",			"crosshairscale", "OnOff"
 	Option "Voting display",			"cl_showfullscreenvote", "ZA_VotingDisplay"
+	Option "Hide vote screen after vote",		"cl_hidevotescreen", "YesNo" // [AK]
 	Option "Fullscreen HUD",			"cl_stfullscreenhud", "ZA_FullscreenHUD"
 	StaticText " "
 	Option "Large frag messages",		"cl_showlargefragmessages",	"YesNo" // [TP]
@@ -927,6 +928,7 @@ OptionMenu "MiscOptions"
 	}
 	Option "Show IWAD selection dialog",			"queryiwad", "OnOff"
 	StaticText " "
+	Option "Protect cvars from consolecommand",		"cl_protectcvars", "OnOff" // [AK]
 	Option "Enable cheats from all games",			"allcheats", "OnOff"
 	Option "Enable autosaves",						"disableautosave", "Autosave"
 	Slider "Number of autosaves",					"autosavecount", 1, 20, 1, 0
@@ -1255,7 +1257,8 @@ OptionMenu GameplayOptions
 {
 	Title 	"GAMEPLAY OPTIONS"
 	//Indent 222
-	Option "Teamplay",				"teamplay",	"OnOff"
+	// [AK] "teamplay" is a latch CVar in Zandronum.
+	// Option "Teamplay",				"teamplay",	"OnOff"
 	Slider	"Team damage scalar",	"teamdamage", 0, 1, 0.05
 	StaticText " "
 	Option "Smart Autoaim",			"sv_smartaim", "SmartAim"
@@ -1303,6 +1306,7 @@ OptionMenu GameplayOptions
 	Option "Force OpenGL defaults",	"sv_forcegldefaults", "YesNo"
 	Option "Force translucency",	"sv_forcealpha", "YesNo"
 	Option "Full blood brightness",	"sv_maxbloodscalar", "YesNo"
+	Option "Force software pitch limits",	"sv_forcesoftwarepitchlimits", "YesNo"
 	// [TP] --
 
 	StaticText " "

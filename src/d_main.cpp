@@ -406,7 +406,8 @@ void D_RemoveNextCharEvent()
 //
 //==========================================================================
 
-CUSTOM_CVAR (Int, dmflags, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK)
+// [AK] Added CVAR_GAMEMODELOCK.
+CUSTOM_CVAR (Int, dmflags, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK | CVAR_GAMEMODELOCK)
 {
 	// In case DF_NO_FREELOOK was changed, reinitialize the sky
 	// map. (If no freelook, then no need to stretch the sky.)
@@ -492,7 +493,8 @@ CVAR (Mask, sv_fallingdamage,	dmflags, DF_FORCE_FALLINGHX|DF_FORCE_FALLINGZD);
 //
 //==========================================================================
 
-CUSTOM_CVAR (Int, dmflags2, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK)
+// [AK] Added CVAR_GAMEMODELOCK.
+CUSTOM_CVAR (Int, dmflags2, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK | CVAR_GAMEMODELOCK)
 {
 	// [BC] If we're the server, tell clients that the dmflags changed.
 	// [AK] Moved everything into a separate function to avoid code duplication.
@@ -578,12 +580,16 @@ EXTERN_CVAR(Int, gl_lightmode)
 EXTERN_CVAR(Int, gl_distfog)
 #endif
 
-// [AK] Added CVAR_CAMPAIGNLOCK.
-CUSTOM_CVAR (Int, zadmflags, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK)
+// [AK] Added CVAR_CAMPAIGNLOCK and CVAR_GAMEMODELOCK.
+CUSTOM_CVAR (Int, zadmflags, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK | CVAR_GAMEMODELOCK)
 {
 	// [Dusk] If we just turned sv_sharedkeys on, share keys now.
 	if ((( self ^ self.GetPastValue() ) & ZADF_SHARE_KEYS ) & ( self & ZADF_SHARE_KEYS ))
 		SERVER_SyncSharedKeys( MAXPLAYERS, true );
+
+	// [AK] If we changed sv_forcesoftwarepitchlimits, reimpose the new pitch limits for everyone.
+	if (( self ^ self.GetPastValue() ) & ZADF_FORCE_SOFTWARE_PITCH_LIMITS )
+		P_ResetPlayerPitchLimits();
 
 	// [BB] If we're the server, tell clients that the dmflags changed.
 	// [AK] Moved everything into a separate function to avoid code duplication.
@@ -620,6 +626,7 @@ CVAR (Flag, sv_deadplayerscankeepinventory, zadmflags, ZADF_DEAD_PLAYERS_CAN_KEE
 CVAR (Flag, sv_nounlaggedbfgtracers, zadmflags, ZADF_NOUNLAGGED_BFG_TRACERS);
 CVAR (Flag, sv_nodoorclose, zadmflags, ZADF_NODOORCLOSE);
 CVAR (Flag, sv_noobituaries, zadmflags, ZADF_NO_OBITUARIES);
+CVAR (Flag, sv_forcesoftwarepitchlimits, zadmflags, ZADF_FORCE_SOFTWARE_PITCH_LIMITS);
 
 // Old name kept for compatibility
 CVAR (Flag, sv_forcegldefaults,		zadmflags, ZADF_FORCE_VIDEO_DEFAULTS);
@@ -648,8 +655,8 @@ static int GetCompatibility2(int mask)
 }
 
 // [BB] Removed the CVAR_ARCHIVE flag.
-// [AK] Added CVAR_CAMPAIGNLOCK.
-CUSTOM_CVAR (Int, compatflags, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK)
+// [AK] Added CVAR_CAMPAIGNLOCK and CVAR_GAMEMODELOCK.
+CUSTOM_CVAR (Int, compatflags, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK | CVAR_GAMEMODELOCK)
 {
 	int old = i_compatflags;
 	i_compatflags = GetCompatibility(self) | ii_compatflags;
@@ -664,8 +671,8 @@ CUSTOM_CVAR (Int, compatflags, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK)
 }
 
 // [BB] Removed the CVAR_ARCHIVE flag.
-// [AK] Added CVAR_CAMPAIGNLOCK.
-CUSTOM_CVAR (Int, compatflags2, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK)
+// [AK] Added CVAR_CAMPAIGNLOCK and CVAR_GAMEMODELOCK.
+CUSTOM_CVAR (Int, compatflags2, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK | CVAR_GAMEMODELOCK)
 {
 	i_compatflags2 = GetCompatibility2(self) | ii_compatflags2;
 
@@ -680,8 +687,8 @@ CUSTOM_CVAR (Int, compatflags2, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK)
 //
 //==========================================================================
 
-// [AK] Added CVAR_CAMPAIGNLOCK.
-CUSTOM_CVAR (Int, zacompatflags, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK)
+// [AK] Added CVAR_CAMPAIGNLOCK and CVAR_GAMEMODELOCK.
+CUSTOM_CVAR (Int, zacompatflags, 0, CVAR_SERVERINFO | CVAR_CAMPAIGNLOCK | CVAR_GAMEMODELOCK)
 {
 	// [BC] If we're the server, tell clients that the dmflags changed.
 	// [AK] Moved everything into a separate function to avoid code duplication.

@@ -36,6 +36,7 @@
 #include "p_effect.h"
 #include "sv_commands.h"
 #include "unlagged.h"
+#include "g_game.h"
 
 
 // MACROS ------------------------------------------------------------------
@@ -231,6 +232,11 @@ void P_BringUpWeapon (player_t *player)
 	{
 		newstate = NULL;
 	}
+
+	// [AK] Save the last weapon the player was using before selecting the pending weapon.
+	if (( NETWORK_GetState() != NETSTATE_SERVER ) && ( player->ReadyWeapon != NULL ))
+		LastWeaponUsed = player->ReadyWeapon->GetClass();
+
 	player->PendingWeapon = WP_NOCHANGE;
 	player->ReadyWeapon = weapon;
 	player->psprites[ps_weapon].sy = player->cheats & CF_INSTANTWEAPSWITCH

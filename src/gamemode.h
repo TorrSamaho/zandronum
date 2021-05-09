@@ -68,6 +68,13 @@
 #define GAMEEVENT_RETURN_TIMEOUTRETURN 0
 #define GAMEEVENT_RETURN_PLAYERRETURN 1
 
+// [AK] The combined values of all flags set in a game mode.
+#define FLAGSET_VALUE 0
+// [AK] The bits of a flagset to be set.
+#define FLAGSET_MASK 1
+// [AK] The bits of a flagset that are locked and cannot be changed.
+#define FLAGSET_LOCKEDMASK 2
+
 //*****************************************************************************
 //  EXTERNAL CONSOLE VARIABLES
 
@@ -137,6 +144,24 @@ typedef struct
 	// this game mode.
 	char	szF1Texture[9];
 
+	// [AK] The dmflags we set for this gamemode.
+	LONG	lDMFlags[3];
+
+	// [AK] The dmflags2 we set for this gamemode.
+	LONG	lDMFlags2[3];
+
+	// [AK] The compatflags we set for this gamemode.
+	LONG	lCompatFlags[3];
+
+	// [AK] The compatflags2 we set for this gamemode.
+	LONG	lCompatFlags2[3];
+
+	// [AK] The zadmflags we set for this gamemode.
+	LONG	lZaDMFlags[3];
+
+	// [AK] The zacompatflags we set for this gamemode.
+	LONG	lZaCompatFlags[3];
+
 } GAMEMODE_s;
 
 //*****************************************************************************
@@ -151,6 +176,8 @@ ULONG		GAMEMODE_GetCurrentFlags( void );
 char		*GAMEMODE_GetShortName( GAMEMODE_e GameMode );
 char		*GAMEMODE_GetName( GAMEMODE_e GameMode );
 char		*GAMEMODE_GetF1Texture( GAMEMODE_e GameMode );
+int			GAMEMODE_GetFlagsetMask( GAMEMODE_e GameMode, FIntCVar *Flagset, bool bLocked = false );
+int			GAMEMODE_GetCurrentFlagsetMask( FIntCVar *Flagset, bool bLocked = false );
 void		GAMEMODE_DetermineGameMode( void );
 bool		GAMEMODE_IsGameInCountdown( void );
 bool		GAMEMODE_IsGameInProgress( void );
@@ -189,9 +216,8 @@ GAMEMODE_e	GAMEMODE_GetCurrentMode( void );
 void		GAMEMODE_SetCurrentMode( GAMEMODE_e GameMode );
 MODIFIER_e	GAMEMODE_GetModifier( void );
 void		GAMEMODE_SetModifier( MODIFIER_e Modifier );
-
-ULONG		GAMEMODE_GetCountdownTicks( void );
-void		GAMEMODE_SetCountdownTicks( const ULONG Ticks );
 void		GAMEMODE_SetLimit( GAMELIMIT_e GameLimit, int value );
+
+void		GAMEMODE_ReconfigureGameSettings( bool bLockedOnly = false );
 
 #endif // __GAMEMODE_H__

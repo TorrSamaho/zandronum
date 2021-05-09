@@ -63,6 +63,12 @@ typedef struct
 	// Has this map already been used in the rotation?
 	bool	bUsed;
 
+	// [AK] The minimum number of players required to enter this map.
+	ULONG	ulMinPlayers;
+
+	// [AK] The maximum number of players allowed to enter this map.
+	ULONG	ulMaxPlayers;
+
 } MAPROTATIONENTRY_t;
 
 //*****************************************************************************
@@ -71,12 +77,16 @@ typedef struct
 void			MAPROTATION_Construct( void );
 
 ULONG			MAPROTATION_GetNumEntries( void );
-void			MAPROTATION_AdvanceMap( void );
+ULONG			MAPROTATION_GetCurrentPosition( void );
+bool			MAPROTATION_CanEnterMap( ULONG ulIdx, ULONG ulPlayerCount );
+void			MAPROTATION_AdvanceMap( bool bMarkUsed );
 level_info_t	*MAPROTATION_GetNextMap( void );
 level_info_t	*MAPROTATION_GetMap( ULONG ulIdx );
+ULONG			MAPROTATION_GetPlayerLimits( ULONG ulIdx, bool bMaxPlayers );
 void			MAPROTATION_SetPositionToMap( const char *pszMapName );
 bool			MAPROTATION_IsMapInRotation( const char *pszMapName );
-void			MAPROTATION_AddMap( char *pszMapName, bool bSilent, int iPosition = 0 );
+bool			MAPROTATION_IsUsed( ULONG ulIdx );
+void			MAPROTATION_AddMap( FCommandLine &argv, bool bSilent, bool bInsert = false );
 void			MAPROTATION_DelMap (char *pszMapName, bool bSilent);
 
 //*****************************************************************************

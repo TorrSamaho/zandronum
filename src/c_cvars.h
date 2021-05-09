@@ -83,6 +83,9 @@ enum
 	// [TP] The cvar is a server setting that is not public knowledge, and should only be
 	// synchronized to clients with RCON access.
 	CVAR_SENSITIVESERVERSETTING = 1048576,
+
+	// [AK] The CVar is locked for a particular game mode and cannot be set from the console during play.
+	CVAR_GAMEMODELOCK = 2097152,
 };
 
 union UCVarValue

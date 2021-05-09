@@ -90,6 +90,7 @@
 #include "cl_commands.h"
 #include "cl_main.h"
 #include "chat.h"
+#include "maprotation.h"
 
 #include "g_shared/a_pickups.h"
 
@@ -4742,28 +4743,15 @@ void DLevelScript::DoSetActorProperty (AActor *actor, int property, int value)
 		break;
 
 	case APROP_StencilColor:
+		// [AK] Save the original value.
+		oldValue = actor->fillcolor;
+
 		actor->SetShade(value);
-		break;
-
-	case APROP_SoundClass:
-		if (actor->IsKindOf(RUNTIME_CLASS(APlayerPawn)))
-		{
-			APlayerPawn *playerActor = static_cast<APlayerPawn *>(actor);
-			// [AK] Save the original value.
-			oldValue = (int)playerActor->SoundClass.GetChars();
-
-			playerActor->SoundClass = FBehavior::StaticLookupString(value);
-
-			// [BB] If we're the server, tell clients to update this actor property.
-			// Note: Don't do this if the actor is a voodoo doll, the client would
-			// alter the value of the real player body in this case.
-			// [AK] Only bother the clients if the sound class has actually changed.
-			if ((NETWORK_GetState() == NETSTATE_SERVER) && actor->player &&
-				(actor->player->mo == actor) && (oldValue != (int)playerActor->SoundClass.GetChars()))
-				{
-					SERVERCOMMANDS_SetSoundClass(actor->player - players);
-				}
-		}
+	
+		// [AK] If we're the server, tell clients to update this actor property.
+		// Only bother the clients if the stencil color has actually changed.
+		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( oldValue != actor->fillcolor ) )
+			SERVERCOMMANDS_SetThingProperty( actor, APROP_StencilColor );
 		break;
 
 	default:
@@ -4864,13 +4852,7 @@ int DLevelScript::GetActorProperty (int tid, int property)
 	case APROP_Species:		return GlobalACSStrings.AddString(actor->GetSpecies());
 	case APROP_NameTag:		return GlobalACSStrings.AddString(actor->GetTag());
 	case APROP_StencilColor:return actor->fillcolor;
-	case APROP_SoundClass:
-							if (actor->IsKindOf(RUNTIME_CLASS(APlayerPawn)))
-							{
-								APlayerPawn *playerActor = static_cast<APlayerPawn *>(actor);
-								return GlobalACSStrings.AddString(playerActor->GetSoundClass());
-							}
-	
+
 	default:				return 0;
 	}
 }
@@ -4940,7 +4922,6 @@ int DLevelScript::CheckActorProperty (int tid, int property, int value)
 		case APROP_ActiveSound:	string = actor->ActiveSound; break; 
 		case APROP_Species:		string = actor->GetSpecies(); break;
 		case APROP_NameTag:		string = actor->GetTag(); break;
-		case APROP_SoundClass:  string = static_cast<APlayerPawn *>(actor)->GetSoundClass();
 	}
 	if (string == NULL) string = "";
 	return (!stricmp(string, FBehavior::StaticLookupString(value)));
@@ -5362,6 +5343,8 @@ enum EACSFunctions
 	ACSF_SendNetworkString,
 	ACSF_NamedSendNetworkString,
 	ACSF_GetChatMessage,
+	ACSF_GetMapRotationSize,
+	ACSF_GetMapRotationInfo,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -7303,9 +7286,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 			{
 				const char *name = FBehavior::StaticLookupString( args[0] );
 				const GAMEMODE_e oldmode = GAMEMODE_GetCurrentMode();
-				const GAMESTATE_e state = GAMEMODE_GetState();
 				GAMEMODE_e newmode;
-				ULONG ulCountdownTicks;
 
 				// [AK] Only the server should change the gamemode, but not during the result sequence.
 				if ( NETWORK_InClientMode() || state == GAMESTATE_INRESULTSEQUENCE )
@@ -7351,42 +7332,13 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 							return 0;
 					}
 
-					// [AK] Get the ticks left in the countdown and reset the gamemode, if necessary.
-					ulCountdownTicks = GAMEMODE_GetCountdownTicks();
-					GAMEMODE_SetState( GAMESTATE_WAITFORPLAYERS ); 
-
 					// [AK] If everything's okay now, change the gamemode.
-					GAMEMODE_ResetSpecalGamemodeStates();
 					GAMEMODE_SetCurrentMode( newmode );
 
-					// [AK] If we're the server, tell the clients to change the gamemode too.
-					if ( NETWORK_GetState() == NETSTATE_SERVER )
-						SERVERCOMMANDS_SetGameMode();
-
-					// [AK] Remove players from any teams if the new gamemode doesn't support them.
-					if (( GAMEMODE_GetFlags( oldmode ) & GMF_PLAYERSONTEAMS ) && ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ) == false )
-					{
-						for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-							PLAYER_SetTeam( &players[ulIdx], teams.Size(), true );
-					}
-					// [AK] If we need to move players into teams instead, assign them automatically.
-					else if (( GAMEMODE_GetFlags( oldmode ) & GMF_PLAYERSONTEAMS ) == false && ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS ))
-					{
-						for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-						{
-							if ( playeringame[ulIdx] && players[ulIdx].bSpectating == false && players[ulIdx].bOnTeam == false )
-								PLAYER_SetTeam( &players[ulIdx], TEAM_ChooseBestTeamForPlayer(), true );
-						}
-					}
-
-					// [AK] If necessary, transfer the countdown time and state to the new gamemode.
-					if ( state > GAMESTATE_WAITFORPLAYERS )
-					{
-						GAMEMODE_SetCountdownTicks( ulCountdownTicks );
-						GAMEMODE_SetState( state );
-					}
-
-					GAMEMODE_SpawnSpecialGamemodeThings();
+					// [AK] We should also start a new game, so just execute the "map" CCMD to do this.
+					FString command;
+					command.Format( "map %s", level.mapname );
+					C_DoCommand( command.GetChars());
 					return 1;
 				}
 				return 0;
@@ -7638,6 +7590,38 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 					return GlobalACSStrings.AddString( CHAT_GetChatMessage( args[0], offset ) );
 
 				return GlobalACSStrings.AddString( "" );
+			}
+
+		case ACSF_GetMapRotationSize:
+			{
+				return MAPROTATION_GetNumEntries();
+			}
+
+		case ACSF_GetMapRotationInfo:
+			{
+				ULONG ulPosition = ( args[0] <= 0 ) ? MAPROTATION_GetCurrentPosition() : ( args[0] - 1 );
+
+				switch ( args[1] )
+				{
+					case MAPROTATION_Used:
+						return MAPROTATION_IsUsed( ulPosition );
+
+					case MAPROTATION_MinPlayers:
+					case MAPROTATION_MaxPlayers:
+						return MAPROTATION_GetPlayerLimits( ulPosition, args[1] == MAPROTATION_MaxPlayers );
+
+					case MAPROTATION_Name:
+					case MAPROTATION_LumpName:
+					{
+						level_info_t *level = MAPROTATION_GetMap( ulPosition );
+						if ( level == NULL )
+							return GlobalACSStrings.AddString( "" );
+
+						return GlobalACSStrings.AddString( args[1] == MAPROTATION_Name ? level->LookupLevelName().GetChars() : level->mapname );
+					}
+				}
+
+				return 0;
 			}
 
 		case ACSF_GetActorFloorTexture:

@@ -323,10 +323,18 @@ void P_Ticker (void)
 				if ( SERVER_IsValidClient( ulIdx ) == false )
 					continue;
 
-				if ( i == 0 )
-					SERVER_GetClient( ulIdx )->MoveCMDRegulator.tick( );
-				
-				SERVER_GetClient( ulIdx )->MoveCMDRegulator.move( ulIdx );
+				while ( SERVER_GetClient( ulIdx )->MoveCMDs.Size( ) != 0 )
+				{
+					// Process only one movement command.
+					const bool bMovement = SERVER_GetClient( ulIdx )->MoveCMDs[0]->isMoveCmd( );
+					SERVER_GetClient( ulIdx )->MoveCMDs[0]->process( ulIdx );
+
+					delete SERVER_GetClient( ulIdx )->MoveCMDs[0];
+					SERVER_GetClient( ulIdx )->MoveCMDs.Delete(0);
+
+					if ( bMovement == true )
+						break;
+				}
 			}
 		}
 	}

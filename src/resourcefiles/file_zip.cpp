@@ -299,22 +299,23 @@ bool FZipFile::Open(bool quiet)
 		{
 			if (oldNames[i].CompareNoCase(name) == 0)
 			{
-				if (!quiet) Printf(TEXTCOLOR_YELLOW "\n%s: duplicate lump '%s' detected.\n", Filename, name.GetChars());
-
 				// [AK] We only want to keep track of duplicate lumps that may cause authentication
 				// failures if the file is loaded. Therefore, ignore any lumps that aren't part of
 				// the global or ACS namespaces.
 				if ((lump_p->Namespace != -1 ) && (lump_p->Namespace != ns_global) && (lump_p->Namespace != ns_acslibrary))
 					break;
 
+				const char *shortenedFilename = strrchr(Filename, '/');
+				if (shortenedFilename != NULL) shortenedFilename++;
+
+				const char *actualFilename = shortenedFilename != NULL ? shortenedFilename : Filename;
 				bool addDuplicate = true;
 
-				// [AK] To keep the list of duplicate lumps as small as possible, first check if the
-				// name of the lump isn't already in the list. If nothing was found, then add the
-				// full name of the lump to it.
+				// [AK] To keep the list of duplicate lumps as small as possible, first check if this
+				// particular lump isn't already on the list. If not, add it to the list then.
 				for (unsigned int j = 0; j < DuplicateLumps.Size(); j++)
 				{
-					if (DuplicateLumps[j].CompareNoCase(lump_p->FullName) == 0)
+					if ((DuplicateLumps[j].CompareNoCase(lump_p->FullName) == 0) && (DuplicateLumpFilenames[j].CompareNoCase(actualFilename) == 0 ))
 					{
 						addDuplicate = false;
 						break;
@@ -324,6 +325,7 @@ bool FZipFile::Open(bool quiet)
 				if (addDuplicate)
 				{
 					DuplicateLumps.Push(lump_p->FullName);
+					DuplicateLumpFilenames.Push(actualFilename);
 				}
 
 				break;

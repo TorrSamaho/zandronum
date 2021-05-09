@@ -19,6 +19,15 @@ OptionValue ZA_OverridePlayerColors
 	3.0, "Always"
 }
 
+OptionValue ZA_IdentifyTargetLevels
+{
+	0.0, "Off"
+	1.0, "Name"
+	2.0, "Health and armor"
+	3.0, "Weapon and ammo"
+	4.0, "Class or skin"
+}
+
 OptionMenu ZA_MultiplayerOptions
 {
 	Title "MULTIPLAYER OPTIONS"
@@ -46,8 +55,9 @@ OptionMenu ZA_MultiplayerOptions
 	Option		"Skins",					"cl_skins",					"ZA_AllowSkins"
 	Option		"Taunts",					"cl_taunts",				"OnOff"
 	Option		"Icons",					"cl_icons",					"OnOff"
-	Option		"Identify players",			"cl_identifytarget",		"OnOff"
+	Option		"Identify player level",			"cl_identifytarget",		"ZA_IdentifyTargetLevels"
 	Option		"Show spawn spots",			"cl_showspawns",			"YesNo"
+	Option		"Teleport to spied player",	"cl_telespy",				"YesNo"
 	Slider		"Spectator move speed",		"cl_spectatormove",			0.1, 5.0, 0.1
 	StaticText	" "
 	Option		"Override player colors",	"cl_overrideplayercolors",	"ZA_OverridePlayerColors"
@@ -270,6 +280,7 @@ OptionMenu ZA_CallVote
 	SubMenu		"Kick a player",		"ZA_CallKickVote"
 	SubMenu		"Change the map",		"ZA_CallMapVote"
 	SubMenu		"Change a limit",		"ZA_CallLimitVote"
+	SubMenu		"Change a flag",		"ZA_CallFlagVote"
 }
 
 OptionMenu ZA_CallKickVote
@@ -303,6 +314,17 @@ OptionMenu ZA_CallLimitVote
 	StaticText	" "
 	TextField	"Reason for change",	"menu_callvotereason"
 	Command		"Vote!",				"menu_calllimitvote"
+}
+
+OptionMenu ZA_CallFlagVote
+{
+	Title		"CHANGE FLAG"
+
+	TextField	"Flag",					"menu_callvoteflag"
+	Option		"New value",			"menu_callvotevalue",			"OnOff"
+	StaticText	" "
+	TextField	"Reason for change",	"menu_callvotereason"
+	Command		"Vote!",				"menu_callflagvote"
 }
 
 // =================================================================================================
@@ -477,6 +499,7 @@ ListMenu "BotSkillMenu"
 
 OptionMenu ZA_ServerSetupMenu
 {
+	RequiresRconAccess
 	Title		"SERVER SETTINGS"
 	Indent 150
 
@@ -487,7 +510,6 @@ OptionMenu ZA_ServerSetupMenu
 	TextField	"Server name",				"sv_hostname"
 	TextField	"Website",					"sv_website"
 	TextField	"Contact address",			"sv_hostemail"
-	Option		"Enforce wads",				"sv_pure",					"YesNo"
 	StaticText	" "
 	Option		"Use connect password",		"sv_forcepassword",			"YesNo"
 	TextField	"Connect password",			"sv_password",				"sv_forcepassword"
@@ -508,12 +530,14 @@ OptionValue ZA_AllowVoting
 
 OptionMenu ZA_VotingSetupMenu
 {
+	RequiresRconAccess
 	Title	"VOTING SETUP"
 
 	Command	"Cancel current vote",			"rcon cancelvote"
 	StaticText	" "
 	Option	"Voting enabled",				"sv_nocallvote",			"ZA_AllowVoting"
 	Option	"Allow unlimited voting",		"sv_limitnumvotes",			"NoYes"
+	NumberField "Minimum eligible voters",		"sv_minvoters",				1, 64
 	NumberField "Cooldown time (minutes)",		"sv_votecooldown",			0, 15
 	NumberField "Connect wait time (seconds)",	"sv_voteconnectwait",			0, 120
 	StaticText	" "
@@ -527,6 +551,7 @@ OptionMenu ZA_VotingSetupMenu
 	Option	"Win limit votes",				"sv_nowinlimitvote",		"NoYes"
 	Option	"Duel limit votes",				"sv_noduellimitvote",		"NoYes"
 	Option	"Point limit votes",			"sv_nopointlimitvote",		"NoYes"
+	Option	"Flag votes",					"sv_noflagvote",			"NoYes"
 
 	Class VotingSetupMenu
 }

@@ -383,6 +383,9 @@ enum
 
 	// [AK] Prevent obituary messages from being printed onto the server console when a player dies.
 	ZADF_NO_OBITUARIES = 1 << 20,
+
+	// [AK] Forces the player's pitch to be limited to what's allowed in the software renderer.
+	ZADF_FORCE_SOFTWARE_PITCH_LIMITS = 1 << 21,
 };
 
 // [RH] Compatibility flags.

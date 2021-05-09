@@ -226,9 +226,11 @@
 #define IDC_ALLOWVOTE_TIMELIMIT                 4066
 #define IDC_ALLOWVOTE_WINLIMIT                  4067
 #define IDC_ALLOWVOTE_MAP                       4068
-#define IDC_MARKCHATLINES                       4069
-#define IDC_ALLOWRCON                           4070
-#define IDC_LOGFILENAME_TIMESTAMP               4072
+#define IDC_ALLOWVOTE_CHANGEMAP					4069
+#define IDC_ALLOWVOTE_FLAG						4070
+#define IDC_MARKCHATLINES                       4071
+#define IDC_ALLOWRCON                           4072
+#define IDC_LOGFILENAME_TIMESTAMP               4073
 #define IDC_VIEWLOGFILE                         4082
 #define ID_ADMIN_ADDREMOVEBOT                   40000
 #define IDC_LMSWEAPONS_VALUE                    40001

@@ -363,6 +363,8 @@ void settings_Dialog_SaveSettings( )
 	sv_notimelimitvote = !SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_TIMELIMIT, BM_GETCHECK, 0, 0 );
 	sv_nowinlimitvote = !SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_WINLIMIT, BM_GETCHECK, 0, 0 );
 	sv_nomapvote = !SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_MAP, BM_GETCHECK, 0, 0 );
+	sv_nochangemapvote = !SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_CHANGEMAP, BM_GETCHECK, 0, 0 );
+	sv_noflagvote = !SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_FLAG, BM_GETCHECK, 0, 0 );
 
 	GetDlgItemText( hDlg, IDC_PASSWORD, szBuffer, 1024 );
 	sv_password = szBuffer;
@@ -863,10 +865,12 @@ void settings_AccessTab_ShowOrHideItems( HWND hDlg )
 	EnableWindow( GetDlgItem( hDlg, IDC_ALLOWVOTE_FRAGLIMIT ), bVotesEnabled );
 	EnableWindow( GetDlgItem( hDlg, IDC_ALLOWVOTE_KICKLIMIT ), bVotesEnabled );
 	EnableWindow( GetDlgItem( hDlg, IDC_ALLOWVOTE_MAP ), bVotesEnabled );
+	EnableWindow( GetDlgItem( hDlg, IDC_ALLOWVOTE_CHANGEMAP ), bVotesEnabled );
 	EnableWindow( GetDlgItem( hDlg, IDC_ALLOWVOTE_POINTLIMIT ), bVotesEnabled );
 	EnableWindow( GetDlgItem( hDlg, IDC_ALLOWVOTE_DUELLIMIT ), bVotesEnabled );
 	EnableWindow( GetDlgItem( hDlg, IDC_ALLOWVOTE_TIMELIMIT ), bVotesEnabled );
 	EnableWindow( GetDlgItem( hDlg, IDC_ALLOWVOTE_WINLIMIT ), bVotesEnabled );
+	EnableWindow( GetDlgItem( hDlg, IDC_ALLOWVOTE_FLAG ), bVotesEnabled );
 	EnableWindow( GetDlgItem( hDlg, IDC_ALLOWVOTE_SPECTATOR ), bVotesEnabled );
 }
 
@@ -919,6 +923,8 @@ BOOL CALLBACK settings_AccessTab_Callback( HWND hDlg, UINT Message, WPARAM wPara
 		SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_TIMELIMIT, BM_SETCHECK, ( !sv_notimelimitvote ? BST_CHECKED : BST_UNCHECKED ), 0 );
 		SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_WINLIMIT, BM_SETCHECK, ( !sv_nowinlimitvote ? BST_CHECKED : BST_UNCHECKED ), 0 );
 		SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_MAP, BM_SETCHECK, ( !sv_nomapvote ? BST_CHECKED : BST_UNCHECKED ), 0 );
+		SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_CHANGEMAP, BM_SETCHECK, ( !sv_nochangemapvote ? BST_CHECKED : BST_UNCHECKED ), 0 );
+		SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_FLAG, BM_SETCHECK, ( !sv_noflagvote ? BST_CHECKED : BST_UNCHECKED ), 0 );
 		SendDlgItemMessage( hDlg, IDC_ALLOWVOTE_SPECTATOR, BM_SETCHECK, ( sv_nocallvote != 2 ? BST_CHECKED : BST_UNCHECKED ), 0 );
 
 		settings_AccessTab_ShowOrHideItems( hDlg );

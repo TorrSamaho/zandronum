@@ -1,4 +1,5 @@
-#%include "valgrind.inc"
+; [AK] This comment should start with a ';' instead of a '#' to avoid compiler errors.
+;%include "valgrind.inc"
 
 		.section	.text
 
@@ -7,7 +8,8 @@ ASM_PatchPitch:
 		movl 		dc_pitch(%rip), %ecx
 		movl 		%ecx, pm+3(%rip)
 		movl 		%ecx, vltpitch+3(%rip)
-#		selfmod pm, vltpitch+6
+; [AK] This comment should start with a ';' instead of a '#' to avoid compiler errors.
+;		selfmod pm, vltpitch+6
 		ret
 		.align 16
 
@@ -17,7 +19,8 @@ setupvlinetallasm:
 		movb		%dil, shifter2+2(%rip)
 		movb		%dil, shifter3+2(%rip)
 		movb		%dil, shifter4+2(%rip)
-#		selfmod shifter1, shifter4+3
+; [AK] This comment should start with a ';' instead of a '#' to avoid compiler errors.
+;		selfmod shifter1, shifter4+3
 		ret
 		.align 16
 
@@ -35,21 +38,24 @@ vlinetallasm4:
 		push		%r12
 		push		%rbp
 		push		%rsi
-		subq		$8, %rsp	# Does the stack need to be 16-byte aligned for Linux?
+; [AK] The comment below should start with a ';' to avoid compiler errors.
+		subq		$8, %rsp	; Does the stack need to be 16-byte aligned for Linux?
 		.cfi_adjust_cfa_offset	8
 
-# rax =	bufplce base address
-# rbx = 
-# rcx = offset from rdi/count (negative)
-# edx/rdx = scratch
-# rdi = bottom of columns to write to
-# r8d-r11d = column offsets
-# r12-r15 = palookupoffse[0] - palookupoffse[4]
+; [AK] These comments should start with a ';' instead of a '#' to avoid compiler errors.
+; rax =	bufplce base address
+; rbx = 
+; rcx = offset from rdi/count (negative)
+; edx/rdx = scratch
+; rdi = bottom of columns to write to
+; r8d-r11d = column offsets
+; r12-r15 = palookupoffse[0] - palookupoffse[4]
 
 		movl		dc_count(%rip), %ecx
 		movq		dc_dest(%rip), %rdi
 		testl		%ecx, %ecx
-		jle			vltepilog	# count must be positive
+; [AK] The comment below should start with a ';' to avoid compiler errors.
+		jle			vltepilog	; count must be positive
 
 		movq		bufplce(%rip), %rax
 		movq		bufplce+8(%rip), %r8
@@ -85,7 +91,8 @@ pm:		imulq		$320, %rcx
 		movl		vplce+4(%rip), %r9d
 		movl		vplce+8(%rip), %r10d
 		movl		vplce+12(%rip), %r11d
-#		selfmod loopit, vltepilog
+; [AK] This comment should start with a ';' instead of a '#' to avoid compiler errors.
+;		selfmod loopit, vltepilog
 		jmp			loopit
 
 		.align 16

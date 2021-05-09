@@ -232,9 +232,10 @@ void CLIENTDEMO_BeginRecording( const char *pszDemoName )
 //
 bool CLIENTDEMO_ProcessDemoHeader( void )
 {
-	bool	bBodyStart;
-	LONG	lDemoVersion;
-	LONG	lCommand;
+	bool		bBodyStart;
+	LONG		lDemoVersion;
+	LONG		lCommand;
+	const char	*szVersionString;
 
 	// [Dusk] Check ZCLD instead of CLD_DEMOSTART
 	if ( g_ByteStream.ReadLong() != g_demoSignature )
@@ -281,7 +282,13 @@ bool CLIENTDEMO_ProcessDemoHeader( void )
 				I_Error( "Demo requires an older version of " GAMENAME "!\n" );
 
 			// Read in the DOTVERSIONSTR the demo was recorded with.
-			Printf( "Version %s demo\n", g_ByteStream.ReadString());
+			// [AK] If the version string stored in the demo doesn't match the
+			// current version we're using, don't play the demo.
+			szVersionString = g_ByteStream.ReadString();
+			if ( stricmp( szVersionString, GetVersionStringRev() ) != 0 )
+				I_Error( "Demo requires version %s. You are currently using version %s.\n", szVersionString, GetVersionStringRev() );
+
+			Printf( "Version %s demo\n", szVersionString );
 
 			// [Dusk] BUILD_ID is now stored in the demo. We don't do anything
 			// with it - it's of interest for external applications only. Just
@@ -339,6 +346,7 @@ void CLIENTDEMO_WriteUserInfo( void )
 	// Write the player's userinfo.
 	g_ByteStream.WriteString( players[consoleplayer].userinfo.GetName() );
 	g_ByteStream.WriteByte( players[consoleplayer].userinfo.GetGender() );
+	g_ByteStream.WriteByte( players[consoleplayer].userinfo.GetColorSet() );
 	g_ByteStream.WriteLong( players[consoleplayer].userinfo.GetColor() );
 	g_ByteStream.WriteLong( players[consoleplayer].userinfo.GetAimDist() );
 	g_ByteStream.WriteString( skins[players[consoleplayer].userinfo.GetSkin()].name );
@@ -358,6 +366,7 @@ void CLIENTDEMO_ReadUserInfo( void )
 	*static_cast<FStringCVar *>(info[NAME_Name]) =  g_ByteStream.ReadString();
 	// [BB] Make sure that the gender is valid.
 	*static_cast<FIntCVar *>(info[NAME_Gender]) = clamp ( g_ByteStream.ReadByte(), 0, 2 );
+	*static_cast<FIntCVar *>(info[NAME_ColorSet]) = g_ByteStream.ReadByte();
 	info.ColorChanged( g_ByteStream.ReadLong() );
 	*static_cast<FFloatCVar *>(info[NAME_Autoaim]) = static_cast<float> ( g_ByteStream.ReadLong() ) / ANGLE_1 ;
 	*static_cast<FIntCVar *>(info[NAME_Skin]) = R_FindSkin( g_ByteStream.ReadString(), players[consoleplayer].CurrentPlayerClass );

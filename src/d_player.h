@@ -164,7 +164,6 @@ public:
 	fixed_t		UseRange;				// [NS] Distance at which player can +use
 	fixed_t		AirCapacity;			// Multiplier for air supply underwater.
 	const PClass *FlechetteType;
-	FString		SoundClass;
 
 	// [CW] Fades for when you are being damaged.
 	PalEntry DamageFade;
@@ -346,9 +345,7 @@ struct userinfo_t : TMap<FName,FBaseCVar *>
 	}
 	int GetColorSet() const
 	{
-		// [BB] For now Zandronum doesn't let the player use the color sets.
-		//return *static_cast<FIntCVar *>(*CheckKey(NAME_ColorSet));
-		return -1;
+		return *static_cast<FIntCVar *>(*CheckKey(NAME_ColorSet));
 	}
 	uint32 GetColor() const
 	{
@@ -836,5 +833,6 @@ inline bool AActor::IsNoClip2() const
 #define CROUCHSPEED (FRACUNIT/12)
 
 bool P_IsPlayerTotallyFrozen(const player_t *player);
+void P_ResetPlayerPitchLimits(void); // [AK]
 
 #endif // __D_PLAYER_H__

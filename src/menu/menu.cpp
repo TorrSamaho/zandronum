@@ -91,6 +91,9 @@ int				BackbuttonTime;
 fixed_t			BackbuttonAlpha;
 static bool		MenuEnabled = true;
 
+// [AK] Are we in the server setup menu?
+static DMenu	*ServerSetupMenu = NULL;
+static bool		ServerMenuEnabled = false;
 
 #define KEY_REPEAT_DELAY	(TICRATE*5/12)
 #define KEY_REPEAT_RATE		(3)
@@ -184,6 +187,14 @@ bool DMenu::MenuEvent (int mkey, bool fromcontroller)
 void DMenu::Close ()
 {
 	assert(DMenu::CurrentMenu == this);
+
+	// [AK] Check if we're closing the server setup menu.
+	if ( DMenu::CurrentMenu == ServerSetupMenu )
+	{
+		ServerSetupMenu = NULL;
+		ServerMenuEnabled = false;
+	}
+
 	DMenu::CurrentMenu = mParentMenu;
 	Destroy();
 	if (DMenu::CurrentMenu != NULL)
@@ -531,8 +542,25 @@ void M_SetMenu(FName menu, int param)
 				return;
 			}
 
+			// [AK] Prevent clients without RCON access from opening this menu.
+			if ( ld->mRequiresRCON )
+			{
+				if (( NETWORK_GetState() == NETSTATE_CLIENT ) && ( CLIENT_HasRCONAccess() == false ))
+				{
+					M_StartMessage( "You must have RCON access to use this menu.\n\npress a key.", 1 );
+					return;
+				}
+
+				ServerMenuEnabled = true;
+			}
+
 			DOptionMenu *newmenu = (DOptionMenu *)cls->CreateNew();
 			newmenu->Init(DMenu::CurrentMenu, ld);
+
+			// [AK] Check if we're opening the server setup menu.
+			if ( menu == NAME_ZA_ServerSetupMenu )
+				ServerSetupMenu = newmenu;
+
 			M_ActivateMenu(newmenu);
 		}
 		return;
@@ -837,6 +865,10 @@ void M_ClearMenus ()
 	V_SetBorderNeedRefresh();
 	menuactive = MENU_Off;
 
+	// [AK] If we're not in a menu, then we're obviously not in the server setup menu.
+	ServerSetupMenu = NULL;
+	ServerMenuEnabled = false;
+
 	// [BB] We are not in menu anymore, so set bInMenu if necessary.
 	if ( players[consoleplayer].bInMenu )
 	{
@@ -874,6 +906,16 @@ void M_EnableMenu (bool on)
 	MenuEnabled = on;
 }
 
+//=============================================================================
+//
+// [AK] Returns true if we're in the server setup menu or its submenus.
+//
+//=============================================================================
+
+bool M_InServerSetupMenu (void)
+{
+	return ServerMenuEnabled;
+}
 
 //=============================================================================
 //

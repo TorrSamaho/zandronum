@@ -158,7 +158,7 @@ int main(int argc, char **argv)
 			hash, vertag, hash, lastlog);
 
 		// [BB] Also save out hg info.
-		fprintf (stream, "#define HG_REVISION_NUMBER %lu\n", hgdate);
+		fprintf (stream, "#define HG_REVISION_NUMBER %lu\n", (unsigned long)hgdate );
 		// [BB] We use the short hash.
 		hash[12] = 0;
 		fprintf (stream, "#define HG_REVISION_HASH_STRING \"%s\"\n", hash);

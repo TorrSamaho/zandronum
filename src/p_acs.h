@@ -415,7 +415,6 @@ enum
 	APROP_ViewHeight	= 39,
 	APROP_AttackZOffset	= 40,
 	APROP_StencilColor	= 41,
-	APROP_SoundClass	= 47, //Added by Shiny Metagross
 };	
 
 // [Dusk] Enumeration for GetTeamProperty
@@ -439,6 +438,16 @@ enum
 	TPROP_TeamItem,
 	TPROP_WinnerTheme,
 	TPROP_LoserTheme,
+};
+
+// [AK] Enumeration for GetMapRotationInfo
+enum
+{
+	MAPROTATION_Name = 0,
+	MAPROTATION_LumpName,
+	MAPROTATION_Used,
+	MAPROTATION_MinPlayers,
+	MAPROTATION_MaxPlayers,
 };
 
 class FBehavior

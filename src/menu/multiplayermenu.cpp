@@ -128,6 +128,7 @@ CVAR ( Int, menu_skirmishmodifier, 0, CVAR_ARCHIVE )
 CVAR ( Int, menu_callvotemap, 0, 0 )
 CVAR ( Bool, menu_callvoteintermission, true, 0 )
 CVAR ( String, menu_callvotereason, "", 0 )
+CVAR ( String, menu_callvoteflag, "", 0 )
 CVAR ( Int, menu_callvotelimit, 0, 0 )
 CVAR ( Float, menu_callvotevalue, 0, 0 )
 CVAR ( Int, menu_callvoteplayer, 0, 0 )
@@ -678,6 +679,30 @@ static void M_CallLimitVote()
 	}
 }
 
+// =================================================================================================
+//
+//
+//
+//
+//
+// =================================================================================================
+
+static void M_CallFlagVote()
+{
+	const char *flagName = menu_callvoteflag.GetGenericRep( CVAR_String ).String;
+
+	if ( strlen( flagName ) > 0 )
+	{
+		FString command;
+		command.Format( "callvote %s %s \"%s\"",
+			flagName,
+			menu_callvotevalue.GetGenericRep( CVAR_String ).String,
+			*menu_callvotereason );
+		C_DoCommand( command );
+		M_ClearMenus();
+	}
+}
+
 //=================================================================================================
 //
 // [TP] M_ExecuteIgnore
@@ -907,6 +932,11 @@ CCMD ( menu_callmapvote )
 CCMD ( menu_calllimitvote )
 {
 	M_CallLimitVote();
+}
+
+CCMD ( menu_callflagvote )
+{
+	M_CallFlagVote();
 }
 
 CCMD ( menu_autoselect )

@@ -1918,8 +1918,6 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	// should be able to go back is the gametic they connected with.
 	g_aClients[lClient].lLastServerGametic = gametic;
 
-	g_aClients[lClient].MoveCMDRegulator.reset( );
-
 	SERVER_InitClientSRPData ( lClient );
 
 	// [BB] Inform the client that he is connected and needs to authenticate the map.
@@ -2079,6 +2077,8 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick, bool bEnfor
 			pPlayer->userinfo.GenderNumChanged ( value.ToLong() );
 		else if ( name == NAME_Color )
 			pPlayer->userinfo.ColorChanged ( value );
+		else if ( name == NAME_ColorSet )
+			pPlayer->userinfo.ColorSetChanged ( value.ToLong() );
 		else if ( name == NAME_Autoaim )
 			*static_cast<FFloatCVar *>(pPlayer->userinfo[NAME_Autoaim]) = static_cast<float> ( value.ToDouble() );
 		else if ( name == NAME_Skin )
@@ -2140,7 +2140,7 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick, bool bEnfor
 		static const std::set<FName> required = {
 			NAME_Name, NAME_Autoaim, NAME_Gender, NAME_Skin, NAME_RailColor,
 			NAME_CL_ConnectionType, NAME_CL_ClientFlags,
-			NAME_Handicap, NAME_CL_TicsPerUpdate, NAME_Color
+			NAME_Handicap, NAME_CL_TicsPerUpdate, NAME_Color, NAME_ColorSet
 		};
 		std::set<FName> missing;
 		std::set_difference( required.begin(), required.end(), names.begin(), names.end(),
@@ -2412,9 +2412,6 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		// [TP] Account name.
 		if ( g_aClients[ulIdx].WantHideAccount == false )
 			SERVERCOMMANDS_SetPlayerAccountName( ulIdx, ulClient, SVCF_ONLYTHISCLIENT );
-
-		// [ShinyMetagross] It's possible that the SoundClass property was changed dynamically with ACS, so send it.
-		SERVERCOMMANDS_SetSoundClass(ulIdx, ulClient, SVCF_ONLYTHISCLIENT);
 	}
 
 	// Server may have already picked a team for the incoming player. If so, tell him!
@@ -4347,7 +4344,7 @@ void SERVER_FlagsetChanged( FIntCVar& flagset, int maxflags )
 	if ( flagsChanged > maxflags )
 		result.Format( "%d flags changed", flagsChanged );
 
-	SERVER_Printf( "%s changed to: %d (%s)\n", flagset.GetName( ), value, result );
+	SERVER_Printf( "%s changed to: %d (%s)\n", flagset.GetName( ), value, result.GetChars() );
 
 	// [AK] We also need to tell the clients to update the changed flagset.
 	if ( flagset == *lmsspectatorsettings )
@@ -5063,6 +5060,24 @@ void SERVER_UpdateThingVelocity( AActor *pActor, bool updateZ, bool updateXY )
 
 //*****************************************************************************
 //
+template <typename CommandType>
+static bool server_ParseBufferedCommand ( BYTESTREAM_s *pByteStream )
+{
+	CommandType *cmd = new CommandType ( pByteStream );
+
+	if ( sv_useticbuffer )
+	{
+		g_aClients[g_lCurrentClient].MoveCMDs.Push ( cmd );
+		return false;
+	}
+
+	const bool retValue = cmd->process ( g_lCurrentClient );
+	delete cmd;
+	return retValue;
+}
+
+//*****************************************************************************
+//
 static bool server_Ignore( BYTESTREAM_s *pByteStream )
 {
 	ULONG	ulTargetIdx = pByteStream->ReadByte();
@@ -5298,11 +5313,6 @@ public:
 	{
 		return true;
 	}
-
-	virtual int getClientTic ( ) const
-	{
-		return moveCmd.ulGametic;
-	}
 };
 
 //*****************************************************************************
@@ -5316,7 +5326,7 @@ static bool server_ClientMove( BYTESTREAM_s *pByteStream )
 	// in a buffer. This way we can limit the amount of movement commands
 	// we process for a player in a given tic to prevent the player from
 	// seemingly teleporting in case too many movement commands arrive at once.
-	return g_aClients[g_lCurrentClient].MoveCMDRegulator.parseBufferedCommand<ClientMoveCommand>( pByteStream );
+	return server_ParseBufferedCommand<ClientMoveCommand> ( pByteStream );
 }
 
 ClientMoveCommand::ClientMoveCommand ( BYTESTREAM_s *pByteStream )
@@ -5650,7 +5660,7 @@ static bool server_WeaponSelect( BYTESTREAM_s *pByteStream )
 	// [BB] To keep weapon sync when buffering movement commands, the weapon 
 	// select commands also need to be stored in the same buffer the keep
 	// the proper order of the commands.
-	return g_aClients[g_lCurrentClient].MoveCMDRegulator.parseBufferedCommand<ClientWeaponSelectCommand>( pByteStream );
+	return server_ParseBufferedCommand<ClientWeaponSelectCommand> ( pByteStream );
 }
 
 ClientWeaponSelectCommand::ClientWeaponSelectCommand ( BYTESTREAM_s *pByteStream )
@@ -6221,7 +6231,17 @@ static bool server_SummonCheat( BYTESTREAM_s *pByteStream, LONG lType )
 		{
 			pActor = P_SpawnPlayerMissile( pSource, pType );
 			if ( pActor )
+			{
 				SERVERCOMMANDS_SpawnMissile( pActor );
+
+				// [AK] If this actor is clientsided only then remove it from our end. We only had to
+				// spawn it so we could tell the clients to spawn it, but we don't need it anymore.
+				if ( pActor->ulNetworkFlags & NETFL_CLIENTSIDEONLY )
+				{
+					pActor->Destroy();
+					pActor = NULL;
+				}
+			}
 		}
 		else
 		{
@@ -6266,6 +6286,14 @@ static bool server_SummonCheat( BYTESTREAM_s *pByteStream, LONG lType )
 					// [BB] If the angle is not zero, we have to inform the clients.
 					if ( pActor->angle != 0 )
 						SERVERCOMMANDS_SetThingAngle( pActor );
+				}
+
+				// [AK] If this actor is clientsided only then remove it from our end. We only had to
+				// spawn it so we could tell the clients to spawn it, but we don't need it anymore.
+				if ( pActor->ulNetworkFlags & NETFL_CLIENTSIDEONLY )
+				{
+					pActor->Destroy();
+					pActor = NULL;
 				}
 			}
 		}
@@ -6337,9 +6365,6 @@ static bool server_AuthenticateLevel( BYTESTREAM_s *pByteStream )
 	// [BB] Update the client's state according to the successful authenticaion.
 	if ( SERVER_GetClient( g_lCurrentClient )->State == CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION )
 		SERVER_GetClient( g_lCurrentClient )->State = CLS_SPAWNED;
-
-	// Reset the movement buffer regulator.
-	SERVER_GetClient( g_lCurrentClient )->MoveCMDRegulator.reset( );
 
 	// Now that the level has been authenticated, send all the level data for the client.
 
@@ -6618,6 +6643,11 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 		bVoteAllowed = !sv_nopointlimitvote;
 		sprintf( szCommand, "pointlimit" );
 		break;
+	case VOTECMD_FLAG:
+
+		bVoteAllowed = !sv_noflagvote;
+		sprintf( szCommand, "flag" );
+		break;
 	default:
 
 		return ( false );
@@ -6625,7 +6655,17 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 
 	// Begin the vote, if that type is allowed.
 	if ( bVoteAllowed )
+	{
+		// [AK] If we're changing a flag, first separate the CVar name
+		// and the parameter from each other.
+		if ( ulVoteCmd == VOTECMD_FLAG )
+		{
+			sprintf( szCommand, Parameters.Left( Parameters.IndexOf( ' ')));
+			Parameters = Parameters.Right( Parameters.Len() - ( strlen( szCommand ) + 1 ));
+		}
+
 		CALLVOTE_BeginVote( szCommand, Parameters, Reason, g_lCurrentClient );
+	}
 	else
 		SERVER_PrintfPlayer( g_lCurrentClient, "%s votes are disabled on this server.\n", szCommand );
 
@@ -6899,222 +6939,6 @@ FString CLIENT_s::GetAccountName() const
 		FString result;
 		result.Format ( "%td@localhost", this - g_aClients );
 		return result;
-	}
-}
-
-//*****************************************************************************
-//	ClientCommandRegulator implementation.
-
-// NOTE: A gap is the number of consecutive tics in which the server received no movement
-// commands from the client.
-//
-// This method's purpose is simply to manage the array of regularly occuring gaps/stutters.
-// Since regularly occuring gaps can slightly vary in length, the "gaps" are sorted (by
-// length) such that slots can be re-used if needed.
-// To be more precise, I thought that leaving room for one tic of difference would be good
-// considering that one tic is already 28ms of extra latency.
-// If a gap's length is one less than a slot, this slot is re-used, if it is one more, the
-// slot is re-used and its length is modified to match.
-// Otherwise a new slot is inserted. As such we have to make sure never to overlap with the
-// error room of other slots hence the "complexity" of this method.
-// This is only called if a gap does occur.
-// The argument is one plus the actual size of the gap.
-//
-// The duration of the biggest gap that occurred often enough will be considered as the safe latency.
-// Movement commands older than the safe latency will be considered safe to process.
-void ClientCommandRegulator::processGap( int tics )
-{
-	int idx;
-	for ( idx = 0; idx < (signed)Gaps.Size( ); idx++ )
-	{
-		if ( abs( Gaps[idx].Tics - tics ) <= 1 )
-		{
-			// Re-use this slot.
-			Gaps[idx].Count++;
-			Gaps[idx].Gametic = gametic;
-
-			if ( tics > Gaps[idx].Tics )
-			{
-				Gaps[idx].Tics = tics;
-
-				if ( (signed)Gaps.Size( ) > idx + 1 && Gaps[idx + 1].Tics - tics == 2 )
-				{
-					// There's overlap, merge them.
-					Gaps[idx + 1].Count += Gaps[idx].Count;
-					Gaps[idx + 1].Gametic = gametic;
-					Gaps.Delete( idx );
-				}
-			}
-
-			idx = -1;
-			break;
-		}
-		else if ( Gaps[idx].Tics > tics )
-		{
-			// Insert here but make sure there is no overlap.
-			if ( Gaps[idx].Tics - tics == 2 )
-			{
-				Gaps[idx].Count++;
-				Gaps[idx].Gametic = gametic;
-				idx = -1;
-			}
-			else if ( idx > 0 && tics - Gaps[idx - 1].Tics == 2 )
-			{
-				Gaps[idx - 1].Tics = tics;
-				Gaps[idx - 1].Count++;
-				Gaps[idx - 1].Gametic = gametic;
-				idx = -1;
-			}
-
-			break;
-		}
-	}
-
-	if ( idx != -1 )
-	{
-		CMDGap gap;
-		gap.Tics = tics;
-		gap.Count = 1;
-		gap.Gametic = gametic;
-		Gaps.Insert( idx, gap );
-	}
-}
-
-template<typename CommandType>
-bool ClientCommandRegulator::parseBufferedCommand( BYTESTREAM_s *pByteStream )
-{
-	ClientCommand *cmd = new CommandType( pByteStream );
-
-	// Don't bother if the client is receiving a full update.
-	if ( sv_useticbuffer && g_aClients[g_lCurrentClient].bFullUpdateIncomplete == false )
-	{
-		// Check if a gap occured in the movement processing.
-		if ( cmd->isMoveCmd( ) && gametic - g_aClients[g_lCurrentClient].lLastMoveTick > 1 )
-		{
-			// Check if said gap resulted from packet loss (which we won't take in account)
-			// Otherwise the gap occured because of a ping spike (which we will take in account).
-			// NOTE: This ignores the fact that packets can be received in the wrong order.
-			// Nothing can be done for unordered packets because their gametic will not be
-			// in sequence resulting in the ClientCommandRegulator::move condition failing.
-			bool doProcess = true;
-			for ( int i = MoveCMDs.Size( ) - 1; i > -1; i-- )
-			{
-				if ( MoveCMDs[i]->isMoveCmd( ) )
-				{
-					if ( MoveCMDs[i]->getClientTic( ) != cmd->getClientTic( ) - 1 )
-						doProcess = false;
-
-					break;
-				}
-			}
-
-			if ( doProcess )
-				processGap( gametic - g_aClients[g_lCurrentClient].lLastMoveTick );
-		}
-
-		MoveCMDs.Push( cmd );
-		return false;
-	}
-
-	const bool retValue = cmd->process( g_lCurrentClient );
-	delete cmd;
-	return retValue;
-}
-
-void ClientCommandRegulator::reset( )
-{
-	for ( unsigned int i = 0; i < MoveCMDs.Size( ); i++ )
-	{
-		delete MoveCMDs[i];
-	}
-
-	SafeLatency = 0;
-	BaseTic = 0;
-	Gaps.Clear( );
-	MoveCMDs.Clear( );
-}
-
-void ClientCommandRegulator::tick( )
-{
-	// Check if any slot timed out.
-	for ( unsigned int i = 0; i < Gaps.Size( ); i++ )
-	{
-		if ( gametic - Gaps[i].Gametic >= TimeoutTics )
-		{
-			Gaps.Delete( i-- );
-		}
-	}
-
-	// Since the gaps are ordered in size, this loop simply extracts the size of the
-	// largest gap that occurred often enough.
-	SafeLatency = 0;
-	for ( int i = Gaps.Size( ) - 1; i > -1; i-- )
-	{
-		// Let's take in account values that occur at least 3 times.
-		// Hopefully this isn't too harsh considering the timeout value of 5 seconds.
-		if ( Gaps[i].Count > 2 )
-		{
-			SafeLatency = Gaps[i].Tics;
-			break;
-		}
-	}
-
-	// Select the "base" tic from which to apply the safe latency.
-	if ( SafeLatency && BaseTic == 0 )
-	{
-		int base = 0;
-		for ( int i = MoveCMDs.Size( ) - 1; i > -1; i-- )
-		{
-			if ( MoveCMDs[i]->isMoveCmd( ) )
-			{
-				base = MoveCMDs[i]->getClientTic( );
-			}
-		}
-		BaseTic = base;
-	}
-	else if ( BaseTic )
-	{
-		if ( SafeLatency == 0 )
-			BaseTic = 0;
-		else
-			BaseTic++;
-	}
-}
-
-// This is the most important part of the implementation:
-// The point of the safe latency is to delay the processing of movement commands by exactly
-// the right amount such that when the ping spikes occur again, instead of having the player
-// stop, we have exactly enough movement commands "in reserve" within the buffer to continue
-// the processing of his movement, effectively "streamlining" the process and completely
-// avoiding the jitter that would occur otherwise.
-void ClientCommandRegulator::move( int client )
-{
-	bool doMove = false;
-	for ( unsigned int i = 0; i < MoveCMDs.Size( ); i++ )
-	{
-		if ( MoveCMDs[i]->isMoveCmd( ) )
-		{
-			// The command is older than "BaseTic - SafeLatency", process it.
-			if ( BaseTic == 0 || MoveCMDs[i]->getClientTic( ) <= BaseTic - SafeLatency )
-				doMove = true;
-
-			break;
-		}
-	}
-	if ( doMove == false )
-		return;
-
-	while ( MoveCMDs.Size( ) != 0 )
-	{
-		// Process only one movement command.
-		const bool bMovement = MoveCMDs[0]->isMoveCmd( );
-		MoveCMDs[0]->process( client );
-
-		delete MoveCMDs[0];
-		MoveCMDs.Delete(0);
-
-		if ( bMovement == true )
-			break;
 	}
 }
 

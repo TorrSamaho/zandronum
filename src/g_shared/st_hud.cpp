@@ -120,7 +120,9 @@ void DrawHUD_CoopInfo()
 {
 	// [BB] Only draw the info if the user wishes to see it (cl_drawcoopinfo)
 	// and if this is a cooperative or team based game mode. Further don't draw this in single player.
+	// [AK] Don't draw the info either if this game mode has the DONTUSECOOPINFO flag.
 	if ( ( cl_drawcoopinfo == false ) || ( zadmflags & ZADF_NO_COOP_INFO )
+		|| ( GAMEMODE_GetCurrentFlags() & GMF_DONTUSECOOPINFO )
 		|| ! ( (GAMEMODE_GetCurrentFlags() & GMF_COOPERATIVE)
 			|| (GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS) )
 		|| NETWORK_GetState() == NETSTATE_SINGLE )

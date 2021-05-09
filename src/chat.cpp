@@ -157,6 +157,32 @@ CVAR (Int, chat_sound, 1, CVAR_ARCHIVE)
 // [AK] Played when a private chat message arrives.
 CVAR (Int, privatechat_sound, 2, CVAR_ARCHIVE)
 
+// [SB/Cata] Allows text to be added before a message.
+CUSTOM_CVAR (String, cl_chatprefix, "", CVAR_ARCHIVE)
+{
+	// [AK] Don't let the chat prefix be more than 16 characters.
+	if ( strlen( self ) > 16 )
+	{
+		Printf( "cl_chatprefix cannot be greater than 16 characters in length!\n" );
+
+		FString truncatedPrefix = self.GetGenericRep( CVAR_String ).String;
+		self = truncatedPrefix.Left( 16 );
+	}
+}
+
+// [SB/Cata] Allows text to be added after a message.
+CUSTOM_CVAR (String, cl_chatsuffix, "", CVAR_ARCHIVE)
+{
+	// [AK] Don't let the chat suffix be more than 16 characters.
+	if ( strlen( self ) > 16 )
+	{
+		Printf( "cl_chatsuffix cannot be greater than 16 characters in length!\n" );
+
+		FString truncatedSuffix = self.GetGenericRep( CVAR_String ).String;
+		self = truncatedSuffix.Left( 16 );
+	}
+}
+
 //*****************************************************************************
 FStringCVar	*g_ChatMacros[10] =
 {
@@ -242,8 +268,10 @@ void ChatBuffer::Insert( const char *text )
 	FString &message = GetEditableMessage();
 	message.Insert( GetPosition(), text );
 
-	if ( message.Len() > MAX_CHATBUFFER_LENGTH )
-		message.Truncate( MAX_CHATBUFFER_LENGTH );
+	// [AK] Also take into account the length of the chat prefix and suffix.
+	unsigned int maxLength = MAX_CHATBUFFER_LENGTH - (strlen( cl_chatprefix ) + strlen( cl_chatsuffix ));
+	if ( message.Len() > maxLength )
+		message.Truncate( maxLength );
 
 	MoveCursor( strlen( text ));
 }
@@ -1000,11 +1028,30 @@ void chat_SendMessage( ULONG ulMode, const char *pszString )
 {
 	FString ChatMessage = pszString;
 
+	// [AK] Don't process and send chat messages that are empty.
+	if ( ChatMessage.IsEmpty( ) )
+		return;
+
 	// Format our message so color codes can appear.
 	V_ColorizeString( ChatMessage );
 
 	// [CW] Substitute the message if necessary.
 	chat_DoSubstitution( ChatMessage );
+
+	// [SB] All commands used by Konar6's kpatch don't work with prefixes/suffixes, so don't add them.
+	if (( strnicmp( "!irc", pszString, 4 ) != 0 ) &&
+		( strnicmp( "!music", pszString, 6 ) != 0 ) &&
+		( strnicmp( "!maplist", pszString, 8 ) != 0 ))
+	{
+		// [AK] Take into account the length of prefix and suffix and truncate the chat message if necessary.
+		unsigned int maxLength = MAX_CHATBUFFER_LENGTH - (strlen( cl_chatprefix ) + strlen( cl_chatsuffix ));
+		if ( ChatMessage.Len() > maxLength )
+			ChatMessage.Truncate( maxLength );
+
+		// [SB] Add the prefix after /me, so actions works
+		ChatMessage.Insert( strnicmp( "/me", pszString, 3 ) == 0 ? 3 : 0, cl_chatprefix );
+		ChatMessage += cl_chatsuffix;
+	}
 
 	// If we're the client, let the server handle formatting/sending the msg to other players.
 	if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
@@ -1093,11 +1140,13 @@ void chat_DoSubstitution( FString &Input )
 			{
 				if ( pReadyWeapon && pReadyWeapon->Ammo1 )
 				{
-					Output.AppendFormat( "%s", pReadyWeapon->Ammo1->GetClass( )->TypeName.GetChars( ) );
+					// [AK] Print the tag of this ammo class if there is one.
+					Output.AppendFormat( "%s", pReadyWeapon->Ammo1->GetTag( ));
 
 					if ( pReadyWeapon->Ammo2 )
 					{
-						Output.AppendFormat( "/%s", pReadyWeapon->Ammo2->GetClass( )->TypeName.GetChars( ));
+						// [AK] Also print the tag of this ammo class if there is one.
+						Output.AppendFormat( "/%s", pReadyWeapon->Ammo2->GetTag( ));
 					}
 				}
 				else
@@ -1128,7 +1177,8 @@ void chat_DoSubstitution( FString &Input )
 			else if ( !strncmp( pszString, "$weapon", 7 ))
 			{
 				if ( pReadyWeapon )
-					Output.AppendFormat( "%s", pReadyWeapon->GetClass( )->TypeName.GetChars( ) );
+					// [AK] Print the tag of this weapon if there is one.
+					Output.AppendFormat( "%s", pReadyWeapon->GetTag( ));
 				else
 					Output.AppendFormat( "no weapon" );
 
@@ -1276,18 +1326,14 @@ bool chat_IsPlayerValidReceiver( ULONG ulPlayer )
 //
 // [AK] Finds a valid player whom we can send private messages to.
 //
-void chat_FindValidReceiver( void )
+bool chat_FindValidReceiver( void )
 {
-	bool nobodyFound = true;
+	// [AK] We can always send private messages to the server.
+	if ( g_ulChatPlayer == MAXPLAYERS )
+		return true;
 
 	if ( SERVER_CountPlayers( false ) >= 2 )
 	{
-		// [AK] We can always send private messages to the server.
-		if ( g_ulChatPlayer == MAXPLAYERS )
-			return;
-
-		nobodyFound = false;
-
 		// [AK] If we're trying to send a message to an invalid player, find another one.
 		if ( chat_IsPlayerValidReceiver( g_ulChatPlayer ) == false )
 		{
@@ -1302,21 +1348,15 @@ void chat_FindValidReceiver( void )
 				// [AK] If we're back to the old value for some reason, then there's no other
 				// players to send a message to, so set the receiver to the server instead.
 				if ( g_ulChatPlayer == oldPlayer )
-				{
-					nobodyFound = true;
-					break;
-				}
+					return false;
 			}
 			while ( chat_IsPlayerValidReceiver( g_ulChatPlayer ) == false );
 		}
+
+		return true;
 	}
 
-	if ( nobodyFound )
-	{
-		Printf( "There's no other clients to send private messages to. "
-			"The server will be selected instead.\n" );
-		g_ulChatPlayer = MAXPLAYERS;
-	}
+	return false;
 }
 
 //*****************************************************************************
@@ -1394,7 +1434,11 @@ void chat_PrivateMessage( FCommandLine &argv, const ULONG ulReceiver )
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
 		// [AK] Find a valid receiver, if necessary.
-		if ( !bServerSelected ) chat_FindValidReceiver( );
+		if (( bServerSelected == false ) && ( chat_FindValidReceiver( ) == false ))
+		{
+			Printf( "There's nobody to send private messages to. Use \"sayto server\" or \"sayto_idx -1\" to message the host instead.\n" );
+			return;
+		}
 
 		// The message we send will only be for the player who we wish to chat with.
 		chat_SetChatMode( CHATMODE_PRIVATE_SEND );
@@ -1664,7 +1708,11 @@ CCMD( messagemode3 )
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
 		// [AK] Find a valid receiver, if necessary.
-		chat_FindValidReceiver( );
+		if ( chat_FindValidReceiver( ) == false )
+		{
+			Printf( "There's nobody to send private messages to. Use \"sayto server\" or \"sayto_idx -1\" to message the host instead.\n" );
+			return;
+		}
 
 		chat_SetChatMode( CHATMODE_PRIVATE_SEND );
 		C_HideConsole( );

@@ -1091,9 +1091,22 @@ void SERVERCOMMANDS_PrivateSay( ULONG ulSender, ULONG ulReceiver, const char *ps
 			return;
 		}
 
-		command.SetPlayerNumber( ulSender );
-		command.SetMode( CHATMODE_PRIVATE_RECEIVE );
-		command.sendCommandToClients( ulReceiver, SVCF_ONLYTHISCLIENT );
+		// [AK] Don't send the command if the sender is supposed to be ignoring the player who receives the message.
+		if ( SERVER_GetPlayerIgnoreTic( ulSender, SERVER_GetClient( ulReceiver )->Address ) != 0 )
+		{
+			SERVER_PrintfPlayer( ulSender, "You have ignored %s on your end, so you can't send any private messages to them.\n",
+				players[ulReceiver].userinfo.GetName() );
+			return;
+		}
+
+		// [AK] Don't send the command to the receiver if they're supposed to be ignoring the player who sent the
+		// message. We'll still send the command back to the sender so they can't know if they've been ignored.
+		if (( ulSender == MAXPLAYERS ) || ( SERVER_GetPlayerIgnoreTic( ulReceiver, SERVER_GetClient( ulSender )->Address ) == 0 ))
+		{
+			command.SetPlayerNumber( ulSender );
+			command.SetMode( CHATMODE_PRIVATE_RECEIVE );
+			command.sendCommandToClients( ulReceiver, SVCF_ONLYTHISCLIENT );
+		}
 	}
 
 	// [AK] Next, send the command back to the player who sent the message.
@@ -1254,6 +1267,9 @@ void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, Server
 void SERVERCOMMANDS_SpawnThingExactNoNetID( AActor *pActor, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( pActor == NULL )
+		return;
+
+	if ( pActor->ulNetworkFlags & NETFL_SERVERSIDEONLY )
 		return;
 
 	ServerCommands::SpawnThingExactNoNetID command;
@@ -1646,6 +1662,10 @@ void SERVERCOMMANDS_SetThingProperty( AActor *pActor, ULONG ulProperty, ULONG ul
 			value = static_cast<APlayerPawn *>( pActor )->JumpZ;
 		break;
 
+	case APROP_StencilColor:
+		value = pActor->fillcolor;
+		break;
+
 	default:
 		return;
 	}
@@ -2035,6 +2055,10 @@ void SERVERCOMMANDS_SpawnPuff( AActor *pActor, ULONG ulPlayerExtra, ServerComman
 void SERVERCOMMANDS_SpawnPuffNoNetID( AActor *pActor, ULONG ulState, bool bSendTranslation, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( pActor == NULL )
+		return;
+
+	// [AK] If the puff is serversided only, don't tell the clients to spawn it.
+	if ( pActor->ulNetworkFlags & NETFL_SERVERSIDEONLY )
 		return;
 
 	ServerCommands::SpawnPuffNoNetID command;
@@ -2490,6 +2514,10 @@ void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ServerC
 	if ( pMissile == NULL )
 		return;
 
+	// [AK] If the missile is serversided only, don't tell the clients to spawn it.
+	if ( pMissile->ulNetworkFlags & NETFL_SERVERSIDEONLY )
+		return;
+
 	ServerCommands::SpawnMissile command;
 	command.SetX( pMissile->x );
 	command.SetY( pMissile->y );
@@ -2518,6 +2546,10 @@ void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ServerC
 void SERVERCOMMANDS_SpawnMissileExact( AActor *pMissile, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( pMissile == NULL )
+		return;
+
+	// [AK] If the missile is serversided only, don't tell the clients to spawn it.
+	if ( pMissile->ulNetworkFlags & NETFL_SERVERSIDEONLY )
 		return;
 
 	ServerCommands::SpawnMissileExact command;
@@ -3360,7 +3392,7 @@ void SERVERCOMMANDS_StopSound( AActor *pActor, LONG lChannel, ULONG ulPlayerExtr
 
 	ServerCommands::StopSound command;
 	command.SetActor( pActor );
-	command.SetChannel( lChannel );
+	command.SetChannel( lChannel & 0xFF );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
@@ -4912,17 +4944,4 @@ void APathFollower::SyncWithClient ( const ULONG ulClient )
 	command.addShort( this->PrevNode ? this->PrevNode->lNetID : -1 );
 	command.addFloat( this->Time );
 	command.sendCommandToOneClient( ulClient );
-}
-
-//*****************************************************************************
-//
-void SERVERCOMMANDS_SetSoundClass(ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags)
-{
-	if (PLAYER_IsValidPlayerWithMo(ulPlayer) == false)
-		return;
-
-	NetCommand command(SVC2_SETSOUNDCLASS);
-	command.addByte(ulPlayer);
-	command.addString(players[ulPlayer].mo->SoundClass);
-	command.sendCommandToClients(ulPlayerExtra, flags);
 }

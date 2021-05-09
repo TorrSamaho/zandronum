@@ -95,6 +95,7 @@ FWadCollection Wads;
 
 // [AK] A list of all duplicate lumps found during startup.
 TArray<FString> DuplicateLumps;
+TArray<FString> DuplicateLumpFilenames;
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 

@@ -76,6 +76,8 @@ struct FLatchedValue
 };
 
 static TArray<FLatchedValue> LatchedValues;
+// [AK] Saved original values of CVars changed by ConsoleCommand.
+static TArray<FLatchedValue> SavedValues;
 
 bool FBaseCVar::m_DoNoSet = false;
 bool FBaseCVar::m_UseCallback = false;
@@ -83,6 +85,9 @@ bool FBaseCVar::m_UseCallback = false;
 FBaseCVar *CVars = NULL;
 
 int cvar_defflags;
+
+// [AK] Prevents CVars changed by ConsoleCommand from being written into the user's config file.
+CVAR( Bool, cl_protectcvars, true, CVAR_ARCHIVE | CVAR_NOSETBYACS );
 
 EXTERN_CVAR( Bool, sv_cheats );
 
@@ -180,15 +185,97 @@ void FBaseCVar::SetGenericRep (UCVarValue value, ECVarType type)
 	{
 		return;
 	}
-	// [BB] ConsoleCommand may not mess with the cvar.
-	else if ( ( Flags & CVAR_NOSETBYACS ) && ( ACS_IsCalledFromConsoleCommand() ) )
-		return;
-	else if (( Flags & CVAR_CAMPAIGNLOCK ) && ( CAMPAIGN_InCampaign( )) && ( sv_cheats == false ))
+
+	// [AK] Was this CVar changed using ConsoleCommand?
+	if ( ACS_IsCalledFromConsoleCommand( ))
 	{
-		Printf( "%s cannot be changed during a campaign.\n", GetName( ));
-		return;
+		// [BB] ConsoleCommand may not mess with the cvar.
+		if ( Flags & CVAR_NOSETBYACS )
+			return;
+
+		const char *originalValue = GetGenericRep( CVAR_String ).String;
+
+		// [AK] If the value is changed, keep a copy of the original value. This way,
+		// the CVar can be reset back to its original value upon exit.
+		if ( strcmp( originalValue, ToString( value, type )) != 0 )
+		{
+			bool bSaveValue = true;
+
+			// [AK] First check if this CVar isn't already on the list.
+			for ( unsigned int i = 0; i < SavedValues.Size( ); i++ )
+			{
+				if ( SavedValues[i].Variable == this )
+				{
+					bSaveValue = false;
+					break;
+				}
+			}
+
+			if ( bSaveValue )
+			{
+				FLatchedValue saved;
+				saved.Variable = this;
+				saved.Type = GetRealType( );
+
+				if ( saved.Type != CVAR_String )
+					saved.Value = GetGenericRep( saved.Type );
+				else
+					saved.Value.String = ncopystring( originalValue );
+
+				SavedValues.Push( saved );
+			}
+		}
 	}
-	else if ((Flags & CVAR_LATCH) && gamestate != GS_FULLCONSOLE && gamestate != GS_STARTUP)
+
+	if ( sv_cheats == false )
+	{
+		// [AK] Don't change this CVar if it's locked in campaign mode.
+		if (( Flags & CVAR_CAMPAIGNLOCK ) && ( CAMPAIGN_InCampaign( )))
+		{
+			Printf( "%s cannot be changed during a campaign.\n", GetName( ));
+			return;
+		}
+		// [AK] Check if we (indirectly) changed any flags locked in the current game mode.
+		else if ( Flags & CVAR_GAMEMODELOCK )
+		{
+			int mask = GAMEMODE_GetCurrentFlagsetMask( static_cast<FIntCVar *>( this ), true );
+			int oldValue = GetGenericRep( CVAR_Int ).Int;
+			int newValue = ToInt( value, type );
+
+			// [AK] If we changed any flags that are supposed to be locked, we need to switch them back.
+			// Also print the names of all affected locked flags.
+			if (( mask ) && ( oldValue & mask ) ^ ( newValue & mask ))
+			{
+				for ( unsigned int i = 0; i < 32; i++ )
+				{
+					int bit = ( 1 << i );
+
+					if (( mask & bit ) && (( oldValue & bit ) ^ ( newValue & bit )))
+					{
+						for ( FBaseCVar* cvar = CVars; cvar; cvar = cvar->GetNext( ))
+						{
+							if ( cvar->IsFlagCVar( ) == false )
+							continue;
+
+							FFlagCVar *flag = static_cast<FFlagCVar *>( cvar );
+
+							if (( flag->GetValueVar( ) == this ) && ( flag->GetBitVal( ) == bit ))
+							{
+								Printf( "%s cannot be changed in this game mode.\n", flag->GetName( ));
+								break;
+							}
+						}
+					}
+				}
+
+				// [AK] It's easier if we just switch the CVar type to an integer.
+				value.Int = ( newValue & ~mask ) | ( oldValue & mask );
+				type = CVAR_Int;
+			}
+		}
+	}
+
+	if ((Flags & CVAR_LATCH) && gamestate != GS_FULLCONSOLE && gamestate != GS_STARTUP)
 	{
 		FLatchedValue latch;
 
@@ -224,6 +311,22 @@ void FBaseCVar::SetGenericRep (UCVarValue value, ECVarType type)
 	else
 	{
 		ForceSet (value, type);
+	}
+
+	// [AK] After checking everything and potentially setting the value of the CVar, check again
+	// if it was done so using ConsoleCommand. If not, then we can delete the original value.
+	if ( ACS_IsCalledFromConsoleCommand( ) == false )
+	{
+		for ( unsigned int i = 0; i < SavedValues.Size( ); i++ )
+		{
+			if ( SavedValues[i].Variable == this )
+			{
+				if (( SavedValues[i].Type == CVAR_String ) && ( SavedValues[i].Value.String != NULL ))
+					delete[] SavedValues[i].Value.String;
+				SavedValues.Delete( i );
+				break;
+			}
+		}
 	}
 
 	// [TP] Inform RCON clients about server setting changes
@@ -1301,6 +1404,14 @@ void FMaskCVar::DoSet (UCVarValue value, ECVarType type)
 			Printf ("Only setting controllers can change %s\n", Name);
 			return;
 		}
+
+		// [AK] If we're a client in an online game, just change the "master" CVar's value anyways.
+		if ( NETWORK_GetState() == NETSTATE_CLIENT )
+		{
+			ValueVar = ( *ValueVar & ~BitVal ) | val;
+			return;
+		}
+
 		// Ugh...
 		for(int i = 0; i < 32; i++)
 		{
@@ -1598,6 +1709,22 @@ void C_ArchiveCVars (FConfigFile *f, uint32 filter)
 			(CVAR_GLOBALCONFIG|CVAR_ARCHIVE|CVAR_MOD|CVAR_AUTO|CVAR_USERINFO|CVAR_SERVERINFO|CVAR_NOSAVE))
 			== filter)
 		{
+			// [AK] Reset the CVar back to its original value if it was changed by ConsoleCommand.
+			if ( cl_protectcvars )
+			{
+				for ( unsigned int i = 0; i < SavedValues.Size( ); i++ )
+				{
+					if ( SavedValues[i].Variable == cvar )
+					{
+						cvar->ForceSet( SavedValues[i].Value, SavedValues[i].Type, true );
+						if (( SavedValues[i].Type == CVAR_String ) && ( SavedValues[i].Value.String != NULL ))
+							delete[] SavedValues[i].Value.String;
+						SavedValues.Delete( i );
+						break;
+					}
+				}
+			}
+
 			UCVarValue val;
 			val = cvar->GetGenericRep (CVAR_String);
 			// [BB] This is ancient code from Skulltag...

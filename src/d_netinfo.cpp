@@ -75,9 +75,8 @@ EXTERN_CVAR (Bool, teamplay)
 CVAR (Float,	autoaim,				5000.f,		CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (String,	name,					"Player",	CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (Color,	color,					0x40cf00,	CVAR_USERINFO | CVAR_ARCHIVE);
-// [BB] For now Zandronum doesn't let the player use the color sets.
-const int colorset = -1;
-//CVAR (Int,		colorset,				0,			CVAR_USERINFO | CVAR_ARCHIVE);
+// [AK] Changed the default value of "colorset" to -1, so custom colors are used by default.
+CVAR (Int,		colorset,				-1,			CVAR_USERINFO | CVAR_ARCHIVE);
 CVAR (String,	skin,					"base",		CVAR_USERINFO | CVAR_ARCHIVE);
 // [BC] "team" is no longer a cvar.
 //CVAR (Int,		team,					TEAM_NONE,	CVAR_USERINFO | CVAR_ARCHIVE);
@@ -366,11 +365,6 @@ void D_GetPlayerColor (int player, float *h, float *s, float *v, FPlayerColorSet
 		colorset = NULL;
 	}
 */
-	if (set != NULL)
-	{
-		*set = colorset;
-	}
-
 	if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSONTEAMS )
 	{
 		if ( players[player].bOnTeam && ( TEAM_IsCustomPlayerColorAllowed ( players[player].ulTeam ) == false ) )
@@ -383,6 +377,9 @@ void D_GetPlayerColor (int player, float *h, float *s, float *v, FPlayerColorSet
 			// Convert.
 			RGBtoHSV( RPART( nColor ) / 255.f, GPART( nColor ) / 255.f, BPART( nColor ) / 255.f,
 				h, s, v );
+
+			// [AK] Make sure we're not using the color set anymore.
+			colorset = NULL;
 		}
 	}
 
@@ -397,6 +394,14 @@ void D_GetPlayerColor (int player, float *h, float *s, float *v, FPlayerColorSet
 		bool isally = players[cameraplayer].mo->IsTeammate( players[player].mo );
 		int color = isally ? cl_allycolor : cl_enemycolor;
 		RGBtoHSV( RPART( color ) / 255.f, GPART( color ) / 255.f, BPART( color ) / 255.f, h, s, v );
+
+		// [AK] Make sure we're not using the color set anymore.
+		colorset = NULL;
+	}
+
+	if (set != NULL)
+	{
+		*set = colorset;
 	}
 }
 
@@ -712,8 +717,7 @@ uint32 userinfo_t::ColorChanged(const char *colorname)
 	UCVarValue val;
 	val.String = const_cast<char *>(colorname);
 	color->SetGenericRep(val, CVAR_String);
-	// [BB] For now Zandronum doesn't let the player use the color sets.
-	//*static_cast<FIntCVar *>((*this)[NAME_ColorSet]) = -1;
+	*static_cast<FIntCVar *>((*this)[NAME_ColorSet]) = -1;
 	return *color;
 }
 
@@ -1456,8 +1460,7 @@ void ReadCompatibleUserInfo(FArchive &arc, userinfo_t &info)
 	*static_cast<FIntCVar *>(info[NAME_Gender]) = gender;
 	// [BB]
 	*static_cast<FIntCVar *>(info[NAME_SwitchOnPickup]) = switchonpickup;
-	// [BB] For now Zandronum doesn't let the player use the color sets.
-	//*static_cast<FIntCVar *>(info[NAME_ColorSet]) = colorset;
+	*static_cast<FIntCVar *>(info[NAME_ColorSet]) = colorset;
 
 	UCVarValue val;
 	val.Int = color;

@@ -247,6 +247,8 @@ CVAR (Float,	m_pitch,		1.f,	CVAR_GLOBALCONFIG|CVAR_ARCHIVE)		// Mouse speeds
 CVAR (Float,	m_yaw,			1.f,	CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 CVAR (Float,	m_forward,		1.f,	CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 CVAR (Float,	m_side,			2.f,	CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
+// [AK] Added "cl_telespy", based on a feature from ZCC.
+CVAR (Bool,		cl_telespy,		false,	CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
  
 int 			turnheld;								// for accelerative turning 
  
@@ -270,6 +272,12 @@ FString BackupSaveName;
 
 bool SendLand;
 const AInventory *SendItemUse, *SendItemDrop;
+
+// [AK] The weapon the consoleplayer was using last.
+PClass *LastWeaponUsed = NULL, *LastWeaponUsedRespawn = NULL;
+
+// [AK] The weapon the consoleplayer had selected upon respawning.
+PClass *LastWeaponSelected = NULL;
 
 // [BB] Shall the map be reset as soon as possible?
 static	bool	g_bResetMap = false;
@@ -424,8 +432,8 @@ CCMD (weapnext)
 		return;
 	}
 
-	// [Zandronum] No weapnext when player is spectating.
-	if ( players[consoleplayer].bSpectating )
+	// [Zandronum] No weapnext when player is spectating or not alive.
+	if (( players[consoleplayer].bSpectating ) || ( players[consoleplayer].playerstate != PST_LIVE ))
 		return;
 
 	SendItemUse = players[consoleplayer].weapons.PickNextWeapon (&players[consoleplayer]);
@@ -446,8 +454,8 @@ CCMD (weapprev)
 		return;
 	}
 
-	// [Zandronum] No weapprev when player is spectating.
-	if ( players[consoleplayer].bSpectating )
+	// [Zandronum] No weapprev when player is spectating or not alive.
+	if (( players[consoleplayer].bSpectating ) || ( players[consoleplayer].playerstate != PST_LIVE ))
 		return;
 
 	SendItemUse = players[consoleplayer].weapons.PickPrevWeapon (&players[consoleplayer]);
@@ -457,6 +465,46 @@ CCMD (weapprev)
  		StatusBar->AttachMessage(new DHUDMessageFadeOut(SmallFont, SendItemUse->GetTag(),
 			1.5f, 0.90f, 0, 0, (EColorRange)*nametagcolor, 2.f, 0.35f), MAKE_ID( 'W', 'E', 'P', 'N' ));
  	}
+}
+
+// [AK] Swaps the player's weapon to the one they used before if possible.
+CCMD (weapswap)
+{
+	player_t *player = &players[consoleplayer];
+
+	// [AK] No weaplast while playing a demo.
+	if ( CLIENTDEMO_IsPlaying( ) == true )
+	{
+		Printf ( "You can't use weapswap during demo playback.\n" );
+		return;
+	}
+
+	// [Zandronum] No weapswap when player is spectating or not alive.
+	if (( player->bSpectating ) || ( player->playerstate != PST_LIVE ))
+		return;
+
+	AWeapon *swapweapon = static_cast<AWeapon *>( player->mo->FindInventory( LastWeaponUsed ));
+
+	// [AK] If the last weapon is invalid, just switch to the next weapon instead.
+	if (( swapweapon == NULL ) ||
+		( swapweapon == player->ReadyWeapon ) ||
+		(( cl_noammoswitch == false ) && ( swapweapon->CheckAmmo( AWeapon::EitherFire, false ) == false )))
+	{
+		swapweapon = player->weapons.PickNextWeapon( player );
+		LastWeaponUsed = NULL;
+	}
+
+	if ( swapweapon != player->ReadyWeapon )
+	{
+		SendItemUse = swapweapon;
+
+		// [AK] Option to display the name of the weapon being switched to.
+ 		if (( displaynametags & 2 ) && StatusBar && SmallFont )
+ 		{
+ 			StatusBar->AttachMessage( new DHUDMessageFadeOut( SmallFont, SendItemUse->GetTag( ),
+				1.5f, 0.90f, 0, 0, (EColorRange)*nametagcolor, 2.f, 0.35f ), MAKE_ID( 'W', 'E', 'P', 'N' ));
+ 		}
+	}
 }
 
 CCMD (invnext)
@@ -1171,6 +1219,15 @@ static void ChangeSpy (int changespy)
 // [AK] Made this function accessible outside of g_game.cpp for LS_ChangeCamera.
 void G_FinishChangeSpy( ULONG ulPlayer )
 {
+	// [AK] If we're a spectator and want to teleport ourselves to the player we just
+	// spied on, do it when we switch back to our own view.
+	if (( cl_telespy ) && ( ulPlayer == consoleplayer ) && ( players[consoleplayer].bSpectating ) && ( players[consoleplayer].camera ))
+	{
+		P_TeleportMove( players[consoleplayer].mo, players[consoleplayer].camera->x, players[consoleplayer].camera->y, players[consoleplayer].camera->z, false );
+		players[consoleplayer].mo->angle = players[consoleplayer].camera->angle;
+		players[consoleplayer].mo->pitch = players[consoleplayer].camera->pitch;
+	}
+
 	players[consoleplayer].camera = players[ulPlayer].mo;
 	S_UpdateSounds(players[consoleplayer].camera);
 	StatusBar->AttachToPlayer (&players[ulPlayer]);
@@ -2142,6 +2199,15 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 	timefreezer = p->timefreezer;
 	StartingWeaponName = p->StartingWeaponName;
 	const bool bLagging = p->bLagging;
+
+	// [AK] Get the weapons the player was using before they respawn.
+	if ( NETWORK_GetState() != NETSTATE_SERVER )
+	{
+		LastWeaponUsedRespawn = LastWeaponUsed;
+		if ( p->ReadyWeapon != NULL )
+			LastWeaponSelected = p->ReadyWeapon->GetClass();
+	}
+
 
 	// Reset player structure to its defaults
 	p->~player_t();

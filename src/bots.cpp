@@ -485,6 +485,7 @@ bool BOTS_AddBotInfo( BOTINFO_s *pBotInfo )
 	sprintf( botInfo.szFavoriteWeapon,	"%s", pBotInfo->szFavoriteWeapon );
 	sprintf( botInfo.szClassName,			"%s", pBotInfo->szClassName );
 	sprintf( botInfo.szColor,				"%s", pBotInfo->szColor );
+	sprintf( botInfo.szColorSet, 			"%s", pBotInfo->szColorSet );
 	sprintf( botInfo.szGender,			"%s", pBotInfo->szGender );
 	sprintf( botInfo.szSkinName,			"%s", pBotInfo->szSkinName );
 	sprintf( botInfo.szName,				"%s", pBotInfo->szName );
@@ -1003,6 +1004,7 @@ void bots_ParseBotInfoLump( FScanner &sc )
 		sprintf( BotInfo.szFavoriteWeapon, 	"pistol" );
 		sprintf( BotInfo.szClassName,		"random" );
 		sprintf( BotInfo.szColor,			"00 00 00" );
+		sprintf( BotInfo.szColorSet,		"custom" );
 		sprintf( BotInfo.szGender,			"male" );
 		sprintf( BotInfo.szName,			"UNNAMED BOT" );
 		BotInfo.szScriptName[0]				= 0;
@@ -1191,6 +1193,11 @@ void bots_ParseBotInfoLump( FScanner &sc )
 				strncpy( BotInfo.szColor, szValue, 15 );
 				BotInfo.szColor[15] = 0;
 			}
+			else if ( stricmp( szKey, "colorset" ) == 0 )
+			{
+				strncpy( BotInfo.szColorSet, szValue, 31 );
+				BotInfo.szColor[31] = 0;
+			}
 			else if ( stricmp( szKey, "gender" ) == 0 )
 			{
 				strncpy( BotInfo.szGender, szValue, 15 );
@@ -1371,6 +1378,16 @@ char *BOTINFO_GetColor( ULONG ulIdx )
 		return ( NULL );
 
 	return ( g_BotInfo[ulIdx].szColor );
+}
+
+//*****************************************************************************
+//
+char *BOTINFO_GetColorSet( ULONG ulIdx )
+{
+	if ( ulIdx >= g_BotInfo.Size() )
+		return ( NULL );
+
+	return ( g_BotInfo[ulIdx].szColorSet );
 }
 
 //*****************************************************************************
@@ -1710,13 +1727,45 @@ CSkullBot::CSkullBot( char *pszName, char *pszTeamName, ULONG ulPlayerNum )
 		skins[lSkin].bRevealed = true;
 	}
 
-	// See if the given class name matches one in the global list.
-	for ( ulIdx = 0; ulIdx < PlayerClasses.Size( ); ulIdx++ )
+	// [AK] Check if the bot should use a random player class whenever they spawn.
+	if ( stricmp( g_BotInfo[m_ulBotInfoIdx].szClassName, "Random" ) == 0 )
+		m_pPlayer->userinfo.PlayerClassNumChanged ( -1 );
+	else
 	{
-		if ( stricmp( g_BotInfo[m_ulBotInfoIdx].szClassName, PlayerClasses[ulIdx].Type->Meta.GetMetaString (APMETA_DisplayName)) == 0 )
+		bool foundClass = false;
+
+		// See if the given class name matches one in the global list.
+		for ( ulIdx = 0; ulIdx < PlayerClasses.Size( ); ulIdx++ )
 		{
-			m_pPlayer->userinfo.PlayerClassNumChanged ( ulIdx );
-			break;
+			if ( stricmp( g_BotInfo[m_ulBotInfoIdx].szClassName, PlayerClasses[ulIdx].Type->Meta.GetMetaString (APMETA_DisplayName)) == 0 )
+			{
+				m_pPlayer->userinfo.PlayerClassNumChanged ( ulIdx );
+				foundClass = true;
+				break;
+			}
+		}
+
+		// [AK] If no match was found, assign the bot a random class instead.
+		if ( foundClass == false )
+			m_pPlayer->userinfo.PlayerClassNumChanged ( -1 );
+	}
+
+
+	// [AK] Get all the color set indices this bot's class has.
+	if ( m_pPlayer->userinfo.GetPlayerClassNum( ) != -1 )
+	{
+		FName playerclass = m_pPlayer->userinfo.GetPlayerClassType( )->TypeName;
+		TArray<int> colorsets;
+		P_EnumPlayerColorSets( playerclass, &colorsets );
+
+		// [AK] See if the given color set name matches one of the class's color sets.
+		for ( ulIdx = 0; ulIdx < colorsets.Size( ); ulIdx++ )
+		{
+			if ( stricmp( g_BotInfo[m_ulBotInfoIdx].szColorSet, P_GetPlayerColorSet( playerclass, colorsets[ulIdx] )->Name.GetChars( )) == 0 )
+			{
+				m_pPlayer->userinfo.ColorSetChanged ( ulIdx );
+				break;
+			}
 		}
 	}
 

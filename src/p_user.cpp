@@ -719,9 +719,7 @@ void APlayerPawn::Serialize (FArchive &arc)
 		<< MorphWeapon
 		<< DamageFade
 		<< PlayerFlags
-		<< FlechetteType
-		<< SoundClass;
-
+		<< FlechetteType;
 	if (SaveVersion < 3829)
 	{
 		GruntSpeed = 12*FRACUNIT;
@@ -1341,6 +1339,24 @@ void APlayerPawn::FilterCoopRespawnInventory (APlayerPawn *oldplayer)
 		PickNewWeapon (NULL);
 	else
 		PLAYER_ClearWeapon( player );
+
+	// [AK] The server doesn't handle a player's last used weapon.
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	{
+		LastWeaponUsed = NULL;
+
+		// [AK] If the player's current weapon isn't the one they used
+		// before respawning, the latter then becomes the last weapon used.
+		if ( player->ReadyWeapon != NULL )
+		{
+			if ( player->ReadyWeapon->GetClass( ) != LastWeaponSelected )
+				LastWeaponUsed = LastWeaponSelected;
+			else if ( player->ReadyWeapon->GetClass( ) != LastWeaponUsedRespawn )
+				LastWeaponUsed = LastWeaponUsedRespawn;
+		}
+
+		LastWeaponUsedRespawn = LastWeaponSelected = NULL;
+	}
 }
 
 //===========================================================================
@@ -1351,7 +1367,6 @@ void APlayerPawn::FilterCoopRespawnInventory (APlayerPawn *oldplayer)
 
 const char *APlayerPawn::GetSoundClass() const
 {
-	const char *defaultsoundclass = strlen(GetClass()->Meta.GetMetaString(APMETA_SoundClass)) == 0 ? "player" : GetClass()->Meta.GetMetaString(APMETA_SoundClass);
 	// [BC] If this player's skin is disabled, just use the base sound class.
 	// [BB] Voodoo dolls don't have valid userinfo.
 	if (( player != NULL ) && ( player->mo == this ) &&
@@ -1362,13 +1377,15 @@ const char *APlayerPawn::GetSoundClass() const
 		if (player != NULL &&
 		(player->mo == NULL || !(player->mo->flags4 &MF4_NOSKIN)) &&
 			(unsigned int)player->userinfo.GetSkin() >= PlayerClasses.Size () &&
-			(size_t)player->userinfo.GetSkin() < skins.Size() && player->mo->SoundClass.IsEmpty())
+			(size_t)player->userinfo.GetSkin() < skins.Size())
 		{
 			return skins[player->userinfo.GetSkin()].name;
 		}
 	}
+
 	// [GRB]
-	return player->mo->SoundClass.IsEmpty() ? defaultsoundclass : player->mo->SoundClass;
+	const char *sclass = GetClass ()->Meta.GetMetaString (APMETA_SoundClass);
+	return sclass != NULL ? sclass : "player";
 }
 
 //===========================================================================
@@ -2500,6 +2517,10 @@ void P_CheckPlayerSprite(AActor *actor, int &spritenum, fixed_t &scalex, fixed_t
 	player_t *player = actor->player;
 
 	int crouchspriteno;
+
+	// [AK] Don't set the player's sprite if their current body doesn't match their class due to A_SkullPop.
+	if ( actor->IsKindOf( RUNTIME_CLASS( APlayerChunk )))
+		return;
 
 	// [BC] Because of cl_skins, we might not necessarily use the player's
 	// desired skin.
@@ -4323,4 +4344,24 @@ bool P_IsPlayerTotallyFrozen(const player_t *player)
 		gamestate == GS_TITLELEVEL ||
 		player->cheats & CF_TOTALLYFROZEN ||
 		((level.flags2 & LEVEL2_FROZEN) && player->timefreezer == 0 && (player->bSpectating == false));
+}
+
+// [AK] Resets the player's pitch limits anytime they need to be changed.
+void P_ResetPlayerPitchLimits(void)
+{
+	const fixed_t maxPitch = ((NETWORK_GetState() != NETSTATE_SERVER) ? Renderer->GetMaxViewPitch(true) : 56) * ANGLE_1;
+	const fixed_t minPitch = -((NETWORK_GetState() != NETSTATE_SERVER) ? Renderer->GetMaxViewPitch(false) : 32) * ANGLE_1;
+
+	// [AK] Set the pitch limits for all active players.
+	for (ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++)
+	{
+		if (playeringame[ulIdx])
+		{
+			players[ulIdx].SendPitchLimits();
+
+			// [AK] Also clamp the player's pitch within the new limits if it's outside them.
+			if (players[ulIdx].mo != NULL)
+				players[ulIdx].mo->pitch = clamp(players[ulIdx].mo->pitch, minPitch, maxPitch);
+		}
+	}
 }

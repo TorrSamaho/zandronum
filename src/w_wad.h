@@ -251,5 +251,6 @@ extern FWadCollection Wads;
 
 // [AK] A list of all duplicate lumps found during startup.
 extern TArray<FString> DuplicateLumps;
+extern TArray<FString> DuplicateLumpFilenames;
 
 #endif

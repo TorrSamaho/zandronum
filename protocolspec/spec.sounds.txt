@@ -42,5 +42,5 @@ EndCommand
 Command StopSound
 	ExtendedCommand
 	Actor actor
-	Short channel
+	Byte channel
 EndCommand

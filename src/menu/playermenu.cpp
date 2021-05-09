@@ -586,11 +586,7 @@ void DPlayerMenu::Init(DMenu *parent, FListMenuDescriptor *desc)
 	}
 #endif
 
-	// [TP] Zandronum doesn't support colorsets for now.
-	const int mycolorset = -1;
-#if 0
 	int mycolorset = players[consoleplayer].userinfo.GetColorSet();
-#endif
 	int color = players[consoleplayer].userinfo.GetColor();
 
 	UpdateColorsets();
@@ -716,12 +712,7 @@ void DPlayerMenu::UpdateTranslation()
 {
 	int PlayerColor = players[consoleplayer].userinfo.GetColor();
 	int	PlayerSkin = players[consoleplayer].userinfo.GetSkin();
-
-	// [TP] Zandronum doesn't suppor colorsets for now.
-	int PlayerColorset = -1;
-#if 0
 	int PlayerColorset = players[consoleplayer].userinfo.GetColorSet();
-#endif
 
 	if (PlayerClass != NULL)
 	{
@@ -798,8 +789,6 @@ void DPlayerMenu::UpdateColorsets()
 		int sel = 0;
 		P_EnumPlayerColorSets(PlayerClass->Type->TypeName, &PlayerColorSets);
 		li->SetString(0, "Custom");
-		// [TP] Zandronum doesn't support colorsets for now.
-#if 0
 		for(unsigned i=0;i<PlayerColorSets.Size(); i++)
 		{
 			FPlayerColorSet *colorset = P_GetPlayerColorSet(PlayerClass->Type->TypeName, PlayerColorSets[i]);
@@ -816,7 +805,6 @@ void DPlayerMenu::UpdateColorsets()
 				}
 			}
 		}
-#endif
 		li->SetValue(0, sel);
 	}
 }
@@ -909,8 +897,6 @@ void DPlayerMenu::PlayerNameChanged(FListMenuItem *li)
 
 void DPlayerMenu::ColorSetChanged (FListMenuItem *li)
 {
-	// [TP] Zandronum doesn't support colorsets
-#if 0
 	int	sel;
 
 	if (li->GetValue(0, &sel))
@@ -934,7 +920,6 @@ void DPlayerMenu::ColorSetChanged (FListMenuItem *li)
 		C_DoCommand(command);
 		UpdateTranslation();
 	}
-#endif
 }
 
 //=============================================================================

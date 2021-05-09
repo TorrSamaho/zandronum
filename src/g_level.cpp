@@ -211,15 +211,8 @@ CCMD (map)
 				// Turn campaign mode back on.
 				CAMPAIGN_EnableCampaign( );
 
-				// Reset the duel and LMS modules.
-				if ( duel )
-					DUEL_SetState( DS_WAITINGFORPLAYERS );
-				if ( lastmanstanding || teamlms )
-					LASTMANSTANDING_SetState( LMSS_WAITINGFORPLAYERS );
-				if ( possession || teampossession )
-					POSSESSION_SetState( PSNS_WAITINGFORPLAYERS );
-				if ( invasion )
-					INVASION_SetState( IS_WAITINGFORPLAYERS );
+				// [AK] Reset the game mode's state.
+				GAMEMODE_SetState( GAMESTATE_WAITFORPLAYERS );
 
 				G_DeferedInitNew (argv[1]);
 			}
@@ -420,6 +413,9 @@ void G_InitNew (const char *mapname, bool bTitleLevel)
 		paused = 0;
 		S_ResumeSound (false);
 	}
+
+	// [AK] Set any flags to what the need to be in the new game mode.
+	GAMEMODE_ReconfigureGameSettings( );
 
 	// [BC] Reset the end level delay.
 	GAME_SetEndLevelDelay( 0 );
@@ -698,9 +694,9 @@ void G_ChangeLevel(const char *levelname, int position, int flags, int nextSkill
 		// [BB] It's possible that the selected next map doesn't coincide with the next map
 		// in the rotation, e.g. exiting to a secret map allows to leave the rotation.
 		// In this case, we may not advance to the next map in the rotation.
-		if ( ( MAPROTATION_GetNextMap( ) != NULL )
-			&& ( stricmp ( MAPROTATION_GetNextMap( )->mapname, nextlevel.GetChars() ) == 0 ) )
-			MAPROTATION_AdvanceMap();
+		level_info_t *nextmapinrotation = MAPROTATION_GetNextMap( );
+		if (( nextmapinrotation != NULL ) && ( stricmp( nextmapinrotation->mapname, nextlevel.GetChars() ) == 0 ))
+			MAPROTATION_AdvanceMap( false );
 	}
 
 	STAT_ChangeLevel(nextlevel);
@@ -1067,6 +1063,9 @@ void G_DoLoadLevel (int position, bool autosave)
 	// [BB] Reset the net traffic measurements when a new map starts.
 	NETTRAFFIC_Reset();
 
+	// [AK] Reset all locked gameplay/compatibility flags to what they're supposed to be, in case they somehow changed.
+	GAMEMODE_ReconfigureGameSettings( true );
+
 	// Loop through the teams, and reset the scores.
 	for ( i = 0; i < teams.Size( ); i++ )
 	{
@@ -1200,82 +1199,9 @@ void G_DoLoadLevel (int position, bool autosave)
 				zacompatflags.ForceSet( Val, CVAR_Int );
 			}
 
-			Val.Bool = false;
-			deathmatch.ForceSet( Val, CVAR_Bool );
-			teamgame.ForceSet( Val, CVAR_Bool );
-
-			Val.Bool = true;
-			switch ( pInfo->GameMode )
-			{
-			case GAMEMODE_COOPERATIVE:
-
-				cooperative.ForceSet( Val, CVAR_Bool );
-				break;
-			case GAMEMODE_SURVIVAL:
-
-				survival.ForceSet( Val, CVAR_Bool );
-				break;
-			case GAMEMODE_INVASION:
-
-				invasion.ForceSet( Val, CVAR_Bool );
-				break;
-			case GAMEMODE_DEATHMATCH:
-
-				deathmatch.ForceSet( Val, CVAR_Bool );
-				break;
-			case GAMEMODE_TEAMPLAY:
-
-				teamplay.ForceSet( Val, CVAR_Bool );
-				break;
-			case GAMEMODE_DUEL:
-
-				duel.ForceSet( Val, CVAR_Bool );
-				break;
-			case GAMEMODE_TERMINATOR:
-
-				terminator.ForceSet( Val, CVAR_Bool );
-				break;
-			case GAMEMODE_LASTMANSTANDING:
-
-				lastmanstanding.ForceSet( Val, CVAR_Bool );
-				break;
-			case GAMEMODE_TEAMLMS:
-
-				teamlms.ForceSet( Val, CVAR_Bool );
-				break;
-			case GAMEMODE_POSSESSION:
-
-				possession.ForceSet( Val, CVAR_Bool );
-				break;
-			case GAMEMODE_TEAMPOSSESSION:
-
-				teampossession.ForceSet( Val, CVAR_Bool );
-				break;
-			case GAMEMODE_TEAMGAME:
-
-				teamgame.ForceSet( Val, CVAR_Bool );
-				break;
-			case GAMEMODE_CTF:
-
-				ctf.ForceSet( Val, CVAR_Bool );
-				break;
-			case GAMEMODE_ONEFLAGCTF:
-
-				oneflagctf.ForceSet( Val, CVAR_Bool );
-				break;
-			case GAMEMODE_SKULLTAG:
-
-				skulltag.ForceSet( Val, CVAR_Bool );
-				break;
-			case GAMEMODE_DOMINATION:
-
-				domination.ForceSet( Val, CVAR_Bool );
-				break;	
-			default:
-
-				I_Error( "G_DoLoadLevel: Invalid campaign game type, %d!", pInfo->GameMode );
-				break;
-			}
+			// [AK] Change the game mode if we need to.
+			if ( pInfo->GameMode != GAMEMODE_GetCurrentMode( ))
+				GAMEMODE_SetCurrentMode( pInfo->GameMode );
 
 			// Set buckshot/instagib.
 			Val.Bool = pInfo->bInstagib;
@@ -1728,6 +1654,32 @@ void G_DoWorldDone (void)
 	}
 	else
 	{
+		// [AK] Check if we're using the map rotation for the next level.
+		if (( NETWORK_GetState() == NETSTATE_SERVER ) && ( sv_maprotation ) && (( level.flags & LEVEL_CHANGEMAPCHEAT ) == false ))
+		{
+			ULONG ulMapEntry = MAPROTATION_GetCurrentPosition();
+			if ( stricmp( MAPROTATION_GetMap( ulMapEntry )->mapname, nextlevel.GetChars()) == 0 )
+			{
+				ULONG ulPlayerCount = 0;
+
+				// [AK] Get the number of players that are still playing or in the join queue.
+				for ( ULONG ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+				{
+					if (( playeringame[ulIdx] ) && (( !players[ulIdx].bSpectating ) || ( JOINQUEUE_GetPositionInLine( ulIdx ) != -1 )))
+						ulPlayerCount++;
+				}
+
+				// [AK] It's possible the number of players who are playing changed during the intermission
+				// screen, so we must check again if we can still enter the next level. If not, we'll need
+				// to pick another map that will accept this many players.
+				if ( MAPROTATION_CanEnterMap( ulMapEntry, ulPlayerCount ) == false )
+					nextlevel = MAPROTATION_GetNextMap()->mapname;
+
+				// [AK] We can now mark the map as being used.
+				MAPROTATION_AdvanceMap( true );
+			}
+		}
+
 		strncpy (level.mapname, nextlevel, 255);
 	}
 

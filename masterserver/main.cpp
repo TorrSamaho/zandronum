@@ -481,7 +481,7 @@ void MASTERSERVER_ParseCommands( BYTESTREAM_s *pByteStream )
 						// [BB] This is a new server, but we still need to verify it.
 						if ( currentUnverifiedServer == g_UnverifiedServers.end() )
 						{
-							srand ( time(NULL) );
+							srand ( static_cast<unsigned int>( time(NULL) ) );
 							newServer.ServerVerificationInt = rand() + rand() * rand() + rand() * rand() * rand();
 							// [BB] We don't send the ban list to unverified servers, so just pretent the server already has the list.
 							newServer.bHasLatestBanList = true;

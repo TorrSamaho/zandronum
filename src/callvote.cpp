@@ -65,6 +65,7 @@
 #include "sv_main.h"
 #include "v_video.h"
 #include "maprotation.h"
+#include "gamemode.h"
 #include <list>
 
 //*****************************************************************************
@@ -94,6 +95,7 @@ static	bool			callvote_CheckForFlooding( FString &Command, FString &Parameters, 
 static	bool			callvote_CheckValidity( FString &Command, FString &Parameters );
 static	ULONG			callvote_GetVoteType( const char *pszCommand );
 static	bool			callvote_IsKickVote( const ULONG ulVoteType );
+static	bool			callvote_IsFlagValid( const char *pszName );
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -122,11 +124,30 @@ void CALLVOTE_Tick( void )
 		if ( g_ulVoteCountdownTicks )
 		{
 			g_ulVoteCountdownTicks--;
-			if (( NETWORK_InClientMode() == false ) &&
-				( g_ulVoteCountdownTicks == 0 ))
+			if ( NETWORK_InClientMode() == false )
 			{
+				// [AK] If the current vote is for changing a flag, we must check if it's still valid to keep the vote active.
+				if ( g_PreviousVotes.back().ulVoteType == VOTECMD_FLAG )
+				{
+					const char *flagName = g_VoteCommand.Left( g_VoteCommand.IndexOf( ' ' ));
+					FFlagCVar *flag = static_cast<FFlagCVar *>( FindCVar( flagName, NULL ));
+					bool bEnable = !g_VoteCommand.Right( g_VoteCommand.Len() - ( strlen( flagName ) + 1 )).CompareNoCase( "true" );
+
+					// [AK] Cancel the vote if the flag has already been changed to the desired value.
+					if ( flag->GetGenericRep( CVAR_Bool ).Bool == bEnable )
+					{
+						g_PreviousVotes.back().ulVoteType = NUM_VOTECMDS;
+						SERVER_Printf( "%s has been changed so the vote has been cancelled.\n", flag->GetName() );
+						g_bVoteCancelled = true;
+						g_bVotePassed = false;
+						callvote_EndVote();
+						return;
+					}
+				}
+
 				// [RK] Perform the final tally of votes.
-				CALLVOTE_TallyVotes();
+				if ( g_ulVoteCountdownTicks == 0 )
+					CALLVOTE_TallyVotes();
 			}
 		}
 		break;
@@ -273,7 +294,7 @@ bool CALLVOTE_VoteYes( ULONG ulPlayer )
 		return ( false );
 
 	// [RC] If this is our vote, hide the vote screen soon.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( static_cast<LONG>(ulPlayer) == consoleplayer ) )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( cl_hidevotescreen && static_cast<LONG>(ulPlayer) == consoleplayer ))
 		g_ulShowVoteScreenTicks = 1 * TICRATE;
 
 	// Also, don't allow spectator votes if the server has them disabled.
@@ -354,7 +375,7 @@ bool CALLVOTE_VoteNo( ULONG ulPlayer )
 		return ( false );
 
 	// [RC] If this is our vote, hide the vote screen soon.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( static_cast<LONG>(ulPlayer) == consoleplayer ) )
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( cl_hidevotescreen && static_cast<LONG>(ulPlayer) == consoleplayer ))
 		g_ulShowVoteScreenTicks = 1 * TICRATE;
 
 	// [RC] Vote callers can cancel their votes by voting "no".
@@ -878,6 +899,42 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 		}
 		Parameters.Format( "%d", parameterInt );
 		break;
+	case VOTECMD_FLAG:
+		{
+			// [AK] Any valid input could be either a number or simply "true" or "false".
+			if (( parameterInt == 0 ) && (( Parameters.GetChars()[0] != '0' ) || ( Parameters.Len() != 1 )))
+			{
+				if ( Parameters.CompareNoCase( "true" ) == 0 )
+				{
+					parameterInt = 1;
+				}
+				else if ( Parameters.CompareNoCase( "false" ) != 0 )
+				{
+					if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+						SERVER_PrintfPlayer( SERVER_GetCurrentClient( ), "%s is an invalid parameter.\n", Parameters.GetChars() );
+					return ( false );
+				}
+			}
+		
+			FFlagCVar *flag = static_cast<FFlagCVar *>( FindCVar( Command, NULL));
+
+			// [AK] Don't call the vote if this flag is supposed to be locked in the current game mode.
+			if ( flag->GetBitVal() & GAMEMODE_GetCurrentFlagsetMask( flag->GetValueVar(), true ))
+			{
+				SERVER_PrintfPlayer( SERVER_GetCurrentClient( ), "%s cannot be changed in this game mode.\n", flag->GetName() );
+				return ( false );
+			}
+
+			// [AK] Don't call the vote if this flag is already set to the parameter's value. 
+			if ( flag->GetGenericRep( CVAR_Int ).Int == parameterInt )
+			{
+				SERVER_PrintfPlayer( SERVER_GetCurrentClient( ), "%s is already set to %s.\n", flag->GetName(), Parameters.GetChars() );
+				return ( false );
+			}
+
+			Parameters.Format( "%s", parameterInt ? "true" : "false" );
+		}
+		break;
 	default:
 
 		return ( false );
@@ -909,6 +966,8 @@ static ULONG callvote_GetVoteType( const char *pszCommand )
 		return VOTECMD_DUELLIMIT;
 	else if ( stricmp( "pointlimit", pszCommand ) == 0 )
 		return VOTECMD_POINTLIMIT;
+	else if ( callvote_IsFlagValid( pszCommand ))
+		return VOTECMD_FLAG;
 
 	return NUM_VOTECMDS;
 }
@@ -918,6 +977,41 @@ static ULONG callvote_GetVoteType( const char *pszCommand )
 static bool callvote_IsKickVote( const ULONG ulVoteType )
 {
 	return ( ( ulVoteType == VOTECMD_KICK ) || ( ulVoteType == VOTECMD_FORCETOSPECTATE ) );
+}
+
+//*****************************************************************************
+//
+static bool callvote_IsFlagValid( const char *pszName )
+{
+	// [AK] Check to make sure the CVar the client sent by name actually exists.
+	FBaseCVar *cvar = FindCVar( pszName, NULL );
+	if ( cvar == NULL )
+	{
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVER_PrintfPlayer( SERVER_GetCurrentClient( ), "That cvar does not exist.\n" );
+		return ( false );
+	}
+
+	// [AK]	Also check to make sure this is a flag-type CVar.
+	if ( cvar->IsFlagCVar( ) == false )
+	{
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVER_PrintfPlayer( SERVER_GetCurrentClient( ), "That cvar is not a flag.\n" );
+		return ( false );
+	}
+
+	// [AK] This flag must belong to a gameplay or compatibility flagset in order to be valid.
+	FIntCVar* flagset = static_cast<FFlagCVar*>( cvar )->GetValueVar( );
+	if (( flagset != &dmflags && flagset != &dmflags2 ) &&
+		( flagset != &compatflags && flagset != &compatflags ) &&
+		( flagset != &zadmflags && flagset != &zacompatflags ))
+	{
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVER_PrintfPlayer( SERVER_GetCurrentClient( ), "That cvar is not a valid gameplay or compatibility flag.\n" );
+		return ( false );
+	}
+
+	return ( true );
 }
 
 //*****************************************************************************
@@ -939,13 +1033,16 @@ CVAR( Bool, sv_notimelimitvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
 CVAR( Bool, sv_nowinlimitvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
 CVAR( Bool, sv_noduellimitvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
 CVAR( Bool, sv_nopointlimitvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
+CVAR( Bool, sv_noflagvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
 CVAR( Int, sv_votecooldown, 5, CVAR_ARCHIVE | CVAR_SERVERINFO );
 CVAR( Int, sv_voteconnectwait, 0, CVAR_ARCHIVE | CVAR_SERVERINFO );  // [RK] The amount of seconds after client connect to wait before voting
 CVAR( Bool, cl_showfullscreenvote, false, CVAR_ARCHIVE );
+CVAR( Bool, cl_hidevotescreen, true, CVAR_ARCHIVE ); // [AK] Hides the vote screen shortly after the client makes their vote.
 
 CCMD( callvote )
 {
 	ULONG	ulVoteCmd;
+	char	szArgument[128];
 
 	// Don't allow a vote unless the player is a client.
 	if ( NETWORK_GetState( ) != NETSTATE_CLIENT )
@@ -977,10 +1074,16 @@ CCMD( callvote )
 		return;
 	}
 
-	if ( argv.argc( ) >= 4 )
-		CLIENTCOMMANDS_CallVote( ulVoteCmd, argv[2], argv[3] );
+	// [AK] If we're calling a flag vote, put the CVar's name and the parameter together.
+	if ( ulVoteCmd == VOTECMD_FLAG )
+		sprintf( szArgument, "%s %s", argv[1], argv[2] );
 	else
-		CLIENTCOMMANDS_CallVote( ulVoteCmd, argv[2], "" );
+		sprintf( szArgument, "%s", argv[2] );
+
+	if ( argv.argc( ) >= 4 )
+		CLIENTCOMMANDS_CallVote( ulVoteCmd, szArgument, argv[3] );
+	else
+		CLIENTCOMMANDS_CallVote( ulVoteCmd, szArgument, "" );
 /*
 	g_lBytesSent += g_LocalBuffer.cursize;
 	if ( g_lBytesSent > g_lMaxBytesSent )

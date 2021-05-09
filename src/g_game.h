@@ -143,6 +143,12 @@ extern int bodyqueslot;
 class AInventory;
 extern const AInventory *SendItemUse, *SendItemDrop;
 
+// [AK] The weapon the consoleplayer was using last.
+struct PClass;
+extern PClass *LastWeaponUsed, *LastWeaponUsedRespawn;
+// [AK] The weapon the consoleplayer had selected upon respawning.
+extern PClass *LastWeaponSelected;
+
 // [BB] Exported G_QueueBody.
 void G_QueueBody (AActor *body);
 
