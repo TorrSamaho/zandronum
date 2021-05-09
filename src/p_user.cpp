@@ -719,7 +719,8 @@ void APlayerPawn::Serialize (FArchive &arc)
 		<< MorphWeapon
 		<< DamageFade
 		<< PlayerFlags
-		<< FlechetteType;
+		<< FlechetteType
+		<< SoundClass;
 	if (SaveVersion < 3829)
 	{
 		GruntSpeed = 12*FRACUNIT;
@@ -1367,6 +1368,7 @@ void APlayerPawn::FilterCoopRespawnInventory (APlayerPawn *oldplayer)
 
 const char *APlayerPawn::GetSoundClass() const
 {
+	const char *defaultsoundclass = strlen(GetClass()->Meta.GetMetaString(APMETA_SoundClass)) == 0 ? "player" : GetClass()->Meta.GetMetaString(APMETA_SoundClass);
 	// [BC] If this player's skin is disabled, just use the base sound class.
 	// [BB] Voodoo dolls don't have valid userinfo.
 	if (( player != NULL ) && ( player->mo == this ) &&
@@ -1377,15 +1379,13 @@ const char *APlayerPawn::GetSoundClass() const
 		if (player != NULL &&
 		(player->mo == NULL || !(player->mo->flags4 &MF4_NOSKIN)) &&
 			(unsigned int)player->userinfo.GetSkin() >= PlayerClasses.Size () &&
-			(size_t)player->userinfo.GetSkin() < skins.Size())
+			(size_t)player->userinfo.GetSkin() < skins.Size() && player->mo->SoundClass.IsEmpty())
 		{
 			return skins[player->userinfo.GetSkin()].name;
 		}
 	}
-
 	// [GRB]
-	const char *sclass = GetClass ()->Meta.GetMetaString (APMETA_SoundClass);
-	return sclass != NULL ? sclass : "player";
+	return player->mo->SoundClass.IsEmpty() ? defaultsoundclass : player->mo->SoundClass;
 }
 
 //===========================================================================
