@@ -4945,3 +4945,16 @@ void APathFollower::SyncWithClient ( const ULONG ulClient )
 	command.addFloat( this->Time );
 	command.sendCommandToOneClient( ulClient );
 }
+
+//*****************************************************************************
+//
+void SERVERCOMMANDS_SetSoundClass(ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags)
+{
+	if (PLAYER_IsValidPlayerWithMo(ulPlayer) == false)
+		return;
+
+	NetCommand command(SVC2_SETSOUNDCLASS);
+	command.addByte(ulPlayer);
+	command.addString(players[ulPlayer].mo->SoundClass);
+	command.sendCommandToClients(ulPlayerExtra, flags);
+}
