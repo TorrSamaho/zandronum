@@ -2542,7 +2542,8 @@ void P_CheckPlayerSprite(AActor *actor, int &spritenum, fixed_t &scalex, fixed_t
 	}
 	// [BB] No longer using a weapon with a preferred skin, reset the sprite.
 	else if ( ( spritenum != skins[lSkin].sprite ) && ( spritenum != skins[lSkin].crouchsprite )
-			&& ( spritenum != actor->state->sprite ) )
+			&& ( spritenum != actor->state->sprite ) && (actor->state->sprite != SPR_NOCHANGE) && 
+			(actor->state->sprite != SPR_FIXED))
 	{
 		spritenum = skins[lSkin].sprite;
 	}
