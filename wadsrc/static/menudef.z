@@ -223,6 +223,10 @@ OptionMenu "VideoOptions"
 	Slider "Gamma correction",			"Gamma",						0.75, 3.0, 0.05, 2
 	Slider "Brightness",				"vid_brightness",				-0.8,0.8, 0.05
 	Slider "Contrast",					"vid_contrast",	   				0.1, 3.0, 0.1
+	// [AK] Out of order GZDoom backport that should go in "menudef.txt". Replaced "$DSPLYMNU_FOV" with "FOV".
+	StaticText " "
+	Slider "FOV",						"fov",							75.0, 120.0, 0.1, 1
+	StaticText " "
 
 	Option "Vertical Sync",				"vid_vsync", "OnOff"
 	Option "Blood uses max health",		"blood_fade_usemaxhealth", "OnOff" // [AK]
