@@ -85,6 +85,7 @@
 #include "maprotation.h"
 #include "voicechat.h"
 #include "d_netinf.h"
+#include "callvote.h"
 #include <memory>
 
 CVAR (Bool, sv_showwarnings, false, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
@@ -2541,6 +2542,7 @@ void SERVERCOMMANDS_SetGameDMFlags( ULONG ulPlayerExtra, ServerCommandFlags flag
 	command.addLong ( compatflags2 );
 	command.addLong ( zacompatflags );
 	command.addLong ( zadmflags );
+	command.addLong ( sv_forbidvoteflags );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 

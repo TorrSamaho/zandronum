@@ -6020,6 +6020,10 @@ static void client_SetGameDMFlags( BYTESTREAM_s *pByteStream )
 	// [BB] ... and zadmflags.
 	Value.Int = pByteStream->ReadLong();
 	zadmflags.ForceSet( Value, CVAR_Int );
+
+	// [TRSR] ... and sv_forbidvoteflags.
+	Value.Int = pByteStream->ReadLong();
+	sv_forbidvoteflags.ForceSet( Value, CVAR_Int );
 }
 
 //*****************************************************************************

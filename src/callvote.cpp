@@ -1563,20 +1563,25 @@ CUSTOM_CVAR( Int, sv_minvoters, 1, CVAR_ARCHIVE )
 		self = 1;
 }
 
+CUSTOM_CVAR( Int, sv_forbidvoteflags, FORBIDVOTE_FLAG, CVAR_ARCHIVE | CVAR_SERVERINFO )
+{
+	SERVER_FlagsetChanged( self );
+}
+
 CVAR( Int, sv_nocallvote, 0, CVAR_ARCHIVE | CVAR_SERVERINFO ); // 0 - everyone can call votes. 1 - nobody can. 2 - only players can.
-CVAR( Bool, sv_nokickvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
-CVAR( Bool, sv_noforcespecvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
-CVAR( Bool, sv_nomapvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
-CVAR( Bool, sv_nochangemapvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
-CVAR( Bool, sv_nofraglimitvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
-CVAR( Bool, sv_notimelimitvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
-CVAR( Bool, sv_nowinlimitvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
-CVAR( Bool, sv_noduellimitvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
-CVAR( Bool, sv_nopointlimitvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
-CVAR( Bool, sv_noflagvote, true, CVAR_ARCHIVE | CVAR_SERVERINFO );
-CVAR( Bool, sv_nonextmapvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
-CVAR( Bool, sv_nonextsecretvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
-CVAR( Bool, sv_noresetmapvote, false, CVAR_ARCHIVE | CVAR_SERVERINFO );
+CVAR( Flag, sv_nokickvote, sv_forbidvoteflags, FORBIDVOTE_KICK );
+CVAR( Flag, sv_noforcespecvote, sv_forbidvoteflags, FORBIDVOTE_FORCESPEC );
+CVAR( Flag, sv_nomapvote, sv_forbidvoteflags, FORBIDVOTE_MAP );
+CVAR( Flag, sv_nochangemapvote, sv_forbidvoteflags, FORBIDVOTE_CHANGEMAP );
+CVAR( Flag, sv_nofraglimitvote, sv_forbidvoteflags, FORBIDVOTE_FRAGLIMIT );
+CVAR( Flag, sv_notimelimitvote, sv_forbidvoteflags, FORBIDVOTE_TIMELIMIT );
+CVAR( Flag, sv_nowinlimitvote, sv_forbidvoteflags, FORBIDVOTE_WINLIMIT );
+CVAR( Flag, sv_noduellimitvote, sv_forbidvoteflags, FORBIDVOTE_DUELLIMIT );
+CVAR( Flag, sv_nopointlimitvote, sv_forbidvoteflags, FORBIDVOTE_POINTLIMIT );
+CVAR( Flag, sv_noflagvote, sv_forbidvoteflags, FORBIDVOTE_FLAG );
+CVAR( Flag, sv_nonextmapvote, sv_forbidvoteflags, FORBIDVOTE_NEXTMAP );
+CVAR( Flag, sv_nonextsecretvote, sv_forbidvoteflags, FORBIDVOTE_NEXTSECRET );
+CVAR( Flag, sv_noresetmapvote, sv_forbidvoteflags, FORBIDVOTE_RESETMAP );
 CVAR( Int, sv_votecooldown, 5, CVAR_ARCHIVE | CVAR_SERVERINFO );
 CVAR( Int, sv_voteconnectwait, 0, CVAR_ARCHIVE | CVAR_SERVERINFO );  // [RK] The amount of seconds after client connect to wait before voting
 CVAR( Bool, cl_showfullscreenvote, false, CVAR_ARCHIVE );

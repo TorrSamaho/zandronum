@@ -68,6 +68,24 @@
 //*****************************************************************************
 enum
 {
+	FORBIDVOTE_KICK			= 1 << 0,
+	FORBIDVOTE_FORCESPEC	= 1 << 1,
+	FORBIDVOTE_MAP			= 1 << 2,
+	FORBIDVOTE_CHANGEMAP	= 1 << 3,
+	FORBIDVOTE_FRAGLIMIT	= 1 << 4,
+	FORBIDVOTE_TIMELIMIT	= 1 << 5,
+	FORBIDVOTE_WINLIMIT		= 1 << 6,
+	FORBIDVOTE_DUELLIMIT	= 1 << 7,
+	FORBIDVOTE_POINTLIMIT	= 1 << 8,
+	FORBIDVOTE_FLAG			= 1 << 9,
+	FORBIDVOTE_NEXTMAP		= 1 << 10,
+	FORBIDVOTE_NEXTSECRET	= 1 << 11,
+	FORBIDVOTE_RESETMAP		= 1 << 12,
+};
+
+//*****************************************************************************
+enum
+{
 	VOTECMD_KICK,
 	VOTECMD_FORCETOSPECTATE,
 	VOTECMD_MAP,
@@ -179,20 +197,8 @@ void			CALLVOTE_ConvertCustomVoteParameter( const VOTETYPE_s *customVoteType, FS
 //	EXTERNAL CONSOLE VARIABLES
 
 EXTERN_CVAR( Int, sv_minvoters );
+EXTERN_CVAR( Int, sv_forbidvoteflags );
 EXTERN_CVAR( Int, sv_nocallvote )
-EXTERN_CVAR( Bool, sv_nokickvote );
-EXTERN_CVAR( Bool, sv_noforcespecvote );
-EXTERN_CVAR( Bool, sv_nomapvote );
-EXTERN_CVAR( Bool, sv_nochangemapvote );
-EXTERN_CVAR( Bool, sv_nofraglimitvote );
-EXTERN_CVAR( Bool, sv_notimelimitvote );
-EXTERN_CVAR( Bool, sv_nowinlimitvote );
-EXTERN_CVAR( Bool, sv_noduellimitvote );
-EXTERN_CVAR( Bool, sv_nopointlimitvote );
-EXTERN_CVAR( Bool, sv_noflagvote );
-EXTERN_CVAR( Bool, sv_nonextmapvote );
-EXTERN_CVAR( Bool, sv_nonextsecretvote );
-EXTERN_CVAR( Bool, sv_noresetmapvote );
 EXTERN_CVAR( Int, sv_votecooldown );
 EXTERN_CVAR( Int, sv_voteconnectwait );
 EXTERN_CVAR( Bool, cl_showfullscreenvote )

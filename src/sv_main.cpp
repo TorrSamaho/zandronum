@@ -7442,69 +7442,69 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 	{
 	case VOTECMD_KICK:
 
-		bVoteAllowed = !sv_nokickvote;
+		bVoteAllowed = !( sv_forbidvoteflags & FORBIDVOTE_KICK );
 		sprintf( szCommand, "kick" );
 		break;
 
 	case VOTECMD_FORCETOSPECTATE:
 
-		bVoteAllowed = !sv_noforcespecvote;
+		bVoteAllowed = !( sv_forbidvoteflags & FORBIDVOTE_FORCESPEC );
 		sprintf( szCommand, "forcespec" );
 		break;
 
 	case VOTECMD_MAP:
 
-		bVoteAllowed = !sv_nomapvote;
+		bVoteAllowed = !( sv_forbidvoteflags & FORBIDVOTE_MAP );
 		sprintf( szCommand, "map" );
 		break;
 	case VOTECMD_CHANGEMAP:
 
-		bVoteAllowed = !sv_nochangemapvote;
+		bVoteAllowed = !( sv_forbidvoteflags & FORBIDVOTE_CHANGEMAP );
 		sprintf( szCommand, "changemap" );
 		break;
 	case VOTECMD_FRAGLIMIT:
 
-		bVoteAllowed = !sv_nofraglimitvote;
+		bVoteAllowed = !( sv_forbidvoteflags & FORBIDVOTE_FRAGLIMIT );
 		sprintf( szCommand, "fraglimit" );
 		break;
 	case VOTECMD_TIMELIMIT:
 
-		bVoteAllowed = !sv_notimelimitvote;
+		bVoteAllowed = !( sv_forbidvoteflags & FORBIDVOTE_TIMELIMIT );
 		sprintf( szCommand, "timelimit" );
 		break;
 	case VOTECMD_WINLIMIT:
 
-		bVoteAllowed = !sv_nowinlimitvote;
+		bVoteAllowed = !( sv_forbidvoteflags & FORBIDVOTE_WINLIMIT );
 		sprintf( szCommand, "winlimit" );
 		break;
 	case VOTECMD_DUELLIMIT:
 
-		bVoteAllowed = !sv_noduellimitvote;
+		bVoteAllowed = !( sv_forbidvoteflags & FORBIDVOTE_DUELLIMIT );
 		sprintf( szCommand, "duellimit" );
 		break;
 	case VOTECMD_POINTLIMIT:
 
-		bVoteAllowed = !sv_nopointlimitvote;
+		bVoteAllowed = !( sv_forbidvoteflags & FORBIDVOTE_POINTLIMIT );
 		sprintf( szCommand, "pointlimit" );
 		break;
 	case VOTECMD_FLAG:
 
-		bVoteAllowed = !sv_noflagvote;
+		bVoteAllowed = !( sv_forbidvoteflags & FORBIDVOTE_FLAG );
 		sprintf( szCommand, "flag" );
 		break;
 	case VOTECMD_NEXTMAP:
 
-		bVoteAllowed = !sv_nonextmapvote;
+		bVoteAllowed = !( sv_forbidvoteflags & FORBIDVOTE_NEXTMAP );
 		sprintf( szCommand, "nextmap" );
 		break;
 	case VOTECMD_NEXTSECRET:
 
-		bVoteAllowed = !sv_nonextsecretvote;
+		bVoteAllowed = !( sv_forbidvoteflags & FORBIDVOTE_NEXTSECRET );
 		sprintf( szCommand, "nextsecret" );
 		break;
 	case VOTECMD_RESETMAP:
 
-		bVoteAllowed = !sv_noresetmapvote;
+		bVoteAllowed = !( sv_forbidvoteflags & FORBIDVOTE_RESETMAP );
 		sprintf( szCommand, "resetmap" );
 		break;
 	default:
