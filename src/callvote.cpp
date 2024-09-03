@@ -1728,3 +1728,85 @@ CCMD ( cancelvote )
 		}
 	}
 }
+
+//*****************************************************************************
+//
+CCMD ( listvotetypes )
+{
+	struct ListVoteEntry
+	{
+		FString name;
+		VOTETYPE_s::parametertype_e parameterType;
+		bool forbidden;
+	};
+
+	bool allVotesForbidden = ( sv_nocallvote == 1 );
+	std::vector<ListVoteEntry> voteTypes =
+	{
+		{ "kick",		VOTETYPE_s::parametertype_e::PLAYER,	!!( sv_forbidvoteflags & FORBIDVOTE_KICK ) },
+		{ "forcespec",	VOTETYPE_s::parametertype_e::PLAYER,	!!( sv_forbidvoteflags & FORBIDVOTE_FORCESPEC ) },
+		{ "map",		VOTETYPE_s::parametertype_e::MAP,		!!( sv_forbidvoteflags & FORBIDVOTE_MAP ) },
+		{ "changemap",	VOTETYPE_s::parametertype_e::MAP,		!!( sv_forbidvoteflags & FORBIDVOTE_CHANGEMAP ) },
+		{ "fraglimit",	VOTETYPE_s::parametertype_e::INT,		!!( sv_forbidvoteflags & FORBIDVOTE_FRAGLIMIT ) },
+		{ "timelimit",	VOTETYPE_s::parametertype_e::INT,		!!( sv_forbidvoteflags & FORBIDVOTE_TIMELIMIT ) },
+		{ "winlimit",	VOTETYPE_s::parametertype_e::INT,		!!( sv_forbidvoteflags & FORBIDVOTE_WINLIMIT ) },
+		{ "duellimit",	VOTETYPE_s::parametertype_e::INT,		!!( sv_forbidvoteflags & FORBIDVOTE_DUELLIMIT ) },
+		{ "pointlimit",	VOTETYPE_s::parametertype_e::INT,		!!( sv_forbidvoteflags & FORBIDVOTE_POINTLIMIT ) },
+		{ "flag",		VOTETYPE_s::parametertype_e::STRING,	!!( sv_forbidvoteflags & FORBIDVOTE_FLAG ) },
+		{ "nextmap",	VOTETYPE_s::parametertype_e::NONE,		!!( sv_forbidvoteflags & FORBIDVOTE_NEXTMAP ) },
+		{ "nextsecret",	VOTETYPE_s::parametertype_e::NONE,		!!( sv_forbidvoteflags & FORBIDVOTE_NEXTSECRET ) },
+		{ "resetmap",	VOTETYPE_s::parametertype_e::NONE,		!!( sv_forbidvoteflags & FORBIDVOTE_RESETMAP ) },
+	};
+
+	if ( ( NETWORK_GetState( ) != NETSTATE_SERVER ) && ( allVotesForbidden == false ) )
+		allVotesForbidden = ( ( sv_nocallvote == 2 ) && ( players[consoleplayer].bSpectating ) );
+
+	for ( unsigned int i = 0; i < g_VoteTypeDefinitions.Size( ); i++ )
+	{
+		bool forbidden = false;
+
+		if ( ( !allVotesForbidden ) || ( g_VoteTypeDefinitions[i].forbidCvarName.IsNotEmpty( ) ) )
+		{
+			FBaseCVar* cvar = FindCVar( g_VoteTypeDefinitions[i].forbidCvarName.GetChars( ), nullptr );
+			forbidden = ( ( cvar != nullptr ) && ( cvar->GetGenericRep( CVAR_Bool ).Bool ) );
+		}
+
+		voteTypes.push_back( { g_VoteTypeDefinitions[i].name, g_VoteTypeDefinitions[i].parameterType, forbidden } );
+	}
+
+	Printf( "Vote type list:\n" );
+
+	for ( unsigned int i = 0; i < voteTypes.size( ); i++ )
+	{
+		FString message;
+		message.Format( "%s ", voteTypes[i].name.GetChars( ) );
+
+		switch ( voteTypes[i].parameterType )
+		{
+			case VOTETYPE_s::parametertype_e::NONE:
+				break;
+			case VOTETYPE_s::parametertype_e::INT:
+				message.AppendFormat( "<int> " );
+				break;
+			case VOTETYPE_s::parametertype_e::FLOAT:
+				message.AppendFormat( "<float> " );
+				break;
+			case VOTETYPE_s::parametertype_e::STRING:
+				message.AppendFormat( "<value> " );
+				break;
+			case VOTETYPE_s::parametertype_e::MAP:
+				message.AppendFormat( "<map> " );
+				break;
+			case VOTETYPE_s::parametertype_e::PLAYER:
+				message.AppendFormat( "<player> " );
+				break;
+		}
+
+		message.AppendFormat( "[reason]" );
+
+		if ( ( allVotesForbidden ) || ( voteTypes[i].forbidden ) )
+			message.Insert( 0, TEXTCOLOR_RED "(Forbidden) " );
+
+		Printf( "%u. %s\n", i + 1, message.GetChars( ) );
+	}
+}
