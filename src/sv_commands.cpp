@@ -2591,6 +2591,8 @@ void SERVERCOMMANDS_SetGameModeLimits( ULONG ulPlayerExtra, ServerCommandFlags f
 	command.addFloat( sv_maxproximityrolloffdist );
 	// [AK] Send sv_respawndelaytime.
 	command.addFloat( sv_respawndelaytime );
+	// [TRSR] Send sv_nocallvote.
+	command.addByte( sv_nocallvote );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 

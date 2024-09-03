@@ -1568,7 +1568,11 @@ CUSTOM_CVAR( Int, sv_forbidvoteflags, FORBIDVOTE_FLAG, CVAR_ARCHIVE | CVAR_SERVE
 	SERVER_FlagsetChanged( self );
 }
 
-CVAR( Int, sv_nocallvote, 0, CVAR_ARCHIVE | CVAR_SERVERINFO ); // 0 - everyone can call votes. 1 - nobody can. 2 - only players can.
+CUSTOM_CVAR( Int, sv_nocallvote, 0, CVAR_ARCHIVE | CVAR_SERVERINFO ) // 0 - everyone can call votes. 1 - nobody can. 2 - only players can.
+{
+	SERVER_SettingChanged( self, false );
+}
+
 CVAR( Flag, sv_nokickvote, sv_forbidvoteflags, FORBIDVOTE_KICK );
 CVAR( Flag, sv_noforcespecvote, sv_forbidvoteflags, FORBIDVOTE_FORCESPEC );
 CVAR( Flag, sv_nomapvote, sv_forbidvoteflags, FORBIDVOTE_MAP );

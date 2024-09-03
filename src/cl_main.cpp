@@ -6131,6 +6131,10 @@ static void client_SetGameModeLimits( BYTESTREAM_s *pByteStream )
 	// [AK] Read in, and set the value for sv_respawndelaytime.
 	Value.Float = pByteStream->ReadFloat();
 	sv_respawndelaytime.ForceSet( Value, CVAR_Float );
+
+	// [TRSR] Read in, and set the value for sv_nocallvote.
+	Value.Int = pByteStream->ReadByte();
+	sv_nocallvote.ForceSet( Value, CVAR_Int );
 }
 
 //*****************************************************************************
