@@ -102,10 +102,17 @@ struct VOTETYPE_s
 	{
 		NONE,
 		INT,
+		FLOAT,
 		STRING,
+		PLAYER,
+		MAP
 	};
 	FString name;
+	FString displayName;
+	FString menu;
+	FString menuName;
 	FString scriptName;
+	FString preflightScript;
 	FString forbidCvarName;
 	parametertype_e parameterType = parametertype_e::NONE;
 };
@@ -141,6 +148,7 @@ typedef struct
 
 void			CALLVOTE_Construct( void );
 void			CALLVOTE_ReadVoteInfo( void );
+const TArray<VOTETYPE_s> &CALLVOTE_GetCustomVotes( void );
 void			CALLVOTE_Tick( void );
 void			CALLVOTE_Render( void );
 void			CALLVOTE_RenderClassic( void );
@@ -165,6 +173,7 @@ ULONG			*CALLVOTE_GetPlayersWhoVotedNo( void );
 bool			CALLVOTE_ShouldShowVoteScreen( void );
 ULONG			CALLVOTE_GetPlayerVoteChoice( ULONG ulPlayer );
 const VOTETYPE_s *CALLVOTE_GetCustomVoteTypeDefinition( ULONG ulVoteType );
+void			CALLVOTE_ConvertCustomVoteParameter( const VOTETYPE_s *customVoteType, FString &Parameters );
 
 //*****************************************************************************
 //	EXTERNAL CONSOLE VARIABLES

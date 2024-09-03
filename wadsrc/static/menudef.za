@@ -409,6 +409,7 @@ OptionValue ZA_VoteLimitTypes
 OptionMenu ZA_CallVote
 {
 	Title "CALL VOTE"
+	Class "CallVoteMenu"
 	NetGameOnly
 
 	SubMenu		"Kick a player",			"ZA_CallKickVote"

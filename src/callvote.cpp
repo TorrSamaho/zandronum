@@ -147,17 +147,21 @@ void CALLVOTE_ReadVoteInfo( void )
 			while ( sc.CheckToken( '}' ) == false )
 			{
 				sc.MustGetAnyToken();
-				if ( sc.TokenType == TK_Action )
+				if ( ( sc.TokenType == TK_Action ) || ( ( sc.TokenType == TK_Identifier ) && sc.Compare( "PreflightAction" ) ) )
 				{
+					const bool isAction = ( sc.TokenType == TK_Action );
 					sc.MustGetToken( '=' );
 					sc.MustGetToken( TK_Identifier );
 					if ( sc.Compare( "CallACS" ) == false )
 					{
-						sc.ScriptError( "Action must be CallACS" );
+						sc.ScriptError( "%s must be CallACS", isAction ? "Action" : "PreflightAction" );
 					}
 					sc.MustGetToken( '(' );
 					sc.MustGetToken( TK_StringConst );
-					newVoteType.scriptName = sc.String;
+					if ( isAction )
+						newVoteType.scriptName = sc.String;
+					else
+						newVoteType.preflightScript = sc.String;
 					sc.MustGetToken( ')' );
 					sc.MustGetToken( ';' );
 				}
@@ -183,15 +187,54 @@ void CALLVOTE_ReadVoteInfo( void )
 					{
 						newVoteType.parameterType = VOTETYPE_s::parametertype_e::INT;
 					}
+					else if ( sc.TokenType == TK_Float )
+					{
+						newVoteType.parameterType = VOTETYPE_s::parametertype_e::FLOAT;
+					}
 					else if ( sc.TokenType == TK_Identifier && sc.Compare( "Str" ) )
 					{
 						newVoteType.parameterType = VOTETYPE_s::parametertype_e::STRING;
+					}
+					else if ( sc.TokenType == TK_Identifier && sc.Compare( "Player" ) )
+					{
+						newVoteType.parameterType = VOTETYPE_s::parametertype_e::PLAYER;
+					}
+					else if ( sc.TokenType == TK_Map )
+					{
+						newVoteType.parameterType = VOTETYPE_s::parametertype_e::MAP;
 					}
 					else
 					{
 						sc.ScriptError( "Unknown vote parameter type \"%s\"", sc.String );
 					}
 					sc.MustGetToken(';');
+				}
+				else if ( ( sc.TokenType == TK_Identifier ) && sc.Compare( "DisplayName" ) )
+				{
+					sc.MustGetToken( '=' );
+					sc.MustGetToken( TK_StringConst );
+					if ( sc.StringLen == 0 )
+					{
+						sc.ScriptError( "DisplayName cannot be empty." );
+					}
+					newVoteType.displayName = sc.String;
+					sc.MustGetToken( ';' );
+				}
+				else if ( ( sc.TokenType == TK_Identifier ) && sc.Compare( "Menu" ) )
+				{
+					sc.MustGetToken( '=' );
+					sc.MustGetToken( TK_Identifier );
+					newVoteType.menu = sc.String;
+					if ( sc.CheckToken( ',' ) )
+					{
+						sc.MustGetToken( TK_StringConst );
+						if ( sc.StringLen == 0 )
+						{
+							sc.ScriptError( "Menu title cannot be empty." );
+						}
+						newVoteType.menuName = sc.String;
+					}
+					sc.MustGetToken( ';' );
 				}
 				else
 				{
@@ -202,9 +245,26 @@ void CALLVOTE_ReadVoteInfo( void )
 			{
 				sc.ScriptError( "Vote type \"%s\" does not have ScriptName", newVoteType.name.GetChars() );
 			}
+			if ( newVoteType.displayName.IsEmpty() )
+			{
+				newVoteType.displayName = newVoteType.name;
+			}
+			if ( ( newVoteType.menuName.IsEmpty() ) && ( newVoteType.menu.IsNotEmpty() ) )
+			{
+				newVoteType.menuName = newVoteType.displayName;
+			}
 			g_VoteTypeDefinitions.Push( newVoteType );
 		}
 	}
+}
+
+//*****************************************************************************
+//
+// [TRSR] Returns a reference of the defined custom votes for use elsewhere.
+//
+const TArray<VOTETYPE_s> &CALLVOTE_GetCustomVotes( void )
+{
+	return g_VoteTypeDefinitions;
 }
 
 //*****************************************************************************
@@ -222,6 +282,44 @@ const VOTETYPE_s* CALLVOTE_GetCustomVoteTypeDefinition( ULONG ulVoteType )
 	else
 	{
 		return nullptr;
+	}
+}
+
+//*****************************************************************************
+//
+// [TRSR] Converts specific custom vote parameters to easier to deal with
+// forms early in the voting process.
+//
+void CALLVOTE_ConvertCustomVoteParameter( const VOTETYPE_s *customVoteType, FString &Parameters )
+{
+	if ( customVoteType == nullptr )
+		return;
+
+	// [TRSR] It's easier to treat invalid floats as 0, so that conversion is performed
+	if ( customVoteType->parameterType == VOTETYPE_s::parametertype_e::FLOAT )
+	{
+		Parameters.Format( "%g", static_cast<float>( Parameters.ToDouble( ) ) );
+	}
+	// [TRSR] The parameter types below accept multiple types of input,
+	// so we convert them to one type early to keep the logic downstream cleaner.
+	else if ( customVoteType->parameterType == VOTETYPE_s::parametertype_e::PLAYER )
+	{
+		unsigned int idxFromName = SERVER_GetPlayerIndexFromName( Parameters.GetChars(), true, true );
+		if ( idxFromName < MAXPLAYERS )
+		{
+			Parameters.Format( "%u", idxFromName );
+		}
+	}
+	else if ( customVoteType->parameterType == VOTETYPE_s::parametertype_e::MAP )
+	{
+		if ( FindLevelInfo( Parameters.GetChars(), false ) == nullptr )
+		{
+			unsigned int mapIdx = atoi( Parameters.GetChars() );
+			if ( ( mapIdx > 0 && mapIdx < wadlevelinfos.Size() ) || ( ( mapIdx == 0 ) && ( Parameters.Len() == 1 ) && ( Parameters.GetChars()[0] == '0' ) ) )
+			{
+				Parameters.Format( "%s", wadlevelinfos[mapIdx].mapname );
+			}
+		}
 	}
 }
 
@@ -255,13 +353,30 @@ void CALLVOTE_Tick( void )
 					// [AK] Cancel the vote if the flag has already been changed to the desired value.
 					if ( flag->GetGenericRep( CVAR_Bool ).Bool == bEnable )
 					{
-						g_PreviousVotes.back().ulVoteType = NUM_VOTECMDS;
 						SERVER_Printf( "%s has been changed so the vote has been cancelled.\n", flag->GetName() );
 						g_bVoteCancelled = true;
-						g_bVotePassed = false;
-						callvote_EndVote();
-						return;
 					}
+				}
+				else
+				{
+					const VOTETYPE_s *customVoteType = CALLVOTE_GetCustomVoteTypeDefinition( g_PreviousVotes.back().ulVoteType );
+
+					if (( customVoteType != nullptr ) && ( customVoteType->parameterType == VOTETYPE_s::parametertype_e::PLAYER ))
+					{
+						if ( PLAYER_IsValidPlayer( atoi( g_VoteParameters )) == false )
+						{
+							SERVER_Printf( "The player involved in the vote left the game, so the vote has been cancelled.\n" );
+							g_bVoteCancelled = true;
+						}
+					}
+				}
+
+				if ( g_bVoteCancelled )
+				{
+					g_PreviousVotes.back().ulVoteType = NUM_VOTECMDS;
+					g_bVotePassed = false;
+					callvote_EndVote();
+					return;
 				}
 
 				// [RK] Perform the final tally of votes.
@@ -283,23 +398,28 @@ void CALLVOTE_Tick( void )
 					( NETWORK_InClientMode() == false ))
 				{
 					// [TP] Custom votes call scripts instead
-					const VOTETYPE_s* pVoteType = CALLVOTE_GetCustomVoteTypeDefinition( g_PreviousVotes.back().ulVoteType );
-					if ( pVoteType != nullptr )
+					const VOTETYPE_s *customVoteType = CALLVOTE_GetCustomVoteTypeDefinition( g_PreviousVotes.back().ulVoteType );
+					if ( customVoteType != nullptr )
 					{
 						int arg;
-						switch ( pVoteType->parameterType )
+						switch ( customVoteType->parameterType )
 						{
 						case VOTETYPE_s::parametertype_e::NONE:
 							arg = 0;
 							break;
 						case VOTETYPE_s::parametertype_e::INT:
+						case VOTETYPE_s::parametertype_e::PLAYER:
 							arg = atoi( g_VoteParameters );
 							break;
+						case VOTETYPE_s::parametertype_e::FLOAT:
+							arg = FLOAT2FIXED( static_cast<float>( g_VoteParameters.ToDouble( ) ) );
+							break;
+						case VOTETYPE_s::parametertype_e::MAP:
 						case VOTETYPE_s::parametertype_e::STRING:
 							arg = ACS_PushAndReturnDynamicString( g_VoteParameters );
 							break;
 						}
-						P_StartScript( nullptr, nullptr, -FName( pVoteType->scriptName ), level.mapname, &arg, 1, ACS_ALWAYS );
+						P_StartScript( PLAYER_IsValidPlayer( g_ulVoteCaller ) ? players[g_ulVoteCaller].mo : nullptr, nullptr, -FName( customVoteType->scriptName ), level.mapname, &arg, 1, ACS_ALWAYS );
 					}
 					else
 					{
@@ -486,12 +606,32 @@ void CALLVOTE_BeginVote( FString Command, FString Parameters, FString Reason, UL
 		Reason += TEXTCOLOR_NORMAL;
 
 	// Create the vote console command.
-	g_VoteCommand = Command;
+	// [TRSR] For custom votes, this isn't a real command, so we can prettify it.
+	const VOTETYPE_s *customVoteType = CALLVOTE_GetCustomVoteTypeDefinition( callvote_GetVoteType( Command ));
+	g_VoteCommand = ( customVoteType != nullptr ) ? customVoteType->displayName : Command;
+
 	// [SB] Only include parameters if there actually are any
 	if ( Parameters.Len() > 0 )
 	{
 		g_VoteCommand += " ";
-		g_VoteCommand += Parameters;
+		// [TRSR] If custom vote + using player type parameter, convert parameter index to name.
+		if (( customVoteType != nullptr ) && ( customVoteType->parameterType == VOTETYPE_s::parametertype_e::PLAYER ))
+		{
+			FString name = players[atoi( Parameters )].userinfo.GetName();
+			V_RemoveColorCodes( name );
+			V_EscapeBacklashes( name );
+			g_VoteCommand += name;
+		}
+		else
+		{
+			g_VoteCommand += Parameters;
+		}
+
+		// [TRSR] Also handle map type parameters...
+		if (( customVoteType != nullptr ) && ( customVoteType->parameterType == VOTETYPE_s::parametertype_e::MAP ))
+		{
+			pLevel = FindLevelByName( Parameters.GetChars() );
+		}
 	}
 
 	g_ulVoteCaller = ulPlayer;
@@ -980,8 +1120,9 @@ ULONG CALLVOTE_GetNoVoteCount( void )
 //
 static bool callvote_CheckForFlooding( FString &Command, FString &Parameters, ULONG ulPlayer )
 {
-	NETADDRESS_s	Address = SERVER_GetClient( ulPlayer )->Address;
-	ULONG			ulVoteType = callvote_GetVoteType( Command );
+	NETADDRESS_s Address = SERVER_GetClient( ulPlayer )->Address;
+	ULONG ulVoteType = callvote_GetVoteType( Command );
+	const VOTETYPE_s *customVoteType = CALLVOTE_GetCustomVoteTypeDefinition( ulVoteType );
 	time_t tNow;
 	time( &tNow );
 
@@ -1009,7 +1150,7 @@ static bool callvote_CheckForFlooding( FString &Command, FString &Parameters, UL
 		if ( !( callvote_IsKickVote ( i->ulVoteType ) && i->bPassed ) && i->Address.CompareNoPort( Address ) && ( ulVoteType == i->ulVoteType ) && (( tNow - i->tTimeCalled ) < ( sv_votecooldown * 2 ) * MINUTE ))
 		{
 			int iMinutesLeft = static_cast<int>( 1 + ( i->tTimeCalled + ( sv_votecooldown * 2 ) * MINUTE - tNow ) / MINUTE );
-			SERVER_PrintfPlayer( ulPlayer, "You must wait %d minute%s to call another %s vote.\n", iMinutesLeft, ( iMinutesLeft == 1 ? "" : "s" ), Command.GetChars() );
+			SERVER_PrintfPlayer( ulPlayer, "You must wait %d minute%s to call another %s vote.\n", iMinutesLeft, ( iMinutesLeft == 1 ? "" : "s" ), customVoteType != nullptr ? customVoteType->displayName.GetChars() : Command.GetChars() );
 			return false;
 		}
 
@@ -1036,7 +1177,13 @@ static bool callvote_CheckForFlooding( FString &Command, FString &Parameters, UL
 			// Other votes.
 			if ( ( callvote_IsKickVote ( i->ulVoteType ) == false ) && ( stricmp( i->fsParameter.GetChars(), Parameters.GetChars() ) == 0 ))
 			{
-				SERVER_PrintfPlayer( ulPlayer, "That specific vote (\"%s %s\") was recently called, and failed. You must wait %d minute%s to call it again.\n", Command.GetChars(), Parameters.GetChars(), iMinutesLeft, ( iMinutesLeft == 1 ? "" : "s" ));
+				if (( customVoteType != nullptr ) && ( customVoteType->parameterType == VOTETYPE_s::parametertype_e::PLAYER ))
+				{
+					Parameters = players[atoi( Parameters )].userinfo.GetName();
+					V_RemoveColorCodes( Parameters );
+					V_EscapeBacklashes( Parameters );
+				}
+				SERVER_PrintfPlayer( ulPlayer, "That specific vote (\"%s %s\") was recently called, and failed. You must wait %d minute%s to call it again.\n", customVoteType != nullptr ? customVoteType->displayName.GetChars() : Command.GetChars(), Parameters.GetChars(), iMinutesLeft, ( iMinutesLeft == 1 ? "" : "s" ));
 				return false;
 			}
 		}
@@ -1247,20 +1394,52 @@ static bool callvote_CheckValidity( FString &Command, FString &Parameters )
 
 	default:
 		{
-			const VOTETYPE_s* pVoteType = CALLVOTE_GetCustomVoteTypeDefinition( ulVoteCmd );
-			if ( pVoteType != nullptr )
+			const VOTETYPE_s *customVoteType = CALLVOTE_GetCustomVoteTypeDefinition( ulVoteCmd );
+			if ( customVoteType != nullptr && NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
-				switch ( pVoteType->parameterType )
+				int arg;
+				switch ( customVoteType->parameterType )
 				{
 				case VOTETYPE_s::parametertype_e::NONE:
+					arg = 0;
+					break;
+
 				case VOTETYPE_s::parametertype_e::STRING:
-					return ( true );
+				case VOTETYPE_s::parametertype_e::MAP:
+
+					if ( ( customVoteType->parameterType == VOTETYPE_s::parametertype_e::MAP ) && ( FindLevelInfo( Parameters.GetChars(), false ) == nullptr ) )
+					{
+						SERVER_PrintfPlayer( SERVER_GetCurrentClient(), "That map doesn't exist.\n" );
+						return ( false );
+					}
+
+					arg = ACS_PushAndReturnDynamicString( Parameters );
+					break;
 
 				case VOTETYPE_s::parametertype_e::INT:
 					if ( ( parameterInt == 0 ) && ( ( Parameters.GetChars()[0] != '0' ) || ( Parameters.Len() != 1 ) ) )
 						return ( false );
-					return ( true );
+
+					arg = parameterInt;
+					break;
+
+				case VOTETYPE_s::parametertype_e::FLOAT:
+					arg = FLOAT2FIXED( static_cast<float>( strtod( Parameters.GetChars(), nullptr ) ) );
+					break;
+
+				case VOTETYPE_s::parametertype_e::PLAYER:
+					if ( ( ( parameterInt == 0 ) && ( ( Parameters.GetChars()[0] != '0' ) || ( Parameters.Len() != 1 ) ) ) || ( !PLAYER_IsValidPlayer( parameterInt ) ) )
+					{
+						SERVER_PrintfPlayer( SERVER_GetCurrentClient(), "That player doesn't exist.\n" );
+						return ( false );
+					}
+
+					arg = parameterInt;
+					break;
 				}
+
+				if ( customVoteType->preflightScript.IsNotEmpty() )
+					return P_StartScript( players[SERVER_GetCurrentClient()].mo, nullptr, -FName( customVoteType->preflightScript ), level.mapname, &arg, 1, ACS_ALWAYS | ACS_WANTRESULT ) ? true : false;
 			}
 		}
 	}
@@ -1330,8 +1509,8 @@ static bool callvote_VoteRequiresParameter( const ULONG ulVoteType )
 		default:
 			if ( ulVoteType > NUM_VOTECMDS )
 			{
-				const VOTETYPE_s* pVoteType = &g_VoteTypeDefinitions[ulVoteType - NUM_VOTECMDS - 1];
-				return pVoteType->parameterType != VOTETYPE_s::parametertype_e::NONE;
+				const VOTETYPE_s *customVoteType = &g_VoteTypeDefinitions[ulVoteType - NUM_VOTECMDS - 1];
+				return customVoteType->parameterType != VOTETYPE_s::parametertype_e::NONE;
 			}
 			else
 			{

@@ -7510,24 +7510,29 @@ static bool server_CallVote( BYTESTREAM_s *pByteStream )
 	default:
 
 		{
-			const VOTETYPE_s* pVoteType = CALLVOTE_GetCustomVoteTypeDefinition( ulVoteCmd );
-			if ( pVoteType == nullptr )
+			const VOTETYPE_s *customVoteType = CALLVOTE_GetCustomVoteTypeDefinition( ulVoteCmd );
+			if ( customVoteType == nullptr )
 			{
 				return ( false );
 			}
-			else if ( pVoteType->forbidCvarName.IsEmpty() )
+			else if ( customVoteType->forbidCvarName.IsEmpty() )
 			{
 				bVoteAllowed = true;
 			}
 			else
 			{
-				FBaseCVar* cvar = FindCVar( pVoteType->forbidCvarName, nullptr );
+				FBaseCVar* cvar = FindCVar( customVoteType->forbidCvarName, nullptr );
 				bVoteAllowed = cvar && ( cvar->GetGenericRep( CVAR_Bool ).Bool == false );
 			}
+
+			// [TRSR] Perform any necessary pre-vote conversions.
+			CALLVOTE_ConvertCustomVoteParameter( customVoteType, Parameters );
+
 			// [TP] Put the name of the vote type into the command for the vote module to work with this
 			// (we won't actually execute it as a command but run the script instead if and when the vote
 			// does pass)
-			snprintf( szCommand, sizeof szCommand, "%s", pVoteType->name.GetChars() );
+			// [TRSR] If the vote isn't allowed, we should use the display name for the error.
+			snprintf( szCommand, sizeof szCommand, "%s", bVoteAllowed ? customVoteType->name.GetChars() : customVoteType->displayName.GetChars() );
 		}
 	}
 

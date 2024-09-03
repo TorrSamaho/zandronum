@@ -17,7 +17,7 @@
 
 *+	- Added the new AUTHINFO lump, allowing modders to define their own list of lumps to be authenticated. [AKMDM]
 *+	- Revamped the scoreboard, and added the new SCORINFO lump that allows full customization of the scoreboard. [AKMDM]
-*+	- Added support for custom vote types using the new VOTEINFO lump. [Dusk]
+*+	- Added support for custom vote types using the new VOTEINFO lump. [Dusk, Trillster]
 *+	- Added support for voice chat. Audio is encoded and decoded using Opus, allowing it to be transmitted over the network with minimal bandwidth usage and decent quality. Any unwanted noise in the audio is also removed with RNNoise before it's sent to the server. [AKMDM]
 *+	- Generalized the medal system and added the new MEDALDEF lump to define custom medals. Players can be awarded medals using the ACS and DECORATE functions: "GivePlayerMedal" and "A_GivePlayerMedal". [AKMDM]
 *+	- Added support for loading multiple banlists (and exemption lists). Server hosts can load extra files by separating the filenames with semi-colons. [AKMDM]
