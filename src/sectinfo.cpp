@@ -76,7 +76,6 @@ void SectInfo::Clear()
 	Base[0].Clear();
 	Base[1].Clear();
 	Points.Clear();
-	PointNames.Clear();
 }
 
 void SECTINFO_Load()
@@ -94,7 +93,7 @@ void SECTINFO_Load()
 //The next few functions do not need to be public so lets define them here:
 void SECTINFO_ParseNames(FScanner &sc, TArray<std::shared_ptr<FString>> &SectorNames);
 void SECTINFO_ParseSectors(FScanner &sc, TArray<bool> &Sectors);
-void SECTINFO_ParsePoints(FScanner &sc, TArray<std::shared_ptr<TArray<unsigned int>>> &Points, TArray<std::shared_ptr<FString>> &PointNames);
+void SECTINFO_ParsePoints(FScanner &sc, TArray<DPOINT_s> &Points);
 
 // Valid properties
 static const char *SectInfoProperties[] =
@@ -155,9 +154,7 @@ void SECTINFO_Parse(int lump)
 					SECTINFO_ParseSectors(sc, mapinfo->SectorInfo.Base[1]);
 					break;
 				case SECTINFO_POINTS:
-					SECTINFO_ParsePoints(sc, mapinfo->SectorInfo.Points, mapinfo->SectorInfo.PointNames);
-					//The following two arrays should be the same size
-					assert(mapinfo->SectorInfo.Points.Size() == mapinfo->SectorInfo.PointNames.Size());
+					SECTINFO_ParsePoints(sc, mapinfo->SectorInfo.Points);
 					break;
 			}
 		}
@@ -250,19 +247,18 @@ void SECTINFO_ParseSectors(FScanner &sc, TArray<bool> &Sectors)
 	}
 }
 
-void SECTINFO_ParsePoints(FScanner &sc, TArray<std::shared_ptr<TArray<unsigned int>>> &Points, TArray<std::shared_ptr<FString>> &PointNames)
+void SECTINFO_ParsePoints(FScanner &sc, TArray<DPOINT_s> &Points)
 {
 	sc.MustGetToken('=');
 	sc.MustGetToken('{');
 	while(!sc.CheckToken('}'))
 	{
-		auto Point = std::make_shared<TArray<unsigned int>>();
+		DPOINT_s Point;
 		sc.MustGetToken(TK_StringConst);
-		std::shared_ptr<FString> name;
 		if(sc.String[0] == '$') //Allow language lump lookup in SECTINFO
-			name = std::make_shared<FString>(GStrings(sc.String+1));
+			Point.name = FString(GStrings(sc.String+1));
 		else
-			name = std::make_shared<FString>(sc.String);
+			Point.name = FString(sc.String);
 		sc.MustGetToken('=');
 		sc.MustGetToken('{');
 		while(!sc.CheckToken('}'))
@@ -278,10 +274,10 @@ void SECTINFO_ParsePoints(FScanner &sc, TArray<std::shared_ptr<TArray<unsigned i
 			if (range_end < range_start)
 				swapvalues(range_start, range_end);
 			int range = range_end - range_start + 1;
-			Point->Resize(Point->Size() + range);
+			Point.sectors.Resize(Point.sectors.Size() + range);
 			for(int i = 0;i < range;i++)
 			{
-				(*Point)[Point->Size() - range + i] = range_start+i;
+				Point.sectors[Point.sectors.Size() - range + i] = range_start+i;
 			}
 			if(!sc.CheckToken(','))
 			{
@@ -290,7 +286,6 @@ void SECTINFO_ParsePoints(FScanner &sc, TArray<std::shared_ptr<TArray<unsigned i
 			}
 		}
 		Points.Push(Point);
-		PointNames.Push(name);
 		if(!sc.CheckToken(','))
 		{
 			sc.MustGetToken('}');

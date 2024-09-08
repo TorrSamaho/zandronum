@@ -57,6 +57,13 @@ void SECTINFO_Load();
 void SECTINFO_Parse(int lump);
 FString SECTINFO_GetPlayerLocation( const ULONG ulPlayer );
 
+struct DPOINT_s
+{
+	FString name;
+	TArray<unsigned int> sectors;
+	int owner;
+};
+
 struct SectInfo
 {
 	SectInfo();
@@ -68,8 +75,7 @@ struct SectInfo
 	TArray<bool> Base[2];
 
 	//Domination Points
-	TArray<std::shared_ptr<TArray<unsigned int>>> Points;
-	TArray<std::shared_ptr<FString>> PointNames;
+	TArray<DPOINT_s> Points;
 };
 
 #endif //__SECTINFO_H__

@@ -235,8 +235,6 @@ static	void	client_DoPossessionArtifactDropped( BYTESTREAM_s *pByteStream );
 static	void	client_DoGameModeFight( BYTESTREAM_s *pByteStream );
 static	void	client_DoGameModeCountdown( BYTESTREAM_s *pByteStream );
 static	void	client_DoGameModeWinSequence( BYTESTREAM_s *pByteStream );
-static	void	client_SetDominationState( BYTESTREAM_s *pByteStream );
-static	void	client_SetDominationPointOwnership( BYTESTREAM_s *pByteStream );
 
 // Team commands.
 static	void	client_SetTeamScore( BYTESTREAM_s *pByteStream );
@@ -1680,14 +1678,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_DOGAMEMODEWINSEQUENCE:
 
 		client_DoGameModeWinSequence( pByteStream );
-		break;
-	case SVC_SETDOMINATIONSTATE:
-
-		client_SetDominationState( pByteStream );
-		break;
-	case SVC_SETDOMINATIONPOINTOWNER:
-
-		client_SetDominationPointOwnership( pByteStream );
 		break;
 	case SVC_SETTEAMSCORE:
 
@@ -6373,45 +6363,6 @@ static void client_DoGameModeWinSequence( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_SetDominationState( BYTESTREAM_s *pByteStream )
-{
-	unsigned int NumPoints = pByteStream->ReadLong();
-
-	// [BB] It's impossible that the server sends us this many points
-	// in a single packet, so something must be wrong. Just parse
-	// what the server has claimed to have send, but don't try to store
-	// it or allocate memory for it.
-	if ( NumPoints > MAX_UDP_PACKET )
-	{
-		for ( unsigned int i = 0; i < NumPoints; ++i )
-			pByteStream->ReadByte();
-		return;
-	}
-
-	unsigned int *PointOwners = new unsigned int[NumPoints];
-	for(unsigned int i = 0;i < NumPoints;i++)
-	{
-		PointOwners[i] = pByteStream->ReadByte();
-	}
-	DOMINATION_LoadInit(NumPoints, PointOwners);
-}
-
-//*****************************************************************************
-//
-static void client_SetDominationPointOwnership( BYTESTREAM_s *pByteStream )
-{
-	unsigned int ulPoint = pByteStream->ReadByte();
-	unsigned int ulPlayer = pByteStream->ReadByte();
-
-	// If this is an invalid player, break out.
-	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
-		return;
-
-	DOMINATION_SetOwnership(ulPoint, &players[ulPlayer]);
-}
-
-//*****************************************************************************
-//
 static void client_SetTeamScore( BYTESTREAM_s *pByteStream )
 {
 	// Read in the team having its score updated.
@@ -9591,6 +9542,27 @@ void ServerCommands::ConversationReply::Execute( )
 void ServerCommands::EndConversation::Execute( )
 {
 	P_ConversationClose( player - players );
+}
+
+//*****************************************************************************
+// [TRSR]
+void ServerCommands::SetDominationState::Execute()
+{
+	for ( unsigned int i = 0; i < pointOwners.Size() && i < level.info->SectorInfo.Points.Size(); i++ )
+	{
+		level.info->SectorInfo.Points[i].owner = pointOwners[i];
+	}
+}
+
+//*****************************************************************************
+// [TRSR]
+void ServerCommands::SetDominationPointOwner::Execute()
+{
+	// If this is an invalid player, break out.
+	if ( PLAYER_IsValidPlayer( player ) == false )
+		return;
+
+	DOMINATION_SetOwnership(point, &players[player]);
 }
 
 //*****************************************************************************

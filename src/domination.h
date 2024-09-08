@@ -67,14 +67,11 @@
 #include "team.h"
 #include "sectinfo.h"
 
-void DOMINATION_LoadInit(unsigned int numpoints, unsigned int* pointowners);
 void DOMINATION_WinSequence(unsigned int winner);
 void DOMINATION_Tick(void);
 void DOMINATION_SetOwnership(unsigned int point, player_t *toucher);
 void DOMINATION_EnterSector(player_t *toucher);
 void DOMINATION_Init(void);
-unsigned int DOMINATION_NumPoints(void);
-unsigned int* DOMINATION_PointOwners(void);
 void DOMINATION_Reset(void);
 
 #endif // __DOMINATION_H__

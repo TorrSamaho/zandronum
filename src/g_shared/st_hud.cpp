@@ -1003,23 +1003,22 @@ static void HUD_RenderHolders( void )
 	//Domination can have an indefinite amount
 	else if ( domination )
 	{
-		int numPoints = DOMINATION_NumPoints( );
-		unsigned int *pointOwners = DOMINATION_PointOwners( );
+		int numPoints = level.info->SectorInfo.Points.Size();
 
 		for ( int i = numPoints - 1; i >= 0; i-- )
 		{
-			if ( TEAM_CheckIfValid( pointOwners[i] ))
+			if ( TEAM_CheckIfValid( level.info->SectorInfo.Points[i].owner ))
 			{
-				color = TEAM_GetTextColor( pointOwners[i] );
-				text = TEAM_GetName( pointOwners[i] );
+				color = TEAM_GetTextColor( level.info->SectorInfo.Points[i].owner );
+				text = TEAM_GetName( level.info->SectorInfo.Points[i].owner );
 			}
 			else
 			{
 				color = CR_GRAY;
 				text = "-";
 			}
-		
-			text.AppendFormat( ": " TEXTCOLOR_GRAY "%s", level.info->SectorInfo.PointNames[i]->GetChars( ));
+
+			text.AppendFormat( ": " TEXTCOLOR_GRAY "%s", level.info->SectorInfo.Points[i].name.GetChars( ));
 			HUD_DrawTextAligned( color, static_cast<int>( ST_Y * g_rYScale ) - ( numPoints - i ) * SmallFont->GetHeight( ), text, false, g_bScale );
 		}
 	}

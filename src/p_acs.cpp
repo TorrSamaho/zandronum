@@ -7870,7 +7870,6 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 		case ACSF_GetActorSectorLocation:
 			{
 				const bool bCheckPointSectors = !!args[1];
-				const TArray<std::shared_ptr<FString>> *sectorInfoNames = bCheckPointSectors ? &level.info->SectorInfo.PointNames : &level.info->SectorInfo.Names;
 				const AActor *pActor = SingleActorFromTID( args[0], activator );
 
 				// [AK] Make sure that the actor is valid.
@@ -7883,22 +7882,23 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 					// we find a match.
 					if ( bCheckPointSectors )
 					{
-						const TArray<std::shared_ptr<TArray<unsigned int>>> *pointSectorNumbers = &level.info->SectorInfo.Points;
+						const TArray<DPOINT_s> pointSectors = level.info->SectorInfo.Points;
 
-						for ( unsigned int i = 0; i < pointSectorNumbers->Size( ); i++ )
+						for ( unsigned int i = 0; i < pointSectors.Size( ); i++ )
 						{
-							const auto &pointNumberArray = ( *pointSectorNumbers )[i];
+							const TArray<unsigned int> pointNumberArray = pointSectors[i].sectors;
 
-							for ( unsigned int j = 0; j < pointNumberArray->Size( ); j++ )
+							for ( unsigned int j = 0; j < pointNumberArray.Size( ); j++ )
 							{
-								if (( *pointNumberArray )[j] == ulSectorNum )
-									return GlobalACSStrings.AddString( *( *sectorInfoNames )[i] );
+								if ( pointNumberArray[j] == ulSectorNum )
+									return GlobalACSStrings.AddString( pointSectors[i].name );
 							}
 						}
 					}
 					else
 					{
 						// [AK] Check if the sector that the actor is in has a designated name.
+						const TArray<std::shared_ptr<FString>> *sectorInfoNames = &level.info->SectorInfo.Names;
 						if (( sectorInfoNames->Size( ) > ulSectorNum ) && (( *sectorInfoNames )[ulSectorNum] != NULL ))
 							return GlobalACSStrings.AddString( *( *sectorInfoNames )[ulSectorNum] );
 					}

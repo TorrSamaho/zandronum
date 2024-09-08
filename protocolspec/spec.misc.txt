@@ -79,3 +79,12 @@ EndCommand
 Command CloseMenu
 	ExtendedCommand
 EndCommand
+
+Command SetDominationState
+	Byte[] pointOwners
+EndCommand
+
+Command SetDominationPointOwner
+	Byte point
+	Byte player
+EndCommand

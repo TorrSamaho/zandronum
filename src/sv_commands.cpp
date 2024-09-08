@@ -2718,15 +2718,12 @@ void SERVERCOMMANDS_DoGameModeWinSequence( ULONG ulWinner, ULONG ulPlayerExtra, 
 //
 void SERVERCOMMANDS_SetDominationState( ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	unsigned int NumPoints = DOMINATION_NumPoints();
-	unsigned int *PointOwners = DOMINATION_PointOwners();
-	NetCommand command( SVC_SETDOMINATIONSTATE );
-	command.addLong( NumPoints );
+	ServerCommands::SetDominationState command;
 
-	for( unsigned int i = 0u; i < NumPoints; i++ )
+	for( unsigned int i = 0u; i < level.info->SectorInfo.Points.Size(); i++ )
 	{
 		//one byte should be enough to hold the value of the team.
-		command.addByte( PointOwners[i] );
+		command.PushToPointOwners( level.info->SectorInfo.Points[i].owner );
 	}
 
 	command.sendCommandToClients( ulPlayerExtra, flags );
@@ -2734,11 +2731,11 @@ void SERVERCOMMANDS_SetDominationState( ULONG ulPlayerExtra, ServerCommandFlags 
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetDominationPointOwnership( ULONG ulPoint, ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
+void SERVERCOMMANDS_SetDominationPointOwner( ULONG ulPoint, ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
-	NetCommand command( SVC_SETDOMINATIONPOINTOWNER );
-	command.addByte( ulPoint );
-	command.addByte( ulPlayer );
+	ServerCommands::SetDominationPointOwner command;
+	command.SetPoint( ulPoint );
+	command.SetPlayer( ulPlayer );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 
