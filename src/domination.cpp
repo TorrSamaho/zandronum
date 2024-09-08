@@ -68,7 +68,11 @@
 #include "cl_demo.h"
 #include "p_acs.h"
 
-#define SCORERATE	(TICRATE*3)
+CUSTOM_CVAR(Int, sv_dominationscorerate, 3, CVAR_SERVERINFO | CVAR_GAMEPLAYSETTING)
+{
+	if ( self <= 0 )
+		self = 1;
+};
 
 // These default the default fade for points.  I hope no one has a grey team...
 #define POINT_DEFAULT_R	0x7F
@@ -158,7 +162,7 @@ void DOMINATION_Tick(void)
 	if ( NETWORK_InClientMode() )
 		return;
 
-	if(!(level.maptime % SCORERATE))
+	if(!(level.maptime % (sv_dominationscorerate * TICRATE)))
 	{
 		for(unsigned int i = 0;i < NumPoints;i++)
 		{
