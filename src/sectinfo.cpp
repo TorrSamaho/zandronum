@@ -58,6 +58,23 @@
 #include "sv_main.h"
 #include "templates.h"
 
+bool DPOINT_s::PlayerInsidePoint( const ULONG ulPlayer )
+{
+	if ( !PLAYER_IsValidPlayerWithMo( ulPlayer ) )
+		return false;
+
+	if ( PLAYER_GetHealth( ulPlayer ) <= 0 )
+		return false;
+
+	for ( unsigned int i = 0; i < sectors.Size(); i++ )
+	{
+		if ( sectors[i] == players[ulPlayer].mo->Sector->sectornum )
+			return true;
+	}
+
+	return false;
+}
+
 SectInfo::SectInfo()
 {
 	Names = TArray<std::shared_ptr<FString>>();

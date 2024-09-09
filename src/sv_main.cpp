@@ -2700,7 +2700,10 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 	// Send Domination State
 	if ( domination )
 	{
-		SERVERCOMMANDS_SetDominationState( ulClient, SVCF_ONLYTHISCLIENT );
+		for ( unsigned int i = 0; i < level.info->SectorInfo.Points.Size(); i++ )
+		{
+			SERVERCOMMANDS_SetDominationPointOwner( i, level.info->SectorInfo.Points[i].owner, false, ulClient, SVCF_ONLYTHISCLIENT );
+		}
 	}
 
 	// If we're in duel mode, tell the client how many duels have taken place.

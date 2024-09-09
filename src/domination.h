@@ -69,8 +69,7 @@
 
 void DOMINATION_WinSequence(unsigned int winner);
 void DOMINATION_Tick(void);
-void DOMINATION_SetOwnership(unsigned int point, player_t *toucher);
-void DOMINATION_EnterSector(player_t *toucher);
+void DOMINATION_SetOwnership(unsigned int point, unsigned int team, bool broadcast = true);
 void DOMINATION_Init(void);
 void DOMINATION_Reset(void);
 

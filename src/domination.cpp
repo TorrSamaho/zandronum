@@ -121,8 +121,55 @@ void DOMINATION_Tick(void)
 		return;
 
 	// [BB] Scoring is server-side.
+	// [TRSR] Control point management is also server-side.
 	if ( NETWORK_InClientMode() )
 		return;
+
+	for( unsigned int i = 0; i < level.info->SectorInfo.Points.Size(); i++ )
+	{
+		unsigned int teamPlayers[MAX_TEAMS] = { 0 };
+
+		// [TRSR] Count number of players per team on the point.
+		for ( unsigned int p = 0; p < MAXPLAYERS; p++ ) {
+			if ( !level.info->SectorInfo.Points[i].PlayerInsidePoint( p ) )
+				continue;
+
+			if( !players[p].bOnTeam )
+				continue;
+
+			teamPlayers[players[p].Team]++;
+		}
+
+		// [TRSR] If the point is owned and one of that team's players is contesting, don't let the point swap.
+		if( level.info->SectorInfo.Points[i].owner != TEAM_None && teamPlayers[level.info->SectorInfo.Points[i].owner] > 0 )
+			continue;
+
+		// [TRSR] Figure out which team has the most contesters. Point will swap to them.
+		unsigned int winner = TEAM_None;
+		unsigned int max = 0;
+		for ( int team = 0; team < MAX_TEAMS; team++ )
+		{
+			if( teamPlayers[team] > max )
+			{
+				max = teamPlayers[team];
+				winner = team;
+			}
+			// [TRSR] If two teams are tied, neither gets the point.
+			// A bit awkward, but it gives a resolution to priority issues.
+			else if ( teamPlayers[team] == max )
+			{
+				winner = TEAM_None;
+			}
+		}
+
+		if( winner == TEAM_None )
+			continue;
+
+		DOMINATION_SetOwnership( i, winner );
+
+		// [TRSR] Trigger an event script when a team takes ownership of a point sector.
+		GAMEMODE_HandleEvent( GAMEEVENT_DOMINATION_CONTROL, nullptr, level.info->SectorInfo.Points[i].owner, ACS_PushAndReturnDynamicString( level.info->SectorInfo.Points[i].name.GetChars()));
+	}
 
 	if(!(level.maptime % (sv_dominationscorerate * TICRATE)))
 	{
@@ -156,7 +203,7 @@ void DOMINATION_WinSequence(unsigned int winner)
 	finished = true;
 }
 
-void DOMINATION_SetOwnership(unsigned int point, player_t *toucher)
+void DOMINATION_SetOwnership(unsigned int point, unsigned int team, bool broadcast)
 {
 	if(!domination)
 		return;
@@ -164,14 +211,18 @@ void DOMINATION_SetOwnership(unsigned int point, player_t *toucher)
 	if(point >= level.info->SectorInfo.Points.Size())
 		return;
 
-	if(!toucher->bOnTeam) //The toucher must be on a team
+	if ( !TEAM_CheckIfValid( team ) && team != TEAM_None )
 		return;
 
-	unsigned int team = toucher->Team;
+	if ( broadcast )
+		Printf( "\034%s%s" TEXTCOLOR_NORMAL " has taken control of %s.\n", TEAM_GetTextColorName( team ), TEAM_GetName( team ), level.info->SectorInfo.Points[point].name.GetChars() );
 
 	level.info->SectorInfo.Points[point].owner = team;
-	Printf ( "%s has taken control of %s.\n", toucher->userinfo.GetName(), level.info->SectorInfo.Points[point].name.GetChars() );
 	domination_SetControlPointColor( point );
+
+	// [TRSR] Let clients know about the change in management too.
+	if ( NETWORK_GetState() == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetDominationPointOwner ( point, team, broadcast );
 }
 
 static void domination_SetControlPointColor( unsigned int point )
@@ -194,45 +245,6 @@ static void domination_SetControlPointColor( unsigned int point )
 		else
 		{
 			sectors[secnum].SetFade( POINT_DEFAULT_R, POINT_DEFAULT_G, POINT_DEFAULT_B );
-		}
-	}
-}
-
-void DOMINATION_EnterSector(player_t *toucher)
-{
-	if(!domination)
-		return;
-
-	// [BB] This is server side.
-	if ( NETWORK_InClientMode() )
-	{
-		return;
-	}
-
-	if(!toucher->bOnTeam) //The toucher must be on a team
-		return;
-
-	for(unsigned int point = 0;point < level.info->SectorInfo.Points.Size();point++)
-	{
-		for(unsigned int i = 0;i < level.info->SectorInfo.Points[point].sectors.Size();i++)
-		{
-			if(toucher->mo->Sector->sectornum != static_cast<signed> (level.info->SectorInfo.Points[point].sectors[i]))
-				continue;
-
-			// [BB] The team already owns the point, nothing to do.
-			if ( toucher->Team == level.info->SectorInfo.Points[point].owner )
-				continue;
-
-			// [AK] Trigger an event script when the player takes ownership of a point sector. This
-			// must be called before DOMINATION_SetOwnership so that the original owner of the sector
-			// is sent as the first argument. The second argument is the name of the sector.
-			GAMEMODE_HandleEvent( GAMEEVENT_DOMINATION_CONTROL, toucher->mo, level.info->SectorInfo.Points[point].owner, ACS_PushAndReturnDynamicString( level.info->SectorInfo.Points[point].name.GetChars( )));
-
-			DOMINATION_SetOwnership(point, toucher);
-
-			// [BB] Let the clients know about the point ownership change.
-			if( NETWORK_GetState() == NETSTATE_SERVER )
-				SERVERCOMMANDS_SetDominationPointOwner ( point, static_cast<ULONG> ( toucher - players ) );
 		}
 	}
 }

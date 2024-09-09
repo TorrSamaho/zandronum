@@ -4653,12 +4653,6 @@ void AActor::CheckSectorTransition(sector_t *oldsec)
 		{
 			P_CheckFor3DCeilingHit(this);
 		}
-
-		// [BL] Trigger Domination check if player enters a new sector in Domination
-		if (this->player)
-		{
-			DOMINATION_EnterSector(this->player);
-		}
 	}
 }
 

@@ -2716,26 +2716,12 @@ void SERVERCOMMANDS_DoGameModeWinSequence( ULONG ulWinner, ULONG ulPlayerExtra, 
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_SetDominationState( ULONG ulPlayerExtra, ServerCommandFlags flags )
-{
-	ServerCommands::SetDominationState command;
-
-	for( unsigned int i = 0u; i < level.info->SectorInfo.Points.Size(); i++ )
-	{
-		//one byte should be enough to hold the value of the team.
-		command.PushToPointOwners( level.info->SectorInfo.Points[i].owner );
-	}
-
-	command.sendCommandToClients( ulPlayerExtra, flags );
-}
-
-//*****************************************************************************
-//
-void SERVERCOMMANDS_SetDominationPointOwner( ULONG ulPoint, ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
+void SERVERCOMMANDS_SetDominationPointOwner( ULONG ulPoint, unsigned int team, bool broadcast, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	ServerCommands::SetDominationPointOwner command;
 	command.SetPoint( ulPoint );
-	command.SetPlayer( ulPlayer );
+	command.SetTeam( team );
+	command.SetBroadcast( broadcast );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 

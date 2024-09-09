@@ -9546,23 +9546,9 @@ void ServerCommands::EndConversation::Execute( )
 
 //*****************************************************************************
 // [TRSR]
-void ServerCommands::SetDominationState::Execute()
-{
-	for ( unsigned int i = 0; i < pointOwners.Size() && i < level.info->SectorInfo.Points.Size(); i++ )
-	{
-		level.info->SectorInfo.Points[i].owner = pointOwners[i];
-	}
-}
-
-//*****************************************************************************
-// [TRSR]
 void ServerCommands::SetDominationPointOwner::Execute()
 {
-	// If this is an invalid player, break out.
-	if ( PLAYER_IsValidPlayer( player ) == false )
-		return;
-
-	DOMINATION_SetOwnership(point, &players[player]);
+	DOMINATION_SetOwnership( point, team, broadcast );
 }
 
 //*****************************************************************************

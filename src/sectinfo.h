@@ -62,6 +62,8 @@ struct DPOINT_s
 	FString name;
 	TArray<unsigned int> sectors;
 	int owner;
+
+	bool PlayerInsidePoint( const ULONG ulPlayer );
 };
 
 struct SectInfo
