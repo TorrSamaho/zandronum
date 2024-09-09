@@ -260,6 +260,13 @@ enum
 	SCORE_RANK,
 };
 
+// [TRSR] GetControlPointInfo
+enum
+{
+	POINTINFO_NAME,
+	POINTINFO_OWNER,
+};
+
 struct CallReturn
 {
 	CallReturn(int pc, ScriptFunction *func, FBehavior *module, const ACSLocalVariables &locals, ACSLocalArrays *arrays, bool discard, unsigned int runaway)
@@ -5482,6 +5489,7 @@ enum EACSFunctions
 	ACSF_GivePlayerMedal,
 	ACSF_GetPlayerJoinQueuePosition,
 	ACSF_SkipJoinQueue,
+	ASCF_GetControlPointInfo, // [TRSR] Added GetControlPointInfo function.
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -7880,6 +7888,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 					// [AK] Point sector numbers are stored in a multidimensional array. If we want to return
 					// the name of the point sector that the actor is in, then we must check each array until
 					// we find a match.
+					// [TRSR] We'd actually rather return the index of the control point for GetControlPointInfo now.
 					if ( bCheckPointSectors )
 					{
 						const TArray<DPOINT_s> pointSectors = level.info->SectorInfo.Points;
@@ -7891,20 +7900,48 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 							for ( unsigned int j = 0; j < pointNumberArray.Size( ); j++ )
 							{
 								if ( pointNumberArray[j] == ulSectorNum )
-									return GlobalACSStrings.AddString( pointSectors[i].name );
+									return i;
 							}
 						}
+
+						return -1;
 					}
-					else
+
+					// [AK] Check if the sector that the actor is in has a designated name.
+					const TArray<std::shared_ptr<FString>> *sectorInfoNames = &level.info->SectorInfo.Names;
+					if (( sectorInfoNames->Size( ) > ulSectorNum ) && (( *sectorInfoNames )[ulSectorNum] != NULL ))
+						return GlobalACSStrings.AddString( *( *sectorInfoNames )[ulSectorNum] );
+				}
+
+				return bCheckPointSectors ? -1 : GlobalACSStrings.AddString( "" );
+			}
+
+		case ASCF_GetControlPointInfo:
+			{
+				const unsigned int point = args[0];
+				const int type = args[1];
+				if ( point >= level.info->SectorInfo.Points.Size() )
+				{
+					switch ( type )
 					{
-						// [AK] Check if the sector that the actor is in has a designated name.
-						const TArray<std::shared_ptr<FString>> *sectorInfoNames = &level.info->SectorInfo.Names;
-						if (( sectorInfoNames->Size( ) > ulSectorNum ) && (( *sectorInfoNames )[ulSectorNum] != NULL ))
-							return GlobalACSStrings.AddString( *( *sectorInfoNames )[ulSectorNum] );
+						case POINTINFO_NAME:
+							return GlobalACSStrings.AddString( "" );
+						case POINTINFO_OWNER:
+							return TEAM_None;
+						default:
+							return 0;
 					}
 				}
 
-				return GlobalACSStrings.AddString( "" );
+				switch ( type )
+				{
+					case POINTINFO_NAME:
+						return GlobalACSStrings.AddString( level.info->SectorInfo.Points[point].name );
+					case POINTINFO_OWNER:
+						return level.info->SectorInfo.Points[point].owner;
+					default:
+						return 0;
+				}
 			}
 
 		case ACSF_ChangeTeamScore:

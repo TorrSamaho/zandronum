@@ -165,10 +165,13 @@ void DOMINATION_Tick(void)
 		if( winner == TEAM_None )
 			continue;
 
+		// [TRSR] Need to save previous team for event script below.
+		int prevTeam = level.info->SectorInfo.Points[i].owner;
+
 		DOMINATION_SetOwnership( i, winner );
 
 		// [TRSR] Trigger an event script when a team takes ownership of a point sector.
-		GAMEMODE_HandleEvent( GAMEEVENT_DOMINATION_CONTROL, nullptr, level.info->SectorInfo.Points[i].owner, ACS_PushAndReturnDynamicString( level.info->SectorInfo.Points[i].name.GetChars()));
+		GAMEMODE_HandleEvent( GAMEEVENT_DOMINATION_CONTROL, nullptr, prevTeam, i );
 	}
 
 	if(!(level.maptime % (sv_dominationscorerate * TICRATE)))
@@ -180,7 +183,7 @@ void DOMINATION_Tick(void)
 				// [AK] Trigger an event script when this team gets a point from a point sector.
 				// The first argument is the team that owns the sector and the second argument is the name
 				// of the sector. Don't let event scripts change the result value to anything less than zero.
-				LONG lResult = MAX<LONG>( GAMEMODE_HandleEvent( GAMEEVENT_DOMINATION_POINT, NULL, level.info->SectorInfo.Points[i].owner, ACS_PushAndReturnDynamicString( level.info->SectorInfo.Points[i].name.GetChars( )), true ), 0 );
+				LONG lResult = MAX<LONG>( GAMEMODE_HandleEvent( GAMEEVENT_DOMINATION_POINT, NULL, level.info->SectorInfo.Points[i].owner, i, true ), 0 );
 				
 				if ( lResult != 0 )
 					TEAM_SetPointCount( level.info->SectorInfo.Points[i].owner, TEAM_GetPointCount( level.info->SectorInfo.Points[i].owner ) + lResult, false );
