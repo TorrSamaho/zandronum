@@ -165,6 +165,10 @@ void DOMINATION_Tick(void)
 		if( winner == TEAM_None )
 			continue;
 
+		// [TRSR] Trigger an event to allow denying of the capture.
+		if ( GAMEMODE_HandleEvent( GAMEEVENT_DOMINATION_PRECONTROL, nullptr, winner, i, true ) == 0 )
+			continue;
+
 		// [TRSR] Need to save previous team for event script below.
 		int prevTeam = level.info->SectorInfo.Points[i].owner;
 

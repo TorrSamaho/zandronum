@@ -123,6 +123,7 @@ typedef enum
 	GAMEEVENT_PLAYERLEAVESSERVER,
 	GAMEEVENT_LEVEL_INIT,
 	GAMEEVENT_JOINQUEUECHANGED,
+	GAMEEVENT_DOMINATION_PRECONTROL,
 } GAMEEVENT_e;
 
 //*****************************************************************************
