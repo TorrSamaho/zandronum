@@ -393,6 +393,9 @@ void FMapInfoParser::ParseGameInfo()
 		GAMEINFOKEY_BOOL(bForceSpawnEventScripts, "forcespawneventscripts")
 		GAMEINFOKEY_BOOL(bForceDamageEventScripts, "forcedamageeventscripts")
 
+		// [TRSR] Allows the triggering of GAMEEVENT_DOMINATION_CONTEST.
+		GAMEINFOKEY_BOOL(bAllowDominationContestScripts, "allowdominationcontestscripts")
+
 		else
 		{
 			// ignore unkown keys.

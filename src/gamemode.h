@@ -124,6 +124,7 @@ typedef enum
 	GAMEEVENT_LEVEL_INIT,
 	GAMEEVENT_JOINQUEUECHANGED,
 	GAMEEVENT_DOMINATION_PRECONTROL,
+	GAMEEVENT_DOMINATION_CONTEST,
 } GAMEEVENT_e;
 
 //*****************************************************************************

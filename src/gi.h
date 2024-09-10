@@ -152,6 +152,9 @@ struct gameinfo_t
 	bool bForceSpawnEventScripts;
 	bool bForceDamageEventScripts;
 
+	// [TRSR] Allows the triggering of GAMEEVENT_DOMINATION_CONTEST.
+	bool bAllowDominationContestScripts;
+
 	// [AK] A list of all custom data for players, particularly used by custom columns.
 	TMap<FName, PlayerData> CustomPlayerData;
 

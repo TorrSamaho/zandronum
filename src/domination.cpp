@@ -67,6 +67,7 @@
 #include "sectinfo.h"
 #include "cl_demo.h"
 #include "p_acs.h"
+#include "gi.h"
 
 // [TRSR] Private helper function(s)
 static void domination_SetControlPointColor( unsigned int point );
@@ -137,7 +138,10 @@ void DOMINATION_Tick(void)
 			if( !players[p].bOnTeam )
 				continue;
 
-			teamPlayers[players[p].Team]++;
+			// [TRSR] Call event script to allow modders to say whether this player's contesting status counts.
+			// For example, if player is too high up or above 3D floor, a modder may not want them to be able to contest.
+			if (( !gameinfo.bAllowDominationContestScripts ) || ( GAMEMODE_HandleEvent( GAMEEVENT_DOMINATION_CONTEST, players[p].mo, i, 0, true ) != 0 ))
+				teamPlayers[players[p].Team]++;
 		}
 
 		// [TRSR] If the point is owned and one of that team's players is contesting, don't let the point swap.
