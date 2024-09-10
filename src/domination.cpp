@@ -173,13 +173,7 @@ void DOMINATION_Tick(void)
 		if ( GAMEMODE_HandleEvent( GAMEEVENT_DOMINATION_PRECONTROL, nullptr, winner, i, true ) == 0 )
 			continue;
 
-		// [TRSR] Need to save previous team for event script below.
-		int prevTeam = level.info->SectorInfo.Points[i].owner;
-
 		DOMINATION_SetOwnership( i, winner );
-
-		// [TRSR] Trigger an event script when a team takes ownership of a point sector.
-		GAMEMODE_HandleEvent( GAMEEVENT_DOMINATION_CONTROL, nullptr, prevTeam, i );
 	}
 
 	if(!(level.maptime % (sv_dominationscorerate * TICRATE)))
@@ -225,11 +219,24 @@ void DOMINATION_SetOwnership(unsigned int point, unsigned int team, bool broadca
 	if ( !TEAM_CheckIfValid( team ) && team != TEAM_None )
 		return;
 
-	if ( broadcast )
-		Printf( "\034%s%s" TEXTCOLOR_NORMAL " has taken control of %s.\n", TEAM_GetTextColorName( team ), TEAM_GetName( team ), level.info->SectorInfo.Points[point].name.GetChars() );
+	// [TRSR] Need to save previous team for event script below.
+	int prevTeam = level.info->SectorInfo.Points[point].owner;
+	if( team == prevTeam )
+		return;
+
+	if ( broadcast ) {
+		if( team != TEAM_None ) {
+			Printf( "\034%s%s" TEXTCOLOR_NORMAL " has taken control of %s.\n", TEAM_GetTextColorName( team ), TEAM_GetName( team ), level.info->SectorInfo.Points[point].name.GetChars() );
+		} else {
+			Printf( "\034%s%s" TEXTCOLOR_NORMAL " has lost control of %s.\n", TEAM_GetTextColorName( prevTeam ), TEAM_GetName( prevTeam ), level.info->SectorInfo.Points[point].name.GetChars() );
+		}
+	}
 
 	level.info->SectorInfo.Points[point].owner = team;
 	domination_SetControlPointColor( point );
+
+	// [TRSR] Trigger an event script when a team takes ownership of a point sector.
+	GAMEMODE_HandleEvent( GAMEEVENT_DOMINATION_CONTROL, nullptr, prevTeam, point );
 
 	// [TRSR] Let clients know about the change in management too.
 	if ( NETWORK_GetState() == NETSTATE_SERVER )

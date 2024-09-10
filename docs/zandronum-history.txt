@@ -77,7 +77,7 @@
 +	- Added new SBARINFO top level "AppendStatusBar" to allow for adding extra SBARINFO code onto existing custom SBARINFO definitions. [Binary]
 +	- Added the CVar "sv_dominationscorerate" to allow customizing how often points are obtained in the Domination gamemode. [Trillster]
 +	- Added the CVar "cl_noswitchonfire", preventing players from automatically switching to the weapon they picked up if they're pressing +attack or +altattack. [AKMDM]
-+	- Added ACS function: "GetControlPointInfo", to get different types of info about any domination points which exist on the level. [Trillster]
++	- Added ACS functions: "GetControlPointInfo" and "SetControlPointInfo", to get and set different types of info about any domination points which exist on the level. [Trillster]
 +	- Added event GAMEEVENT_DOMINATION_PRECONTROL, which executes just before a domination point is captured, allowing the capture to be denied. [Trillster]
 +	- Added event GAMEEVENT_DOMINATION_CONTEST, which executes whenever a player is contesting a domination point. Note that for performance reasons, this event is disabled by default so modders have to enable it by themselves. [Trillster]
 -	- Fixed: clients didn't initialize a sector's friction properly in some cases due to a superfluous check that wasn't removed earlier. [AKMDM]

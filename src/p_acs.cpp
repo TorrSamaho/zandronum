@@ -95,6 +95,7 @@
 #include "menu/menu.h"
 #include "sv_ban.h"
 #include "joinqueue.h"
+#include "domination.h" // [TRSR]
 
 #include "g_shared/a_pickups.h"
 
@@ -260,7 +261,7 @@ enum
 	SCORE_RANK,
 };
 
-// [TRSR] GetControlPointInfo
+// [TRSR] GetControlPointInfo and SetControlPointInfo
 enum
 {
 	POINTINFO_NAME,
@@ -5489,7 +5490,8 @@ enum EACSFunctions
 	ACSF_GivePlayerMedal,
 	ACSF_GetPlayerJoinQueuePosition,
 	ACSF_SkipJoinQueue,
-	ASCF_GetControlPointInfo, // [TRSR] Added GetControlPointInfo function.
+	ASCF_GetControlPointInfo, // [TRSR] Added Domination functions.
+	ASCF_SetControlPointInfo,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -7942,6 +7944,34 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 					default:
 						return 0;
 				}
+			}
+
+		case ASCF_SetControlPointInfo:
+			{
+				// [TRSR] Clients should not be allowed to do this.
+				if ( NETWORK_InClientMode() )
+					return false;
+
+				const unsigned int point = args[0];
+				if ( point >= level.info->SectorInfo.Points.Size() )
+					return false;
+
+				const int type = args[1];
+				unsigned int value = args[2];
+
+				switch ( type )
+				{
+					case POINTINFO_OWNER:
+						if ( value >= TEAM_GetNumAvailableTeams() )
+							value = TEAM_None;
+
+						DOMINATION_SetOwnership( point, value );
+						break;
+					default:
+						return false;
+				}
+
+				return true;
 			}
 
 		case ACSF_ChangeTeamScore:
