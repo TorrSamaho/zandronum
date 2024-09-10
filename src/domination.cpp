@@ -189,12 +189,19 @@ void DOMINATION_Tick(void)
 				
 				if ( lResult != 0 )
 					TEAM_SetPointCount( level.info->SectorInfo.Points[i].owner, TEAM_GetPointCount( level.info->SectorInfo.Points[i].owner ) + lResult, false );
+			}
+		}
+	}
 
-				if( pointlimit && (TEAM_GetPointCount(level.info->SectorInfo.Points[i].owner) >= pointlimit) )
-				{
-					DOMINATION_WinSequence(0);
-					break;
-				}
+	// [TRSR] Check this every tick in case a modder gives score via non-control point means.
+	if( pointlimit )
+	{
+		for( int team = 0; team < MAX_TEAMS; team++ )
+		{
+			if( TEAM_GetPointCount( team ) >= pointlimit )
+			{
+				DOMINATION_WinSequence(0);
+				break;
 			}
 		}
 	}
