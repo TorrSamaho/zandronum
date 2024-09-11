@@ -89,7 +89,7 @@ EXTERN_CVAR(Bool, domination)
 
 bool finished;
 
-void DOMINATION_Reset(void)
+void DOMINATION_Init(void)
 {
 	if(!domination)
 		return;
@@ -98,19 +98,18 @@ void DOMINATION_Reset(void)
 
 	for(unsigned int i = 0;i < level.info->SectorInfo.Points.Size();i++)
 	{
+		level.info->SectorInfo.Points[i].disabled = false;
 		level.info->SectorInfo.Points[i].owner = TEAM_None;
 		domination_SetControlPointColor( i );
 	}
 }
 
-void DOMINATION_Init(void)
+void DOMINATION_Clear(void)
 {
-	if(!domination)
-		return;
-
-	finished = false;
-
-	DOMINATION_Reset();
+	for( unsigned int i = 0; i < level.info->SectorInfo.Points.Size(); i++ )
+	{
+		DOMINATION_SetOwnership( i, TEAM_None );
+	}
 }
 
 void DOMINATION_Tick(void)
@@ -128,6 +127,9 @@ void DOMINATION_Tick(void)
 
 	for( unsigned int i = 0; i < level.info->SectorInfo.Points.Size(); i++ )
 	{
+		if( level.info->SectorInfo.Points[i].disabled )
+			continue;
+
 		unsigned int teamPlayers[MAX_TEAMS] = { 0 };
 
 		// [TRSR] Count number of players per team on the point.
@@ -180,6 +182,9 @@ void DOMINATION_Tick(void)
 	{
 		for(unsigned int i = 0;i < level.info->SectorInfo.Points.Size();i++)
 		{
+			if( level.info->SectorInfo.Points[i].disabled )
+				continue;
+
 			if(level.info->SectorInfo.Points[i].owner != TEAM_None)
 			{
 				// [AK] Trigger an event script when this team gets a point from a point sector.
@@ -215,6 +220,24 @@ void DOMINATION_WinSequence(unsigned int winner)
 	finished = true;
 }
 
+void DOMINATION_SetDisabled(unsigned int point, bool disabled)
+{
+	if( !domination )
+		return;
+
+	if( point >= level.info->SectorInfo.Points.Size() )
+		return;
+
+	if( level.info->SectorInfo.Points[point].disabled == disabled )
+		return;
+
+	level.info->SectorInfo.Points[point].disabled = disabled;
+	domination_SetControlPointColor( point );
+
+	if( NETWORK_GetState() == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetDominationPointState ( point, level.info->SectorInfo.Points[point] );
+}
+
 void DOMINATION_SetOwnership(unsigned int point, unsigned int team, bool broadcast)
 {
 	if(!domination)
@@ -231,7 +254,7 @@ void DOMINATION_SetOwnership(unsigned int point, unsigned int team, bool broadca
 	if( team == prevTeam )
 		return;
 
-	if ( broadcast ) {
+	if (( broadcast ) && ( !level.info->SectorInfo.Points[point].disabled )) {
 		if( team != TEAM_None ) {
 			Printf( "\034%s%s" TEXTCOLOR_NORMAL " has taken control of %s.\n", TEAM_GetTextColorName( team ), TEAM_GetName( team ), level.info->SectorInfo.Points[point].name.GetChars() );
 		} else {
@@ -262,7 +285,11 @@ static void domination_SetControlPointColor( unsigned int point )
 		if ( secnum >= static_cast<unsigned>( numsectors ))
 			continue;
 
-		if ( level.info->SectorInfo.Points[point].owner != TEAM_None )
+		if ( level.info->SectorInfo.Points[point].disabled )
+		{
+			sectors[secnum].SetFade( 0, 0, 0 );
+		}
+		else if ( level.info->SectorInfo.Points[point].owner != TEAM_None )
 		{
 			int color = TEAM_GetColor( level.info->SectorInfo.Points[point].owner );
 			sectors[secnum].SetFade( RPART( color ), GPART( color ), BPART( color ));

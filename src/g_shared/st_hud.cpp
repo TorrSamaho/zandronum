@@ -1003,10 +1003,29 @@ static void HUD_RenderHolders( void )
 	//Domination can have an indefinite amount
 	else if ( domination )
 	{
-		int numPoints = level.info->SectorInfo.Points.Size();
+		int screenWidthScaled = g_bScale ? con_virtualwidth : SCREENWIDTH;
 
-		for ( int i = numPoints - 1; i >= 0; i-- )
+		ulYPos = ST_Y - g_ulTextHeight * 2 + 1;
+
+		int numPoints = 0;
+		int longestPointWidth = -1;
+		for ( int i = 0; i < level.info->SectorInfo.Points.Size(); i++ )
 		{
+			if ( level.info->SectorInfo.Points[i].disabled )
+				continue;
+
+			numPoints++;
+			longestPointWidth = MAX<int>( longestPointWidth, SmallFont->StringWidth( level.info->SectorInfo.Points[i].name.GetChars() ) );
+		}
+
+		longestPointWidth += SmallFont->StringWidth( " " );
+
+		int currentPoint = 1;
+		for ( int i = level.info->SectorInfo.Points.Size() - 1; i >= 0; i-- )
+		{
+			if ( level.info->SectorInfo.Points[i].disabled )
+				continue;
+
 			if ( TEAM_CheckIfValid( level.info->SectorInfo.Points[i].owner ))
 			{
 				color = TEAM_GetTextColor( level.info->SectorInfo.Points[i].owner );
@@ -1018,8 +1037,13 @@ static void HUD_RenderHolders( void )
 				text = "-";
 			}
 
-			text.AppendFormat( ": " TEXTCOLOR_GRAY "%s", level.info->SectorInfo.Points[i].name.GetChars( ));
-			HUD_DrawTextAligned( color, static_cast<int>( ST_Y * g_rYScale ) - ( numPoints - i ) * SmallFont->GetHeight( ), text, false, g_bScale );
+			text.AppendFormat( ": " TEXTCOLOR_GRAY );
+			int width = SmallFont->StringWidth( text );
+
+			text.AppendFormat( "%s", level.info->SectorInfo.Points[i].name.GetChars() );
+			HUD_DrawText ( color, screenWidthScaled - ( width + longestPointWidth ), static_cast<int>( (ulYPos - ( numPoints - currentPoint ) * g_ulTextHeight) * g_rYScale ), text, g_bScale );
+
+			currentPoint++;
 		}
 	}
 }

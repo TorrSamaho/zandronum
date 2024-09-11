@@ -2703,6 +2703,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 		for ( unsigned int i = 0; i < level.info->SectorInfo.Points.Size(); i++ )
 		{
 			SERVERCOMMANDS_SetDominationPointOwner( i, level.info->SectorInfo.Points[i].owner, false, ulClient, SVCF_ONLYTHISCLIENT );
+			SERVERCOMMANDS_SetDominationPointState( i, level.info->SectorInfo.Points[i], ulClient, SVCF_ONLYTHISCLIENT );
 		}
 	}
 
@@ -3289,7 +3290,7 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo, L
 
 		// If playing Domination reset ownership
 		if ( domination )
-			DOMINATION_Reset();
+			DOMINATION_Clear();
 	}
 
 	// If no one is left on the server and we're using a cvar lobby map,

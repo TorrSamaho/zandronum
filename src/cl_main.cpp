@@ -9553,6 +9553,13 @@ void ServerCommands::SetDominationPointOwner::Execute()
 }
 
 //*****************************************************************************
+// [TRSR]
+void ServerCommands::SetDominationPointState::Execute()
+{
+	DOMINATION_SetDisabled( point, disabled );
+}
+
+//*****************************************************************************
 //
 void STACK_ARGS CLIENT_PrintWarning( const char* format, ... )
 {

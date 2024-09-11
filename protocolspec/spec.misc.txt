@@ -85,3 +85,9 @@ Command SetDominationPointOwner
 	Byte team
 	Bool broadcast
 EndCommand
+
+Command SetDominationPointState
+	ExtendedCommand
+	Byte point
+	Bool disabled
+EndCommand

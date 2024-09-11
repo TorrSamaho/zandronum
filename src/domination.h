@@ -70,7 +70,8 @@
 void DOMINATION_WinSequence(unsigned int winner);
 void DOMINATION_Tick(void);
 void DOMINATION_SetOwnership(unsigned int point, unsigned int team, bool broadcast = true);
+void DOMINATION_SetDisabled(unsigned int point, bool disabled);
 void DOMINATION_Init(void);
-void DOMINATION_Reset(void);
+void DOMINATION_Clear(void);
 
 #endif // __DOMINATION_H__

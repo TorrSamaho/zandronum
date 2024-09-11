@@ -266,6 +266,7 @@ enum
 {
 	POINTINFO_NAME,
 	POINTINFO_OWNER,
+	POINTINFO_DISABLED,
 };
 
 struct CallReturn
@@ -7969,6 +7970,8 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 							return GlobalACSStrings.AddString( "" );
 						case POINTINFO_OWNER:
 							return TEAM_None;
+						case POINTINFO_DISABLED:
+							return false;
 						default:
 							return 0;
 					}
@@ -7980,6 +7983,8 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 						return GlobalACSStrings.AddString( level.info->SectorInfo.Points[point].name );
 					case POINTINFO_OWNER:
 						return level.info->SectorInfo.Points[point].owner;
+					case POINTINFO_DISABLED:
+						return level.info->SectorInfo.Points[point].disabled;
 					default:
 						return 0;
 				}
@@ -8005,6 +8010,9 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 							value = TEAM_None;
 
 						DOMINATION_SetOwnership( point, value );
+						break;
+					case POINTINFO_DISABLED:
+						DOMINATION_SetDisabled( point, static_cast<bool>(value) );
 						break;
 					default:
 						return false;

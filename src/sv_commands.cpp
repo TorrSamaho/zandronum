@@ -2727,6 +2727,16 @@ void SERVERCOMMANDS_SetDominationPointOwner( ULONG ulPoint, unsigned int team, b
 
 //*****************************************************************************
 //
+void SERVERCOMMANDS_SetDominationPointState( ULONG ulPoint, DPOINT_s state, ULONG ulPlayerExtra, ServerCommandFlags flags )
+{
+	ServerCommands::SetDominationPointState command;
+	command.SetPoint( ulPoint );
+	command.SetDisabled( state.disabled );
+	command.sendCommandToClients( ulPlayerExtra, flags );
+}
+
+//*****************************************************************************
+//
 void SERVERCOMMANDS_SetTeamScore( ULONG ulTeam, ULONG ulType, bool bAnnounce, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( TEAM_CheckIfValid( ulTeam ) == false )
