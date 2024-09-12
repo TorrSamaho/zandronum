@@ -90,4 +90,5 @@ Command SetDominationPointState
 	ExtendedCommand
 	Byte point
 	Bool disabled
+	Byte[] contesters
 EndCommand

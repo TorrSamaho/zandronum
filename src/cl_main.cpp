@@ -9556,6 +9556,13 @@ void ServerCommands::SetDominationPointOwner::Execute()
 // [TRSR]
 void ServerCommands::SetDominationPointState::Execute()
 {
+	std::set<int> contesting;
+	for ( unsigned int i = 0; i < contesters.Size(); i++ )
+	{
+		contesting.insert( contesters[i] );
+	}
+
+	DOMINATION_SetContesting( point, contesting );
 	DOMINATION_SetDisabled( point, disabled );
 }
 

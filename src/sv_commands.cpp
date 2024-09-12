@@ -2732,6 +2732,15 @@ void SERVERCOMMANDS_SetDominationPointState( ULONG ulPoint, DPOINT_s state, ULON
 	ServerCommands::SetDominationPointState command;
 	command.SetPoint( ulPoint );
 	command.SetDisabled( state.disabled );
+
+	// [TRSR] This serves to initialize the contesters even with an empty list.
+	command.PushToContesters( 0 );
+	command.ClearContesters();
+	for ( std::set<int>::iterator it = state.contesting.begin(); it != state.contesting.end(); ++it )
+	{
+		command.PushToContesters( *it );
+	}
+
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 

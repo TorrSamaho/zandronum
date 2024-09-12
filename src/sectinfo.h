@@ -52,6 +52,7 @@
 
 #include <memory>
 #include "doomtype.h"
+#include <set>
 
 void SECTINFO_Load();
 void SECTINFO_Parse(int lump);
@@ -62,6 +63,7 @@ struct DPOINT_s
 	FString name;
 	TArray<unsigned int> sectors;
 	int owner;
+	std::set<int> contesting;
 	bool disabled;
 
 	bool PlayerInsidePoint( const ULONG ulPlayer );

@@ -99,6 +99,7 @@ void DOMINATION_Init(void)
 	for(unsigned int i = 0;i < level.info->SectorInfo.Points.Size();i++)
 	{
 		level.info->SectorInfo.Points[i].disabled = false;
+		level.info->SectorInfo.Points[i].contesting.clear();
 		level.info->SectorInfo.Points[i].owner = TEAM_None;
 		domination_SetControlPointColor( i );
 	}
@@ -108,6 +109,7 @@ void DOMINATION_Clear(void)
 {
 	for( unsigned int i = 0; i < level.info->SectorInfo.Points.Size(); i++ )
 	{
+		level.info->SectorInfo.Points[i].contesting.clear();
 		DOMINATION_SetOwnership( i, TEAM_None );
 	}
 }
@@ -127,9 +129,7 @@ void DOMINATION_Tick(void)
 
 	for( unsigned int i = 0; i < level.info->SectorInfo.Points.Size(); i++ )
 	{
-		if( level.info->SectorInfo.Points[i].disabled )
-			continue;
-
+		std::set<int> newContesting;
 		unsigned int teamPlayers[MAX_TEAMS] = { 0 };
 
 		// [TRSR] Count number of players per team on the point.
@@ -142,9 +142,19 @@ void DOMINATION_Tick(void)
 
 			// [TRSR] Call event script to allow modders to say whether this player's contesting status counts.
 			// For example, if player is too high up or above 3D floor, a modder may not want them to be able to contest.
-			if (( !gameinfo.bAllowDominationContestScripts ) || ( GAMEMODE_HandleEvent( GAMEEVENT_DOMINATION_CONTEST, players[p].mo, i, 0, true ) != 0 ))
+			if (( !gameinfo.bAllowDominationContestScripts ) || ( GAMEMODE_HandleEvent( GAMEEVENT_DOMINATION_CONTEST, players[p].mo, i, 0, true ) != 0 )) {
 				teamPlayers[players[p].Team]++;
+				newContesting.insert( p );
+			}
 		}
+
+		DOMINATION_SetContesting( i, newContesting );
+
+		if ( level.info->SectorInfo.Points[i].disabled )
+			continue;
+
+		if ( level.info->SectorInfo.Points[i].contesting.empty() )
+			continue;
 
 		// [TRSR] If the point is owned and one of that team's players is contesting, don't let the point swap.
 		if( level.info->SectorInfo.Points[i].owner != TEAM_None && teamPlayers[level.info->SectorInfo.Points[i].owner] > 0 )
@@ -218,6 +228,23 @@ void DOMINATION_WinSequence(unsigned int winner)
 		return;
 
 	finished = true;
+}
+
+void DOMINATION_SetContesting(unsigned int point, std::set<int> contesting)
+{
+	if( !domination )
+		return;
+
+	if( point >= level.info->SectorInfo.Points.Size() )
+		return;
+
+	if ( contesting == level.info->SectorInfo.Points[point].contesting )
+		return;
+
+	level.info->SectorInfo.Points[point].contesting = contesting;
+
+	if ( NETWORK_GetState() == NETSTATE_SERVER )
+		SERVERCOMMANDS_SetDominationPointState ( point, level.info->SectorInfo.Points[point] );
 }
 
 void DOMINATION_SetDisabled(unsigned int point, bool disabled)

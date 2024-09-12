@@ -5532,6 +5532,7 @@ enum EACSFunctions
 	ASCF_GetControlPointInfo, // [TRSR] Added Domination functions.
 	ASCF_SetControlPointInfo,
 	ASCF_GetSkinProperty, // [TRSR]
+	ACSF_IsPlayerContestingControlPoint,
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -8019,6 +8020,19 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				}
 
 				return true;
+			}
+
+		case ACSF_IsPlayerContestingControlPoint:
+			{
+				const int pln = args[0];
+				if ( !PLAYER_IsValidPlayerWithMo( pln ) )
+					return false;
+
+				const unsigned int point = args[1];
+				if ( point >= level.info->SectorInfo.Points.Size() )
+					return false;
+
+				return level.info->SectorInfo.Points[point].contesting.count( pln ) != 0;
 			}
 
 		case ACSF_ChangeTeamScore:
