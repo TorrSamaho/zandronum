@@ -237,6 +237,9 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 			SendDlgItemMessage( hDlg, IDC_CONSOLEBOX, EM_SETLIMITTEXT, 4096, 0 );
 			SendDlgItemMessage( hDlg, IDC_INPUTBOX, EM_SETLIMITTEXT, 256, 0 );
 
+			// [AK] Allow the entire player row on the scoreboard to be selectable.
+			SendDlgItemMessage( hDlg, IDC_PLAYERLIST, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT );
+
 			// Insert the name column.
 			sprintf( szColumnTitle, "Name" );
 			ColumnData.mask = LVCF_FMT|LVCF_TEXT|LVCF_WIDTH;
