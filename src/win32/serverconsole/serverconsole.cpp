@@ -212,15 +212,11 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 			Printf( "\nRunning version: %s\n", GetVersionStringRev() );
 
 			// Append the time.
-			struct	tm		*pTimeInfo;
-			time_t			clock;
-			time (&clock);
-			pTimeInfo = localtime (&clock);
-			Printf("Started on %d/%d/%d at %d:%d:%d.\n", pTimeInfo->tm_mon, pTimeInfo->tm_mday,
-				(1900+pTimeInfo->tm_year), pTimeInfo->tm_hour, pTimeInfo->tm_min, pTimeInfo->tm_sec);
-				// [RC] TODO: AM/PM, localization, central time class
+			const time_t currentTime = time( nullptr );
+			char formattedTime[32];
 
-			Printf("\n");
+			strftime( formattedTime, sizeof( formattedTime ), "%x at %X", localtime( &currentTime ));
+			Printf( "Started on %s.\n\n", formattedTime );
 
 			// Initialize the title string.
 			std::string versionString = GetVersionString();
