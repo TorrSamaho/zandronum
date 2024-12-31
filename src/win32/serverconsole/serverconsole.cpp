@@ -195,8 +195,8 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 
 			// Set up the server dialog's status bar.
 			g_hDlgStatusBar = CreateStatusWindow(WS_CHILD | WS_VISIBLE, (LPCTSTR)NULL, hDlg, IDC_SERVER_STATUSBAR);
-			const int aDivideWidths[] = {47, 85, 195, 305, 450 };
-			SendMessage(g_hDlgStatusBar, SB_SETPARTS, (WPARAM) 5, (LPARAM) aDivideWidths);			
+			const int divideWidths[] = { 43, 75, 198, 298, 450 };
+			SendMessage( g_hDlgStatusBar, SB_SETPARTS, (WPARAM) 5, (LPARAM)divideWidths );
 
 			// Create and set our fonts for the titlescreen and console.
 			HFONT hTitleFont = CreateFont(14, 0, 0, 0, 600, 0, 0, 0, 0, 0, 0, 0, 0, "Tahoma"); 
@@ -219,14 +219,7 @@ BOOL CALLBACK SERVERCONSOLE_ServerDialogBoxCallback( HWND hDlg, UINT Message, WP
 			Printf( "Started on %s.\n\n", formattedTime );
 
 			// Initialize the title string.
-			std::string versionString = GetVersionString();
-			if ( BUILD_ID != BUILD_RELEASE )
-			{
-				versionString += " (r";
-				versionString += GetGitTime();
-				versionString += ")";
-			}
-			SendMessage( g_hDlgStatusBar, SB_SETTEXT, (WPARAM)4, (LPARAM) versionString.c_str() );
+			SendMessage( g_hDlgStatusBar, SB_SETTEXT, (WPARAM)4, (LPARAM)GetVersionStringRev( ));
 			SetDlgItemText( hDlg, IDC_MAPMODE, "Please wait..." );
 
 			// Set the text limits for the console and input boxes.
