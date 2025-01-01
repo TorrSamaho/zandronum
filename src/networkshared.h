@@ -195,10 +195,6 @@ class IPStringArray
 private:
 	char szAddress[4][4];
 
-	const char* operator[] ( int i ) const
-	{
-		return szAddress[i];
-	}
 public:
 
 	void Clear()
@@ -258,6 +254,14 @@ public:
 		return os << szAddress[0] << "." << szAddress[1] << "." << szAddress[2] << "." << szAddress[3];
 	}
 
+	const char* operator[] ( int i ) const
+	{
+		if (( i < 0 ) || ( i >= 4 ))
+			return nullptr;
+
+		return szAddress[i];
+	}
+
 	operator std::string () const
 	{
 		std::string stringRepresentation;
@@ -313,6 +317,8 @@ struct IPADDRESSBAN_s
 	// [RC] Time that the ban expires, or NULL for an infinite ban.
 	time_t		tExpirationDate;
 
+	// [AK] Returns the expiration date and time as a string.
+	std::string GetExpirationAsString( void ) const;
 };
 
 //*****************************************************************************

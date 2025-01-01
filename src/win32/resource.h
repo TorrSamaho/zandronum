@@ -95,7 +95,6 @@
 #define IDC_BANFILE                     1049
 #define IDC_REASON                      1049
 #define IDC_MAPNAME                     1049
-#define IDC_BANBOX                      1049
 #define IDC_INPUTBOX                    1049
 #define IDC_LOGFILE                     1049
 #define IDC_PASSWORD                    1049

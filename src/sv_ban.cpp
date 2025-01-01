@@ -65,6 +65,9 @@
 static	TArray<IPList>	g_ServerBans;
 static	TArray<IPList>	g_ServerBanExemptions;
 
+// [AK] Pending changes to the ban lists from the server console window.
+static	TArray<IPList>	g_ServerConsoleBanUpdates;
+
 static	IPList	g_MasterServerBans;
 static	IPList	g_MasterServerBanExemptions;
 
@@ -147,6 +150,46 @@ void SERVERBAN_Tick( void )
 
 		// Parse again periodically.
 		g_ulReParseTicker = sv_banfilereparsetime * TICRATE;
+	}
+
+	// [AK] Any pending changes to the ban lists that were made from the server
+	// console window should be applied now.
+	if ( g_ServerConsoleBanUpdates.Size( ) > 0 )
+	{
+		FString listString;
+		UCVarValue val;
+
+		for ( unsigned int i = 0; i < g_ServerConsoleBanUpdates.Size( ); i++ )
+		{
+			if ( i > 0 )
+				listString += ';';
+
+			listString += g_ServerConsoleBanUpdates[i].getFilename( );
+		}
+
+		val.String = listString.GetChars( );
+
+		// [AK] Update sv_banfile so that the ban files are loaded.
+		sv_banfile.SetGenericRep( val, CVAR_String );
+
+		// [AK] Refresh all of the ban lists that are loaded now.
+		for ( unsigned int i = 0; i < g_ServerConsoleBanUpdates.Size( ); i++ )
+		{
+			// Clear out the ban list, and then add all the bans in the ban list.
+			SERVERBAN_ClearBans( i );
+
+			for ( unsigned int j = 0; j < g_ServerConsoleBanUpdates[i].size( ); j++ )
+			{
+				const IPADDRESSBAN_s &entry = g_ServerConsoleBanUpdates[i].getVector( )[j];
+				std::string message;
+
+				SERVERBAN_GetBanList( )[i].addEntry( entry.szIP, "", entry.szComment, message, entry.tExpirationDate );
+			}
+		}
+
+		// [AK] Kick any players that might be banned now.
+		serverban_KickBannedPlayers( );
+		g_ServerConsoleBanUpdates.Clear( );
 	}
 }
 
@@ -515,6 +558,13 @@ void SERVERBAN_BanAddress( const char *address, const char *length, const char *
 
 	// Kick any players using the newly-banned address.
 	serverban_KickBannedPlayers( );
+}
+
+//*****************************************************************************
+//
+void SERVERBAN_UpdateBansFromServerConsole( const TArray<IPList> &lists )
+{
+	g_ServerConsoleBanUpdates = lists;
 }
 
 //*****************************************************************************

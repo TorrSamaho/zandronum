@@ -48,7 +48,8 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <time.h>
+#include <iomanip>
+#include <sstream>
 #include <windows.h>
 #include <commctrl.h>
 #define USE_WINDOWS_DWORD
@@ -105,7 +106,9 @@ static	bool				g_bScrollConsoleOnNewline = false;
 static	LONG				g_lPlayerIndicies[MAXPLAYERS];
 
 static	bool				g_bServerLoaded = false;
-static	char				g_szBanEditString[256];
+static	IPStringArray		g_EditBanAddress;
+static	SYSTEMTIME			g_EditBanDate;
+static	char				g_EditBanReason[128];
 static	NOTIFYICONDATA		g_NotifyIconData;
 static	HICON				g_hSmallIcon = NULL;
 static	bool				g_bSmallIconClicked = false;
@@ -115,7 +118,7 @@ static	NETADDRESS_s		g_LocalAddress;
 static	std::vector<FString>	g_RecentConsoleMessages;
 
 // [AK] All ban lists being shown in the "manage bans" window.
-static	TArray<BanList>		g_BanLists;
+static	TArray<IPList>		g_BanLists;
 static	unsigned int		g_CurrentBanList;
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1318,20 +1321,68 @@ BOOL CALLBACK SERVERCONSOLE_BanIPCallback( HWND hDlg, UINT Message, WPARAM wPara
 
 //*****************************************************************************
 //
+static IPADDRESSBAN_s serverconsole_BanList_GetEntry( HWND dlg, int index )
+{
+	IPADDRESSBAN_s result;
+	char buffer[256];
+	LVITEM listItem;
+
+	listItem.mask = LVIF_TEXT;
+	listItem.iItem = index;
+	listItem.pszText = buffer;
+	listItem.cchTextMax = sizeof( buffer );
+
+	// [AK] Retrieve the IP address.
+	listItem.iSubItem = SERVERCONSOLE_COLUMN_IPADDRESS;
+	SendDlgItemMessage( dlg, IDC_BANLIST, LVM_GETITEM, 0, (LPARAM)&listItem );
+	result.szIP.SetFromString( listItem.pszText );
+
+	// [AK] Retrieve the expiration date.
+	listItem.iSubItem = SERVERCONSOLE_COLUMN_EXPIRATION;
+	SendDlgItemMessage( dlg, IDC_BANLIST, LVM_GETITEM, 0, (LPARAM)&listItem );
+
+	tm timeInfo = { };
+	result.tExpirationDate = 0;
+
+	// [AK] An empty string means that the ban is permanent and doesn't expire.
+	if ( strlen( listItem.pszText ) > 0 )
+	{
+		std::istringstream ss( listItem.pszText );
+		ss >> std::get_time( &timeInfo, "%m/%d/%Y %H:%M" );
+
+		if ( ss.fail( ))
+		{
+			Printf( "WARNING: failed to parse time from \"%s\".", listItem.pszText );
+		}
+		else
+		{
+			// [AK] std::get_time doesn't set the DST flag, so set it to -1 so
+			// that mktime can determine if the flag must be on or off.
+			timeInfo.tm_isdst = -1;
+			result.tExpirationDate = mktime( &timeInfo );
+		}
+	}
+
+	// [AK] Retrieve the reason for the ban.
+	listItem.iSubItem = SERVERCONSOLE_COLUMN_REASON;
+	SendDlgItemMessage( dlg, IDC_BANLIST, LVM_GETITEM, 0, (LPARAM)&listItem );
+	strcpy( result.szComment, listItem.pszText );
+
+	return result;
+}
+
+//*****************************************************************************
+//
 static void serverconsole_BanList_SaveCurrentList( HWND dlg )
 {
-	const int count = SendDlgItemMessage( dlg, IDC_BANLIST, LB_GETCOUNT, 0, 0 );
-	char buffer[256];
+	const int count = SendDlgItemMessage( dlg, IDC_BANLIST, LVM_GETITEMCOUNT, 0, 0 );
 
 	if ( count != LB_ERR )
 	{
-		g_BanLists[g_CurrentBanList].list.Clear( );
+		g_BanLists[g_CurrentBanList].clear( );
 
 		for ( int i = 0; i < count; i++ )
-		{
-			SendDlgItemMessage( dlg, IDC_BANLIST, LB_GETTEXT, i, (LPARAM)(LPCTSTR)buffer );
-			g_BanLists[g_CurrentBanList].list.Push( buffer );
-		}
+			g_BanLists[g_CurrentBanList].push_back( serverconsole_BanList_GetEntry( dlg, i ));
 	}
 }
 
@@ -1339,8 +1390,30 @@ static void serverconsole_BanList_SaveCurrentList( HWND dlg )
 //
 static void serverconsole_BanList_PopulateList( HWND dlg )
 {
-	for ( unsigned int i = 0; i < g_BanLists[g_CurrentBanList].list.Size( ); i++ )
-		SendDlgItemMessage( dlg, IDC_BANLIST, LB_INSERTSTRING, -1, (LPARAM)g_BanLists[g_CurrentBanList].list[i].GetChars( ));
+	char buffer[256];
+	LVITEM listItem;
+
+	listItem.mask = LVIF_TEXT;
+	listItem.pszText = buffer;
+	listItem.cchTextMax = sizeof( buffer );
+
+	for ( unsigned int i = 0; i < g_BanLists[g_CurrentBanList].size( ); i++ )
+	{
+		const IPADDRESSBAN_s &entry = g_BanLists[g_CurrentBanList].getVector( )[i];
+		listItem.iItem = i;
+
+		listItem.iSubItem = SERVERCONSOLE_COLUMN_IPADDRESS;
+		strcpy( listItem.pszText, std::string( entry.szIP ).c_str( ));
+		SendDlgItemMessage( dlg, IDC_BANLIST, LVM_INSERTITEM, 0, (LPARAM)&listItem );
+
+		listItem.iSubItem = SERVERCONSOLE_COLUMN_EXPIRATION;
+		strcpy( listItem.pszText, entry.GetExpirationAsString( ).c_str( ));
+		SendDlgItemMessage( dlg, IDC_BANLIST, LVM_SETITEM, 0, (LPARAM)&listItem );
+
+		listItem.iSubItem = SERVERCONSOLE_COLUMN_REASON;
+		strcpy( listItem.pszText, entry.szComment );
+		SendDlgItemMessage( dlg, IDC_BANLIST, LVM_SETITEM, 0, (LPARAM)&listItem );
+	}
 }
 
 //*****************************************************************************
@@ -1358,6 +1431,30 @@ BOOL CALLBACK SERVERCONSOLE_BanListCallback( HWND hDlg, UINT Message, WPARAM wPa
 
 		{
 			const TArray<IPList> &lists = SERVERBAN_GetBanList( );
+			LVCOLUMN columnData;
+
+			columnData.mask = LVCF_FMT | LVCF_TEXT | LVCF_WIDTH;
+			columnData.fmt = LVCFMT_LEFT;
+			columnData.cchTextMax = 64;
+			columnData.iSubItem = 0;
+
+			// [AK] Insert the IP address column.
+			columnData.pszText = "IP Address";
+			columnData.cx = 92;
+			SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_INSERTCOLUMN, SERVERCONSOLE_COLUMN_IPADDRESS, (LPARAM)&columnData );
+
+			// [AK] Insert the expiration date column.
+			columnData.pszText = "Expiration Date";
+			columnData.cx = 106;
+			SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_INSERTCOLUMN, SERVERCONSOLE_COLUMN_EXPIRATION, (LPARAM)&columnData );
+
+			// [AK] Insert the reason column.
+			columnData.pszText = "Reason";
+			columnData.cx = 215;
+			SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_INSERTCOLUMN, SERVERCONSOLE_COLUMN_REASON, (LPARAM)&columnData );
+
+			// [AK] Enable a couple of extended styles for the ban list.
+			SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES );
 
 			if ( sv_enforcebans )
 				SendDlgItemMessage( hDlg, IDC_ENFORCEBANS, BM_SETCHECK, BST_CHECKED, 0 );
@@ -1368,17 +1465,11 @@ BOOL CALLBACK SERVERCONSOLE_BanListCallback( HWND hDlg, UINT Message, WPARAM wPa
 			// always be the case, though).
 			if ( lists.Size( ) > 0 )
 			{
-				g_BanLists.Resize( lists.Size( ));
+				g_BanLists = lists;
 				g_CurrentBanList = 0;
 
-				for ( unsigned int i = 0; i < lists.Size( ); i++ )
-				{
-					g_BanLists[i].filename = lists[i].getFilename( );
-					SendDlgItemMessage( hDlg, IDC_BANFILE, CB_INSERTSTRING, -1, (WPARAM)(LPSTR)g_BanLists[i].filename.GetChars( ));
-
-					for ( unsigned int j = 0; j < lists[i].size( ); j++ )
-						g_BanLists[i].list.Push( lists[i].getEntryAsString( j, true, true, false ).c_str( ));
-				}
+				for ( unsigned int i = 0; i < g_BanLists.Size( ); i++ )
+					SendDlgItemMessage( hDlg, IDC_BANFILE, CB_INSERTSTRING, -1, (WPARAM)(LPSTR)g_BanLists[i].getFilename( ));
 
 				// [AK] Always select the primary ban list by default.
 				SendDlgItemMessage( hDlg, IDC_BANFILE, CB_SETCURSEL, 0, 0 );
@@ -1409,7 +1500,7 @@ BOOL CALLBACK SERVERCONSOLE_BanListCallback( HWND hDlg, UINT Message, WPARAM wPa
 						serverconsole_BanList_SaveCurrentList( hDlg );
 						g_CurrentBanList = SendDlgItemMessage( hDlg, IDC_BANFILE, CB_GETCURSEL, 0, 0 );
 
-						SendDlgItemMessage( hDlg, IDC_BANLIST, LB_RESETCONTENT, 0, 0 );
+						SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_DELETEALLITEMS, 0, 0 );
 						serverconsole_BanList_PopulateList( hDlg );
 					}
 				}
@@ -1417,146 +1508,110 @@ BOOL CALLBACK SERVERCONSOLE_BanListCallback( HWND hDlg, UINT Message, WPARAM wPa
 			case IDC_EDIT:
 
 				{
-					LONG	lIdx;
+					const int index = SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_GETNEXTITEM, -1, LVNI_SELECTED );
 
-					lIdx = SendDlgItemMessage( hDlg, IDC_BANLIST, LB_GETCURSEL, 0, 0 );
-					if ( lIdx != LB_ERR )
+					if ( index != LB_ERR )
 					{
-						SendDlgItemMessage( hDlg, IDC_BANLIST, LB_GETTEXT, lIdx, (LPARAM)g_szBanEditString );
+						// [AK] Only one item should be selected for editing.
+						if ( SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_GETSELECTEDCOUNT, 0, 0 ) > 1 )
+						{
+							MessageBox( hDlg, "Please select only one ban to edit.", SERVERCONSOLE_TITLESTRING, MB_OK );
+							break;
+						}
+
+						const IPADDRESSBAN_s entry = serverconsole_BanList_GetEntry( hDlg, index );
+						g_EditBanAddress = entry.szIP;
+
+						if ( entry.tExpirationDate != 0 )
+						{
+							tm *timeInfo = localtime( &entry.tExpirationDate );
+
+							g_EditBanDate.wYear = timeInfo->tm_year + 1900;
+							g_EditBanDate.wMonth = timeInfo->tm_mon + 1;
+							g_EditBanDate.wDay = timeInfo->tm_mday;
+							g_EditBanDate.wHour = timeInfo->tm_hour;
+							g_EditBanDate.wMinute = timeInfo->tm_min;
+						}
+						else
+						{
+							g_EditBanDate.wMonth = g_EditBanDate.wDay = g_EditBanDate.wYear = 0;
+						}
+
+						strcpy( g_EditBanReason, entry.szComment );
+
 						if ( DialogBox( g_hInst, MAKEINTRESOURCE( IDD_EDITBAN ), hDlg, (DLGPROC)SERVERCONSOLE_EditBanCallback ))
 						{
-							SendDlgItemMessage( hDlg, IDC_BANLIST, LB_DELETESTRING, lIdx, 0 );
-							SendDlgItemMessage( hDlg, IDC_BANLIST, LB_INSERTSTRING, lIdx, (LPARAM)g_szBanEditString );
+							char buffer[256];
+
+							LVITEM listItem;
+							listItem.mask = LVIF_TEXT;
+							listItem.iItem = index;
+							listItem.pszText = buffer;
+							listItem.cchTextMax = sizeof( buffer );
+
+							listItem.iSubItem = SERVERCONSOLE_COLUMN_IPADDRESS;
+							sprintf( listItem.pszText, "%s", std::string( g_EditBanAddress ).c_str( ));
+							SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_SETITEM, 0, (LPARAM)&listItem );
+
+							listItem.iSubItem = SERVERCONSOLE_COLUMN_EXPIRATION;
+
+							// [AK] If the ban isn't permanent, output the expiration
+							// date and time into a string. Otherwise, leave it blank.
+							if (( g_EditBanDate.wYear != 0 ) && ( g_EditBanDate.wMonth != 0 ) && ( g_EditBanDate.wDay != 0 ))
+								sprintf( listItem.pszText, "%02d/%02d/%04d %02d:%02d", g_EditBanDate.wMonth, g_EditBanDate.wDay, g_EditBanDate.wYear, g_EditBanDate.wHour, g_EditBanDate.wMinute );
+							else
+								listItem.pszText = "";
+
+							SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_SETITEM, 0, (LPARAM)&listItem );
+
+							listItem.iSubItem = SERVERCONSOLE_COLUMN_REASON;
+							listItem.pszText = g_EditBanReason;
+							SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_SETITEM, 0, (LPARAM)&listItem );
 						}
 					}
 					else
+					{
 						MessageBox( hDlg, "Please select a ban to edit first.", SERVERCONSOLE_TITLESTRING, MB_OK );
+					}
 				}
 				break;
 			case IDC_REMOVE:
 
 				{
-					LONG	lIdx;
+					int index = SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_GETNEXTITEM, -1, LVNI_SELECTED );
 
-					lIdx = SendDlgItemMessage( hDlg, IDC_BANLIST, LB_GETCURSEL, 0, 0 );
-					if ( lIdx != LB_ERR )
-						SendDlgItemMessage( hDlg, IDC_BANLIST, LB_DELETESTRING, lIdx, 0 );
+					// [AK] Remove all selected items.
+					if ( index != LB_ERR )
+					{
+						do
+						{
+							SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_DELETEITEM, index, 0 );
+							index = SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_GETNEXTITEM, -1, LVNI_SELECTED );
+
+						} while ( index != LB_ERR );
+					}
 					else
+					{
 						MessageBox( hDlg, "Please select a ban to remove first.", SERVERCONSOLE_TITLESTRING, MB_OK );
+					}
 				}
 				break;
 			case IDC_CLEAR:
 
 				// Clear out the ban list box.
 				if ( MessageBox( hDlg, "Are you sure you want to clear the ban list?", SERVERCONSOLE_TITLESTRING, MB_YESNO|MB_ICONQUESTION ) == IDYES )
-					SendDlgItemMessage( hDlg, IDC_BANLIST, LB_RESETCONTENT, 0, 0 );
+					SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_DELETEALLITEMS, 0, 0 );
 				break;
 			case IDOK:
 
 				{
-					FString commandString = "sv_banfile \"";
 					serverconsole_BanList_SaveCurrentList( hDlg );
-
-					for ( unsigned int i = 0; i < g_BanLists.Size( ); i++ )
-					{
-						if ( i > 0 )
-							commandString += ';';
-
-						commandString += g_BanLists[i].filename;
-					}
-
-					commandString += '\"';
-
-					// [AK] Update sv_banfile so that the ban files are loaded.
-					SERVER_AddCommand( commandString.GetChars( ));
+					SERVERBAN_UpdateBansFromServerConsole( g_BanLists );
 
 					if ( SendDlgItemMessage( hDlg, IDC_ENFORCEBANS, BM_GETCHECK, BST_CHECKED, 0 ))
 						sv_enforcebans = true;
 					else
 						sv_enforcebans = false;
-
-					// [AK] Refresh all of the ban lists that are loaded now.
-					for ( unsigned int i = 0; i < g_BanLists.Size( ); i++ )
-					{
-						// Clear out the ban list, and then add all the bans in the ban list.
-						SERVERBAN_ClearBans( i );
-
-						// Now, add the bans in the listbox to the ban list.
-						for ( unsigned int j = 0; j < g_BanLists[i].list.Size( ); j++ )
-						{
-							const char *banString = g_BanLists[i].list[j].GetChars( );
-							unsigned int index = 0;
-							time_t expiration = 0;
-							FString ipAddress;
-							FString comment;
-
-							// [AK] Read the IP address first.
-							while (( banString[index] != 0 ) && ( banString[index] != ':' ) && ( banString[index] != '/' ) && ( banString[index] != '<' ))
-								ipAddress += banString[index++];
-
-							// [RC] Read the expiration date.
-							// This is a very klunky temporary solution that I've already fixed it in my redo of the server dialogs.
-							if ( banString[index] == '<' )
-							{
-								index++;
-
-								const long month = strtol( banString + index, nullptr, 10 );
-								index += 3;
-
-								const long day = strtol( banString + index, nullptr, 10 );
-								index += 3;
-
-								const long year = strtol( banString + index, nullptr, 10 );
-								index += 5;
-
-								const long hour = strtol( banString + index, nullptr, 10 );
-								index += 3;
-
-								const long minute = strtol( banString + index, nullptr, 10 );
-								index += 2;
-
-								// If fewer than 5 elements (the %ds) were read, the user probably edited the file incorrectly.
-								if ( banString[index] != '>' )
-								{
-									Printf( "WARNING: failure to read the ban expiration date for entry \"%s\"!\n", banString );
-									continue;
-								}
-
-								index++;
-
-								// Create the time structure, based on the current time.
-								time_t now;
-								time( &now );
-
-								struct tm *timeInfo = localtime( &now );
-
-								// Edit the values, and stitch them into a new time.
-								timeInfo->tm_mon = month - 1;
-								timeInfo->tm_mday = day;
-
-								if ( year < 100 )
-									timeInfo->tm_year = year + 2000;
-								else
-									timeInfo->tm_year = year - 1900;
-
-								timeInfo->tm_hour = hour;
-								timeInfo->tm_min = minute;
-								timeInfo->tm_sec = 0;
-
-								expiration = mktime( timeInfo );
-							}
-
-							// Don't include the comment denotion character in the comment string.
-							while (( banString[index] == ':' ) || ( banString[index] == '/' ))
-								index++;
-
-							while ( banString[index] != 0 )
-								comment += banString[index++];
-
-							std::string message;
-							SERVERBAN_GetBanList( )[i].addEntry( ipAddress.GetChars( ), "", comment.GetChars( ), message, expiration );
-						}
-					}
 				}
 
 			case IDCANCEL:
@@ -1579,6 +1634,9 @@ BOOL CALLBACK SERVERCONSOLE_BanListCallback( HWND hDlg, UINT Message, WPARAM wPa
 //
 BOOL CALLBACK SERVERCONSOLE_EditBanCallback( HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam )
 {
+	const unsigned int ipBoxControlIndices[] = { IDC_EDITBAN_IPADDRESS1, IDC_EDITBAN_IPADDRESS2, IDC_EDITBAN_IPADDRESS3, IDC_EDITBAN_IPADDRESS4 };
+	char ipOctet[4];
+
 	switch ( Message )
 	{
 	case WM_CLOSE:
@@ -1587,11 +1645,26 @@ BOOL CALLBACK SERVERCONSOLE_EditBanCallback( HWND hDlg, UINT Message, WPARAM wPa
 		break;
 	case WM_INITDIALOG:
 
-		// Set the text limit for the IP box.
-		SendDlgItemMessage( hDlg, IDC_BANBOX, EM_SETLIMITTEXT, 256, 0 );
+		// [AK] Set the text, and the text limit, for each IP box.
+		for ( unsigned int i = 0; i < countof( ipBoxControlIndices ); i++ )
+		{
+			SendDlgItemMessage( hDlg, ipBoxControlIndices[i], EM_SETLIMITTEXT, 3, 0 );
+			SetDlgItemText( hDlg, ipBoxControlIndices[i], g_EditBanAddress[i] );
+		}
 
-		// Set the text limit for the ban box.
-		SetDlgItemText( hDlg, IDC_BANBOX, g_szBanEditString );
+		// [AK] Set the desired format for the expiration date control.
+		SendDlgItemMessage( hDlg, IDC_EDITBAN_EXPIRATIONDATE, DTM_SETFORMAT, GDT_VALID, (LPARAM)"MM/dd/yyyy HH:mm" );
+
+		// [AK] Check if the ban is permanent or not.
+		if (( g_EditBanDate.wYear != 0 ) && ( g_EditBanDate.wMonth != 0 ) && ( g_EditBanDate.wDay != 0 ))
+			SendDlgItemMessage( hDlg, IDC_EDITBAN_EXPIRATIONDATE, DTM_SETSYSTEMTIME, GDT_VALID, (LPARAM)&g_EditBanDate );
+		else
+			SendDlgItemMessage( hDlg, IDC_EDITBAN_EXPIRATIONDATE, DTM_SETSYSTEMTIME, GDT_NONE, 0 );
+
+		// Set the text (and limit) for the reason box.
+		SendDlgItemMessage( hDlg, IDC_EDITBAN_REASON, EM_SETLIMITTEXT, sizeof( g_EditBanReason ) - 1, 0 );
+		SetDlgItemText( hDlg, IDC_EDITBAN_REASON, g_EditBanReason );
+
 		break;
 	case WM_COMMAND:
 
@@ -1600,14 +1673,87 @@ BOOL CALLBACK SERVERCONSOLE_EditBanCallback( HWND hDlg, UINT Message, WPARAM wPa
 			{
 			case IDOK:
 
-				// Get the text from the input box.
-				GetDlgItemText( hDlg, IDC_BANFILE, g_szBanEditString, 256 );
+				{
+					FString finalIPAddress;
 
-				EndDialog( hDlg, true );
+					// [AK] Combine the text from each IP box into the final IP address.
+					for ( unsigned int i = 0; i < countof( ipBoxControlIndices ); i++ )
+					{
+						GetDlgItemText( hDlg, ipBoxControlIndices[i], ipOctet, sizeof( ipOctet ));
+
+						if ( finalIPAddress.Len( ) > 0 )
+							finalIPAddress += '.';
+
+						if ( strlen( ipOctet ) == 0 )
+							finalIPAddress += '0';
+						else
+							finalIPAddress += ipOctet;
+					}
+
+					g_EditBanAddress.SetFromString( finalIPAddress.GetChars( ));
+
+					// [AK] Determine if the ban should be permanent.
+					if ( SendDlgItemMessage( hDlg, IDC_EDITBAN_EXPIRATIONDATE, DTM_GETSYSTEMTIME, 0, (LPARAM)&g_EditBanDate ) == GDT_NONE )
+						g_EditBanDate.wMonth = g_EditBanDate.wDay = g_EditBanDate.wYear = 0;
+
+					// [AK] Get the comment from the input box.
+					GetDlgItemText( hDlg, IDC_EDITBAN_REASON, g_EditBanReason, sizeof( g_EditBanReason ));
+
+					EndDialog( hDlg, true );
+				}
 				break;
 			case IDCANCEL:
 
 				EndDialog( hDlg, false );
+				break;
+
+			case IDC_EDITBAN_IPADDRESS1:
+			case IDC_EDITBAN_IPADDRESS2:
+			case IDC_EDITBAN_IPADDRESS3:
+			case IDC_EDITBAN_IPADDRESS4:
+
+				// [AK] The user changed the text in one of the IP boxes. Grab the octet.
+				if ( HIWORD( wParam ) == EN_CHANGE )
+				{
+					GetDlgItemText( hDlg, LOWORD( wParam ), ipOctet, sizeof( ipOctet ));
+
+					if ( strlen( ipOctet ) > 0 )
+					{
+						FString correctedOctet = ipOctet;
+
+						// [AK] Make sure the octer is within bounds (0-255).
+						if ( correctedOctet.IsInt( ))
+						{
+							const int value = correctedOctet.ToLong( );
+							const int clampedValue = clamp<int>( value, 0, 0xFF );
+
+							if ( clampedValue != value )
+								correctedOctet.Format( "%d", clampedValue );
+						}
+						// [AK] If it's a wildcard, then there should only be one asterisk.
+						else if ( correctedOctet[0] == '*' )
+						{
+							if ( correctedOctet.Len( ) > 1 )
+								correctedOctet.Truncate( 1 );
+						}
+						else
+						{
+							// [AK] Remove any non-numerical characters from the string.
+							for ( unsigned int i = 0; i < correctedOctet.Len( ); i++ )
+							{
+								if ( isdigit( correctedOctet[i] ) == false )
+									correctedOctet.StripChars( correctedOctet[i] );
+							}
+						}
+
+						// [AK] If changes needed to be made to the octet, update the IP box.
+						if ( correctedOctet.Compare( ipOctet ) != 0 )
+						{
+							SetDlgItemText( hDlg, LOWORD( wParam ), correctedOctet.GetChars( ));
+							SendDlgItemMessage( hDlg, LOWORD( wParam ), EM_SETSEL, correctedOctet.Len( ), correctedOctet.Len( ));
+						}
+					}
+				}
 				break;
 			}
 		}

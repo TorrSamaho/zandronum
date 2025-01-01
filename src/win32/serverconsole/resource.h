@@ -33,7 +33,6 @@
 #define IDC_MAPMODE                             1001
 #define IDC_SETTINGSTAB                         1001
 #define IDC_SPIN1                               1010
-#define IDC_BANBOX                              1049
 #define IDC_BANFILE                             1049
 #define IDC_INPUTBOX                            1049
 #define IDC_IPADDRESS                           1049
@@ -41,6 +40,12 @@
 #define IDC_MAPNAME                             1049
 #define IDC_PASSWORD                            1049
 #define IDC_REASON                              1049
+#define IDC_EDITBAN_IPADDRESS1                  1049
+#define IDC_EDITBAN_IPADDRESS2                  1050
+#define IDC_EDITBAN_IPADDRESS3                  1051
+#define IDC_EDITBAN_IPADDRESS4                  1052
+#define IDC_EDITBAN_EXPIRATIONDATE              1053
+#define IDC_EDITBAN_REASON                      1054
 #define IDC_BANLIST                             1054
 #define IDC_MAPLISTBOX                          1054
 #define IDC_PLAYERLIST                          1054

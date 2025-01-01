@@ -820,6 +820,23 @@ bool IPStringArray::SetFromString ( const char *pszAddressString )
     return ( true );
 }
 
+//*****************************************************************************
+//
+std::string IPADDRESSBAN_s::GetExpirationAsString( void ) const
+{
+	if (( tExpirationDate != 0 ) && ( tExpirationDate != -1 ))
+	{
+		struct tm *timeInfo = localtime( &tExpirationDate );
+		char tempBuffer[32];
+
+		strftime( tempBuffer, sizeof( tempBuffer ), "%m/%d/%Y %H:%M", timeInfo );
+		return tempBuffer;
+	}
+
+	// [AK] Return an empty string for permanent bans.
+	return "";
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- CLASSES ---------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1240,14 +1257,7 @@ std::string IPList::getEntryAsString( const ULONG ulIdx, bool bIncludeComment, b
 
 		// Expiration date.
 		if ( bIncludeExpiration && _ipVector[ulIdx].tExpirationDate != 0 && _ipVector[ulIdx].tExpirationDate != -1 )
-		{			
-			struct tm	*pTimeInfo;
-			char		szDate[32];
-
-			pTimeInfo = localtime( &(_ipVector[ulIdx].tExpirationDate) );
-			strftime( szDate, 32, "%m/%d/%Y %H:%M", pTimeInfo );
-			entryStream << "<" << szDate << ">";
-		}
+			entryStream << "<" << _ipVector[ulIdx].GetExpirationAsString( ) << ">";
 
 		// Comment.
 		if ( bIncludeComment && _ipVector[ulIdx].szComment[0] )

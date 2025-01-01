@@ -71,6 +71,7 @@ time_t			SERVERBAN_ParseBanLength( const char *szLengthString );
 TArray<IPList>	&SERVERBAN_GetBanList( void );
 void			SERVERBAN_BanPlayer( unsigned int player, const char *length, const char *reason, unsigned int fileIndex );
 void			SERVERBAN_BanAddress( const char *address, const char *length, const char *reason, unsigned int fileIndex );
+void			SERVERBAN_UpdateBansFromServerConsole( const TArray<IPList> &lists );
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //-- EXTERNAL CONSOLE VARIABLES --------------------------------------------------------------------------------------------------------------------

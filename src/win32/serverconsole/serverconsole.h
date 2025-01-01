@@ -62,24 +62,19 @@
 
 #define	MAX_SKULLTAG_SERVER_INSTANCES	128
 
+//*****************************************************************************
 enum SERVERCONSOLE_COLUMNS
 {
-	SERVERCONSOLE_COLUMN_NAME,
+	// [AK] Enums for the columns in the player list.
+	SERVERCONSOLE_COLUMN_NAME = 0,
 	SERVERCONSOLE_COLUMN_FRAGS,
 	SERVERCONSOLE_COLUMN_PING,
-	SERVERCONSOLE_COLUMN_TIME
-};
+	SERVERCONSOLE_COLUMN_TIME,
 
-//*****************************************************************************
-//	STRUCTURES
-
-struct BanList
-{
-	// The name of the file associated with this list.
-	FString filename;
-
-	// The list of banned entries in this list.
-	TArray<FString> list;
+	// [AK] Enums for the columns in the ban list.
+	SERVERCONSOLE_COLUMN_IPADDRESS = 0,
+	SERVERCONSOLE_COLUMN_EXPIRATION,
+	SERVERCONSOLE_COLUMN_REASON,
 };
 
 //*****************************************************************************
