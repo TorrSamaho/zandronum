@@ -38,7 +38,6 @@
 #define IDD_BANLIST                     155
 #define IDD_KICKBAN		                156
 #define IDD_CHANGEMAP                   157
-#define IDD_EDITBAN                     159
 #define IDD_GENERALSETTINGS             160
 
 // 161 was the old kick dialog, which

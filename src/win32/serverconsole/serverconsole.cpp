@@ -1505,73 +1505,93 @@ BOOL CALLBACK SERVERCONSOLE_BanListCallback( HWND hDlg, UINT Message, WPARAM wPa
 					}
 				}
 				break;
+			case IDC_ADD:
 			case IDC_EDIT:
 
 				{
-					const int index = SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_GETNEXTITEM, -1, LVNI_SELECTED );
+					int index = 0;
 
-					if ( index != LB_ERR )
+					if ( LOWORD( wParam ) == IDC_ADD )
 					{
-						// [AK] Only one item should be selected for editing.
-						if ( SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_GETSELECTEDCOUNT, 0, 0 ) > 1 )
-						{
-							MessageBox( hDlg, "Please select only one ban to edit.", SERVERCONSOLE_TITLESTRING, MB_OK );
-							break;
-						}
+						// [AK] Add the new item to the end of the list.
+						index = SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_GETITEMCOUNT, 0, 0 );
 
-						const IPADDRESSBAN_s entry = serverconsole_BanList_GetEntry( hDlg, index );
-						g_EditBanAddress = entry.szIP;
-
-						if ( entry.tExpirationDate != 0 )
-						{
-							tm *timeInfo = localtime( &entry.tExpirationDate );
-
-							g_EditBanDate.wYear = timeInfo->tm_year + 1900;
-							g_EditBanDate.wMonth = timeInfo->tm_mon + 1;
-							g_EditBanDate.wDay = timeInfo->tm_mday;
-							g_EditBanDate.wHour = timeInfo->tm_hour;
-							g_EditBanDate.wMinute = timeInfo->tm_min;
-						}
-						else
-						{
-							g_EditBanDate.wMonth = g_EditBanDate.wDay = g_EditBanDate.wYear = 0;
-						}
-
-						strcpy( g_EditBanReason, entry.szComment );
-
-						if ( DialogBox( g_hInst, MAKEINTRESOURCE( IDD_EDITBAN ), hDlg, (DLGPROC)SERVERCONSOLE_EditBanCallback ))
-						{
-							char buffer[256];
-
-							LVITEM listItem;
-							listItem.mask = LVIF_TEXT;
-							listItem.iItem = index;
-							listItem.pszText = buffer;
-							listItem.cchTextMax = sizeof( buffer );
-
-							listItem.iSubItem = SERVERCONSOLE_COLUMN_IPADDRESS;
-							sprintf( listItem.pszText, "%s", std::string( g_EditBanAddress ).c_str( ));
-							SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_SETITEM, 0, (LPARAM)&listItem );
-
-							listItem.iSubItem = SERVERCONSOLE_COLUMN_EXPIRATION;
-
-							// [AK] If the ban isn't permanent, output the expiration
-							// date and time into a string. Otherwise, leave it blank.
-							if (( g_EditBanDate.wYear != 0 ) && ( g_EditBanDate.wMonth != 0 ) && ( g_EditBanDate.wDay != 0 ))
-								sprintf( listItem.pszText, "%02d/%02d/%04d %02d:%02d", g_EditBanDate.wMonth, g_EditBanDate.wDay, g_EditBanDate.wYear, g_EditBanDate.wHour, g_EditBanDate.wMinute );
-							else
-								listItem.pszText = "";
-
-							SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_SETITEM, 0, (LPARAM)&listItem );
-
-							listItem.iSubItem = SERVERCONSOLE_COLUMN_REASON;
-							listItem.pszText = g_EditBanReason;
-							SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_SETITEM, 0, (LPARAM)&listItem );
-						}
+						g_EditBanAddress.SetToZeroes( );
+						g_EditBanDate.wMonth = g_EditBanDate.wDay = g_EditBanDate.wYear = 0;
+						g_EditBanReason[0] = 0;
 					}
 					else
 					{
-						MessageBox( hDlg, "Please select a ban to edit first.", SERVERCONSOLE_TITLESTRING, MB_OK );
+						index = SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_GETNEXTITEM, -1, LVNI_SELECTED );
+
+						if ( index != LB_ERR )
+						{
+							// [AK] Only one item should be selected for editing.
+							if ( SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_GETSELECTEDCOUNT, 0, 0 ) > 1 )
+							{
+								MessageBox( hDlg, "Please select only one ban to edit.", SERVERCONSOLE_TITLESTRING, MB_OK );
+								break;
+							}
+
+							const IPADDRESSBAN_s entry = serverconsole_BanList_GetEntry( hDlg, index );
+							g_EditBanAddress = entry.szIP;
+
+							if ( entry.tExpirationDate != 0 )
+							{
+								tm * timeInfo = localtime( &entry.tExpirationDate );
+
+								g_EditBanDate.wYear = timeInfo->tm_year + 1900;
+								g_EditBanDate.wMonth = timeInfo->tm_mon + 1;
+								g_EditBanDate.wDay = timeInfo->tm_mday;
+								g_EditBanDate.wHour = timeInfo->tm_hour;
+								g_EditBanDate.wMinute = timeInfo->tm_min;
+							}
+							else
+							{
+								g_EditBanDate.wMonth = g_EditBanDate.wDay = g_EditBanDate.wYear = 0;
+							}
+
+							strcpy( g_EditBanReason, entry.szComment );
+						}
+						else
+						{
+							MessageBox( hDlg, "Please select a ban to edit first.", SERVERCONSOLE_TITLESTRING, MB_OK );
+							break;
+						}
+					}
+
+					if ( DialogBox( g_hInst, MAKEINTRESOURCE( IDD_ADDOREDITBAN ), hDlg, (DLGPROC)SERVERCONSOLE_EditBanCallback ))
+					{
+						char buffer[256];
+
+						LVITEM listItem;
+						listItem.mask = LVIF_TEXT;
+						listItem.iItem = index;
+						listItem.pszText = buffer;
+						listItem.cchTextMax = sizeof( buffer );
+
+						listItem.iSubItem = SERVERCONSOLE_COLUMN_IPADDRESS;
+						sprintf( listItem.pszText, "%s", std::string( g_EditBanAddress ).c_str( ));
+
+						if ( LOWORD( wParam ) == IDC_ADD )
+							SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_INSERTITEM, 0, (LPARAM)&listItem );
+						else
+							SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_SETITEM, 0, (LPARAM)&listItem );
+
+						listItem.iSubItem = SERVERCONSOLE_COLUMN_EXPIRATION;
+
+						// [AK] If the ban isn't permanent, output the expiration
+						// date and time into a string. Otherwise, leave it blank.
+						if (( g_EditBanDate.wYear != 0 ) && ( g_EditBanDate.wMonth != 0 ) && ( g_EditBanDate.wDay != 0 ))
+							sprintf( listItem.pszText, "%02d/%02d/%04d %02d:%02d", g_EditBanDate.wMonth, g_EditBanDate.wDay, g_EditBanDate.wYear, g_EditBanDate.wHour, g_EditBanDate.wMinute );
+						else
+							listItem.pszText = "";
+
+						SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_SETITEM, 0, (LPARAM)&listItem );
+
+						listItem.iSubItem = SERVERCONSOLE_COLUMN_REASON;
+						listItem.pszText = g_EditBanReason;
+						SendDlgItemMessage( hDlg, IDC_BANLIST, LVM_SETITEM, 0, (LPARAM)&listItem );
 					}
 				}
 				break;

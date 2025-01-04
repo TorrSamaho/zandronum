@@ -6,7 +6,7 @@
 #define IDD_BANIP                               154
 #define IDD_BANLIST                             155
 #define IDD_CHANGEMAP                           157
-#define IDD_EDITBAN                             159
+#define IDD_ADDOREDITBAN                        159
 #define IDD_MAPROTATION                         163
 #define IDD_SERVERDIALOG                        166
 #define IDD_SERVERSTATISTICS                    168
@@ -55,6 +55,7 @@
 #define IDC_BANCOMMENT                          1077
 #define IDC_CLEAR                               1078
 #define IDC_ENFORCEBANS                         1079
+#define IDC_ADD                                 1080
 #define IDC_INTERMISSION                        1081
 #define IDC_TITLEBOX                            1142
 #define IDC_SCOREBOARD1                         1143
