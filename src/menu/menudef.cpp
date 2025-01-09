@@ -1473,6 +1473,54 @@ static void InitAnnouncersList()
 
 //=============================================================================
 //
+// [AK] Initializes a list of chat sounds for the message options menu.
+//
+//==============================================================================
+
+static void InitChatSoundsList()
+{
+	FOptionValues **opt = OptionValues.CheckKey("ZA_ChatSound");
+	FOptionValues::Pair pair;
+
+	if (opt == nullptr)
+		return;
+
+	// [AK] Add the "off" value.
+	pair.Value = 0.0;
+	pair.Text = "Off";
+	(*opt)->mValues.Push(pair);
+
+	// [AK] Add the "default" value.
+	pair.Value = 1.0;
+	pair.Text = "Default";
+	(*opt)->mValues.Push(pair);
+
+	pair.Value = 2.0;
+
+	// [AK] The next option should be "Doom 1" for doom.wad (and if doom2.wad,
+	// tnt.wad, or plutonia.wad are loaded, add "Doom 2" too), or the name of
+	// the game for all other IWADs.
+	if (gameinfo.gametype == GAME_Doom)
+	{
+		pair.Text = "Doom 1";
+		(*opt)->mValues.Push(pair);
+
+		if (gameinfo.flags & GI_MAPxx)
+		{
+			pair.Value = 3.0;
+			pair.Text = "Doom 2";
+			(*opt)->mValues.Push(pair);
+		}
+	}
+	else
+	{
+		pair.Text = GameTypeName();
+		(*opt)->mValues.Push(pair);
+	}
+}
+
+//=============================================================================
+//
 // Special menus will be created once all engine data is loaded
 //
 //=============================================================================
@@ -1488,6 +1536,7 @@ void M_CreateMenus()
 	InitLevelsList();
 	InitBotsList();
 	InitAnnouncersList();
+	InitChatSoundsList();
 
 	FOptionValues **opt = OptionValues.CheckKey(NAME_Mididevices);
 	if (opt != NULL) 

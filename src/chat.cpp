@@ -138,6 +138,15 @@ static	ULONG	g_ulChatTicker = 0;
 static	RingBuffer<FString, MAX_SAVED_MESSAGES> g_SavedChatMessages[MAXPLAYERS + 1];
 
 //*****************************************************************************
+//	PROTOTYPES
+
+void		chat_ClampChatSoundCVar( FIntCVar &cvar ); // [AK]
+void		chat_SendMessage( ULONG ulMode, const char *pszString );
+FString		chat_GetIgnoredPlayers( const bool doVoice ); // [RC/AK]
+void		chat_DoSubstitution( FString &Input ); // [CW]
+bool		chat_IsPlayerValidReceiver( ULONG ulPlayer ); // [AK]
+
+//*****************************************************************************
 //	CONSOLE VARIABLES
 
 CVAR( String, chatmacro1, "I'm ready to kick butt!", CVAR_ARCHIVE )
@@ -155,10 +164,18 @@ CVAR( String, chatmacro0, "No", CVAR_ARCHIVE )
 CVAR( Bool, chat_substitution, false, CVAR_ARCHIVE )
 
 EXTERN_CVAR( Int, con_colorinmessages );
-// [RC] Played when a chat message arrives. Values: off, default, Doom 1 (dstink), Doom 2 (dsradio).
-CVAR (Int, chat_sound, 1, CVAR_ARCHIVE)
+
+// [RC] Played when a chat message arrives.
+CUSTOM_CVAR( Int, chat_sound, 1, CVAR_ARCHIVE )
+{
+	chat_ClampChatSoundCVar( self );
+}
+
 // [AK] Played when a private chat message arrives.
-CVAR (Int, privatechat_sound, 2, CVAR_ARCHIVE)
+CUSTOM_CVAR( Int, privatechat_sound, 2, CVAR_ARCHIVE )
+{
+	chat_ClampChatSoundCVar( self );
+}
 
 // [SB/Cata] Allows text to be added before a message.
 CUSTOM_CVAR (String, cl_chatprefix, "", CVAR_ARCHIVE)
@@ -200,14 +217,6 @@ FStringCVar	*g_ChatMacros[10] =
 	&chatmacro8,
 	&chatmacro9
 };
-
-//*****************************************************************************
-//	PROTOTYPES
-
-void		chat_SendMessage( ULONG ulMode, const char *pszString );
-FString		chat_GetIgnoredPlayers( const bool doVoice ); // [RC/AK]
-void		chat_DoSubstitution( FString &Input ); // [CW]
-bool		chat_IsPlayerValidReceiver( ULONG ulPlayer ); // [AK]
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -1125,12 +1134,18 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 		// [RC] User can choose the chat sound.
 		int sound = ( ulMode > CHATMODE_TEAM ) ? privatechat_sound : chat_sound;
 
-		if ( sound == 1 ) // Default
-			S_Sound( CHAN_VOICE | CHAN_UI, gameinfo.chatSound, 1, ATTN_NONE );
-		else if ( sound == 2 ) // Doom 1
-			S_Sound( CHAN_VOICE | CHAN_UI, "misc/chat2", 1, ATTN_NONE );
-		else if ( sound == 3 ) // Doom 2
-			S_Sound( CHAN_VOICE | CHAN_UI, "misc/chat", 1, ATTN_NONE );
+		if ( sound > 0 )
+		{
+			// Default
+			if ( sound == 1 )
+				S_Sound( CHAN_VOICE | CHAN_UI, gameinfo.chatSound, 1, ATTN_NONE );
+			// [AK] Only Doom 1's chat sound is "misc/chat2".
+			else if (( sound == 2 ) && ( gameinfo.gametype == GAME_Doom ))
+				S_Sound( CHAN_VOICE | CHAN_UI, "misc/chat2", 1, ATTN_NONE );
+			// [AK] In every other IWAD, the chat sound is "misc/chat".
+			else
+				S_Sound( CHAN_VOICE | CHAN_UI, "misc/chat", 1, ATTN_NONE );
+		}
 	}
 }
 
@@ -1417,6 +1432,30 @@ void CHAT_PrintMutedMessage( const bool doVoice )
 }
 
 //*****************************************************************************
+//
+// [AK] A helper function to clamp the values of chat_sound and privatechat_sound.
+//
+void chat_ClampChatSoundCVar( FIntCVar &cvar )
+{
+	// [AK] All IWADs support at least three different options. However, if
+	// doom2.wad, tnt.wad, or plutonia.wad are loaded, then there's a fourth
+	// option for selecting Doom 2's chat sound specifically.
+	const int maxValue = (( gameinfo.gametype == GAME_Doom ) && ( gameinfo.flags & GI_MAPxx )) ? 3 : 2;
+	const int clampedValue = clamp<int>( cvar, 0, maxValue );
+
+	if ( cvar != clampedValue )
+	{
+		// [AK] Since all Doom IWADs share the same config, it's possible that
+		// the CVar's value was set to Doom 2's chat sound, which would've been
+		// acceptable in Doom 2 and its derivatives. If Doom 1 is being played,
+		// print a warning message to let the user know about the change.
+		if (( gameinfo.gametype == GAME_Doom ) && (( gameinfo.flags & GI_MAPxx ) == false ) && ( cvar == 3 ))
+			Printf( TEXTCOLOR_YELLOW "WARNING: \"%s\" is using Doom 2's chat sound, which doesn't work in Doom 1.\n", cvar.GetName( ));
+
+		cvar = clampedValue;
+	}
+}
+
 //*****************************************************************************
 //
 void chat_SendMessage( ULONG ulMode, const char *pszString )
