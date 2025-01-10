@@ -195,6 +195,9 @@ private:
 	friend void C_SetCVarsToDefaults (void);
 	friend void FilterCompactCVars (TArray<FBaseCVar *> &cvars, uint32 filter);
 	friend void C_DeinitConsole();
+
+	// [AK] CHAT_Destruct needs access to FBaseCVar::m_UseCallback.
+	friend void CHAT_Destruct (void);
 };
 
 // Returns a string with all cvars whose flags match filter. In compact mode,

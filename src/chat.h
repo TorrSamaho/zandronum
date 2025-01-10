@@ -91,6 +91,7 @@ typedef enum
 //	PROTOTYPES
 
 void		CHAT_Construct( void );
+void		CHAT_Destruct( void );
 void		CHAT_Tick( void );
 bool		CHAT_Input( event_t *pEvent );
 void		CHAT_Render( void );

@@ -533,6 +533,41 @@ void CHAT_Construct( void )
 
 	// Clear out the chat buffer.
 	g_ChatBuffer.Clear();
+
+	// [AK] Call CHAT_Destruct when Zandronum closes.
+	atterm( CHAT_Destruct );
+}
+
+//*****************************************************************************
+//
+void CHAT_Destruct( void )
+{
+	// [AK] This should only execute when Doom 1 is loaded.
+	if (( gameinfo.gametype == GAME_Doom ) && (( gameinfo.flags & GI_MAPxx ) == false ))
+	{
+		FIntCVar *const chatSoundCVars[2] = { &chat_sound, &privatechat_sound };
+
+		for ( unsigned int i = 0; i < 2; i++ )
+		{
+			const int pastValue = chatSoundCVars[i]->GetPastValue( );
+
+			// [AK] If the chat sound was previously set to "Doom 2" (e.g. the
+			// user wanted this for doom2.wad, tnt.wad, or plutonia.wad, but it
+			// was changed upon loading Doom 1), restore the old value now.
+			if (( pastValue == 3 ) && ( *chatSoundCVars[i] != pastValue ))
+			{
+				UCVarValue val;
+				val.Int = pastValue;
+
+				// [AK] Temporarily disable callbacks so that the CVar's value
+				// can be changed without executing its callback function, which
+				// will prevent the change from succeeding.
+				FBaseCVar::DisableCallbacks( );
+				chatSoundCVars[i]->ForceSet( val, CVAR_Int );
+				FBaseCVar::m_UseCallback = true;
+			}
+		}
+	}
 }
 
 //*****************************************************************************
