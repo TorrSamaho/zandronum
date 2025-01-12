@@ -211,8 +211,8 @@ OptionMenu "ZA_VoiceChatOptions"
 	Option		"Transmit filter",		"voice_transmitfilter",		"ZA_VoiceChatFilter",		"voice_enable"
 	StaticText	" "
 	Option		"Input device",			"voice_recorddriver",		"ZA_RecordDrivers"
-	Slider		"Input volume",			"voice_recordvolume",		0.0, 2.0, 0.1
-	Slider		"Output volume",		"voice_outputvolume",		0.0, 1.0, 0.1
+	Slider		"Input volume",			"voice_recordvolume",		0.0, 2.0, 0.05, 2
+	Slider		"Output volume",		"voice_outputvolume",		0.0, 1.0, 0.05, 2
 	Slider		"Voice sensitivity (dB)",	"voice_recordsensitivity",	-100, 0, 5
 	Option		"Use noise suppression",	"voice_suppressnoise",		"YesNo"
 	TextField	"RNNoise model file",		"voice_noisemodelfile",		"voice_suppressnoise"
