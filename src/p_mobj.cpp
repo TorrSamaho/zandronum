@@ -6865,17 +6865,12 @@ bool P_HitWater (AActor * thing, sector_t * sec, fixed_t x, fixed_t y, fixed_t z
 		return false;
 
 	// [BC] Spectators can't cause splashes.
-	if (( thing->player ) &&
-		( thing->player->bSpectating ))
-	{
-		return ( false );
-	}
+	if ((thing->player) && (thing->player->bSpectating))
+		return false;
 
 	// [BC] Let the server handle splashes.
 	if ((NETWORK_InClientMode()) && ((thing->NetworkFlags & NETFL_CLIENTSIDEONLY) == false))
-	{
-		return ( false );
-	}
+		return false;
 /*
 	if (thing->player && (thing->player->cheats & CF_PREDICTING))
 		return false;
