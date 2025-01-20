@@ -67,7 +67,6 @@
 #include "team.h"
 #include "sectinfo.h"
 
-void DOMINATION_WinSequence(unsigned int winner);
 void DOMINATION_Tick(void);
 void DOMINATION_SetOwnership(unsigned int point, unsigned int team, bool broadcast = true);
 void DOMINATION_SetContesting(unsigned int point, std::set<int> contesting);

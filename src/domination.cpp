@@ -87,14 +87,10 @@ EXTERN_CVAR(Bool, domination)
 
 //CREATE_GAMEMODE(domination, DOMINATION, "Domination", "DOM", "F1_DOM", GMF_TEAMGAME|GMF_PLAYERSEARNPOINTS|GMF_PLAYERSONTEAMS)
 
-bool finished;
-
 void DOMINATION_Init(void)
 {
 	if ( !domination )
 		return;
-
-	finished = false;
 
 	for ( unsigned int i = 0; i < level.info->SectorInfo.Points.Size(); i++ )
 	{
@@ -119,7 +115,7 @@ void DOMINATION_Tick(void)
 	if ( !domination )
 		return;
 
-	if ( finished )
+	if ( GAMEMODE_IsGameInResultSequence() )
 		return;
 
 	// [BB] Scoring is server-side.
@@ -207,27 +203,6 @@ void DOMINATION_Tick(void)
 			}
 		}
 	}
-
-	// [TRSR] Check this every tick in case a modder gives score via non-control point means.
-	if ( pointlimit )
-	{
-		for ( int team = 0; team < MAX_TEAMS; team++ )
-		{
-			if ( TEAM_GetPointCount( team ) >= pointlimit )
-			{
-				DOMINATION_WinSequence( 0 );
-				break;
-			}
-		}
-	}
-}
-
-void DOMINATION_WinSequence(unsigned int winner)
-{
-	if ( !domination )
-		return;
-
-	finished = true;
 }
 
 void DOMINATION_SetContesting(unsigned int point, std::set<int> contesting)
