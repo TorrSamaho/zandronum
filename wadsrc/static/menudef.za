@@ -659,28 +659,28 @@ OptionMenu ZA_WeaponSetup
 	Title		"WEAPON SETUP"
 	Indent 170
 
-	Option		"Switch on pickup",		"switchonpickup",				"ZA_SwitchOnPickup"
+	Option		"Switch on pickup",		"switchonpickup",		"ZA_SwitchOnPickup"
 	Option		"Switch while firing",		"cl_noswitchonfire",		"ZA_SwitchWhileFiring", 	"switchonpickup"
-	Option		"Switch without ammo",	"cl_noammoswitch",				"YesNo"
-	Option		"Railgun color",		"railcolor",					"ZA_RailgunColors"
+	Option		"Switch without ammo",		"cl_noammoswitch",		"YesNo"
+	Option		"Railgun color",		"railcolor",			"ZA_RailgunColors"
 	StaticText	" "
-	Option		"Always bob weapon",	"cl_alwaysbob",					"YesNo"
-	Option		"Allow screen bob",		"cl_viewbob",					"YesNo"
-	Option		"Use custom bob",		"cl_usecustombob",				"YesNo"
-	Option		"Bob style",			"cl_bobstyle",					"ZA_WeaponBobStyle"
-	Slider		"Bob speed",			"cl_bobspeed",					0.0, 2.0, 0.1
-	Slider		"Still bob speed",		"cl_stillbobspeed",				0.0, 2.0, 0.1
-	Slider		"Still bob range",		"cl_stillbobrange",				0.0, 2.0, 0.1
+	Option		"Always bob weapon",		"cl_alwaysbob",			"YesNo"
+	Option		"Allow screen bob",		"cl_viewbob",			"YesNo"
+	Option		"Use custom bob",		"cl_usecustombob",		"YesNo"
+	Option		"Bob style",			"cl_bobstyle",			"ZA_WeaponBobStyle"
+	Slider		"Bob speed",			"cl_bobspeed",			0.0, 2.0, 0.1
+	Slider		"Still bob speed",		"cl_stillbobspeed",		0.0, 2.0, 0.1
+	Slider		"Still bob range",		"cl_stillbobrange",		0.0, 2.0, 0.1
 	StaticText	" "
-	Option		"Use custom sway",		"cl_usecustomsway",				"YesNo"
-	Option		"Sway weapon",			"cl_swaystyle",					"ZA_WeaponSwayStyle"
-	Slider		"View sway speed",		"cl_viewswayspeed",				-5.0, 5.0, 0.5
-	Slider		"Motion sway speed",		"cl_motionswayspeed",				-5.0, 5.0, 0.5
-	Slider		"Jump sway speed",		"cl_jumpswayspeed",				-5.0, 5.0, 0.5
+	Option		"Use custom sway",		"cl_usecustomsway",		"YesNo"
+	Option		"Sway weapon",			"cl_swaystyle",			"ZA_WeaponSwayStyle"
+	Slider		"View sway speed",		"cl_viewswayspeed",		-5.0, 5.0, 0.5
+	Slider		"Motion sway speed",		"cl_motionswayspeed",		-5.0, 5.0, 0.5
+	Slider		"Jump sway speed",		"cl_jumpswayspeed",		-5.0, 5.0, 0.5
 	StaticText	" "
-	Option		"Use custom pitch",		"cl_usecustompitch",			"YesNo"
-	Option		"Offset weapon pitch",	"cl_viewpitchstyle",			"ZA_WeaponPitchStyle"
-	Slider		"Offset multiplier",	"cl_viewpitchoffset",			-16.0, 16.0, 1.0
+	Option		"Use custom pitch",		"cl_usecustompitch",		"YesNo"
+	Option		"Offset weapon pitch",		"cl_viewpitchstyle",		"ZA_WeaponPitchStyle"
+	Slider		"Offset multiplier",		"cl_viewpitchoffset",		-16.0, 16.0, 1.0
 
 	Class WeaponSetupMenu
 }
