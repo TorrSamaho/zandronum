@@ -618,6 +618,14 @@ OptionValue ZA_SwitchOnPickup
 	3, "Use PWO"
 }
 
+OptionValue ZA_SwitchWhileFiring
+{
+	0, "Yes"
+	1, "No primary fire"
+	2, "No seconday fire"
+	3, "Never"
+}
+
 OptionValue "ZA_WeaponBobStyle"
 {
 	0, "Normal"
@@ -652,6 +660,7 @@ OptionMenu ZA_WeaponSetup
 	Indent 170
 
 	Option		"Switch on pickup",		"switchonpickup",				"ZA_SwitchOnPickup"
+	Option		"Switch while firing",		"cl_noswitchonfire",		"ZA_SwitchWhileFiring", 	"switchonpickup"
 	Option		"Switch without ammo",	"cl_noammoswitch",				"YesNo"
 	Option		"Railgun color",		"railcolor",					"ZA_RailgunColors"
 	StaticText	" "

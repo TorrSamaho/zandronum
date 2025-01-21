@@ -25,6 +25,7 @@
 #include "cl_demo.h"
 #include "network.h"
 #include "sv_commands.h"
+#include "d_event.h"
 
 // [ZZ] PWO header file
 #include "pwo.h"
@@ -345,6 +346,24 @@ AInventory *AWeapon::CreateTossable ()
 //
 //===========================================================================
 
+// [AK] Enumerations used for cl_noswitchonfire.
+enum
+{
+	NOSWITCH_PRIMARYFIRE = 0x01,
+	NOSWITCH_SECONDARYFIRE = 0x02,
+
+	NOSWITCH_BOTH = NOSWITCH_PRIMARYFIRE | NOSWITCH_SECONDARYFIRE
+};
+
+// [AK] Prevents the user from switching to the weapon they picked up if they're pressing the fire button(s).
+CUSTOM_CVAR( Int, cl_noswitchonfire, 0, CVAR_ARCHIVE )
+{
+	const int clampedValue = clamp<int>( self, 0, NOSWITCH_BOTH );
+
+	if ( self != clampedValue )
+		self = clampedValue;
+}
+
 void AWeapon::AttachToOwner (AActor *other)
 {
 	// [BC]
@@ -423,6 +442,18 @@ void AWeapon::AttachToOwner (AActor *other)
 				else if (( Owner->player->userinfo.GetSwitchOnPickup() == 1 ) && ( SelectionOrder < pCompareWeapon->SelectionOrder ))
 				{
 					shouldSwitch = true;
+				}
+			}
+
+			// [AK] Don't switch the weapon if we don't want to while pressing the fire button(s).
+			if (( shouldSwitch ) && ( NETWORK_GetState( ) != NETSTATE_SERVER ) && (( Owner->player - players ) == consoleplayer ))
+			{
+				const DWORD buttons = Owner->player->cmd.ucmd.buttons;
+
+				if ((( cl_noswitchonfire & NOSWITCH_PRIMARYFIRE ) && ( buttons & BT_ATTACK )) ||
+					(( cl_noswitchonfire & NOSWITCH_SECONDARYFIRE ) && ( buttons & BT_ALTATTACK )))
+				{
+					shouldSwitch = false;
 				}
 			}
 
