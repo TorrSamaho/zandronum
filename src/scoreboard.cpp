@@ -3416,7 +3416,7 @@ void Scoreboard::Render( const unsigned int displayPlayer, const int minYPos, co
 	// [AK] Check if the user wants to scroll the scoreboard up or down.
 	if ( visibleScrollHeight < totalScrollHeight )
 	{
-		const int offset = static_cast<int>( cl_scoreboardscrollspeed * FIXED2FLOAT( r_TicFrac ));
+		const int offset = static_cast<int>( cl_scoreboardscrollspeed * FIXED2FLOAT( I_GetTimeFrac( nullptr )));
 
 		if ( Button_SB_ScrollUp.bDown )
 			interpolateScrollOffset = currentScrollOffset - offset;
@@ -4124,6 +4124,31 @@ bool SCOREBOARD_ShouldDrawBoard( void )
 		return false;
 
 	return true;
+}
+
+//*****************************************************************************
+//
+// [AK] SCOREBOARD_ShouldInterpolateInIntermission
+//
+// Checks if interpolation needs to be enabled while on the intermission screen
+// in case the user is trying to scroll the scoreboard up or down.
+//
+//*****************************************************************************
+
+bool SCOREBOARD_ShouldInterpolateOnIntermission( void )
+{
+	if (( gamestate == GS_INTERMISSION ) && ( g_Scoreboard.visibleScrollHeight < g_Scoreboard.totalScrollHeight ))
+	{
+		const int maxScrollOffset = g_Scoreboard.totalScrollHeight - g_Scoreboard.visibleScrollHeight;
+
+		if ((( Button_SB_ScrollUp.bDown ) && ( g_Scoreboard.currentScrollOffset > 0 )) ||
+			(( Button_SB_ScrollDn.bDown ) && ( g_Scoreboard.currentScrollOffset < maxScrollOffset )))
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 //*****************************************************************************

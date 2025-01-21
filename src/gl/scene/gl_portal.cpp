@@ -620,7 +620,7 @@ void GLSkyboxPortal::DrawContents()
 
 	// [AK] Don't interpolate the skybox if the game is supposed to be paused
 	// but the console is still interpolated. Otherwise, it will appear jittery.
-	const fixed_t ticFracToUse = C_ShouldInterpolateWhilePaused() ? FRACUNIT : r_TicFrac;
+	const fixed_t ticFracToUse = C_ShouldForceInterpolation() ? FRACUNIT : r_TicFrac;
 	viewx = origin->PrevX + FixedMul(ticFracToUse, origin->x - origin->PrevX);
 	viewy = origin->PrevY + FixedMul(ticFracToUse, origin->y - origin->PrevY);
 	viewz = origin->PrevZ + FixedMul(ticFracToUse, origin->z - origin->PrevZ);

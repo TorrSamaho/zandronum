@@ -1951,6 +1951,11 @@ void G_Ticker ()
 		if ( CALLVOTE_GetVoteState() == VOTESTATE_INVOTE )
 			CALLVOTE_ClearVote();
 
+		// [AK] Interpolation is normally disabled during intermissions, but it
+		// can be enabled temporarily if the console is moving or the scoreboard
+		// is being scrolled up or down.
+		r_NoInterpolate = !(C_ShouldForceInterpolation() || SCOREBOARD_ShouldInterpolateOnIntermission());
+
 		WI_Ticker ();
 		break;
 

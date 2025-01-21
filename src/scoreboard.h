@@ -621,6 +621,9 @@ private:
 	void UpdateWidth( void );
 	void UpdateHeight( const unsigned int displayPlayer, const int minYPos );
 	void DrawRow( const ULONG ulPlayer, const ULONG ulDisplayPlayer, LONG &lYPos, const float fAlpha, bool &bUseLightBackground ) const;
+
+	// [AK] This function needs access to Scoreboard::currentScrollOffset.
+	friend bool SCOREBOARD_ShouldInterpolateOnIntermission( void );
 };
 
 //*****************************************************************************
@@ -636,6 +639,7 @@ void STACK_ARGS SCOREBOARD_DrawString( FFont *font, const int color, const int x
 void			SCOREBOARD_DrawColor( const PalEntry color, const float alpha, int left, int top, int width, int height );
 void STACK_ARGS SCOREBOARD_DrawTexture( FTexture *texture, const int x, const int y, const float scale, ... );
 bool			SCOREBOARD_ShouldDrawBoard( void );
+bool			SCOREBOARD_ShouldInterpolateOnIntermission( void );
 bool			SCOREBOARD_AdjustVerticalClipRect( int &clipTop, int &clipHeight );
 int				SCOREBOARD_CenterAlign( const int biggerSize, const int smallerSize );
 void			SCOREBOARD_ConvertVirtualCoordsToReal( int &left, int &top, int &width, int &height );

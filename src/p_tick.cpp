@@ -118,7 +118,7 @@ void P_Ticker (void)
 		{
 			// [AK] We don't want to disable interpolation in offline games if the
 			// console is being lowered and is supposed to be interpolated.
-			if (C_ShouldInterpolateWhilePaused())
+			if (C_ShouldForceInterpolation())
 				r_NoInterpolate = false;
 
 			return;

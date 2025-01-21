@@ -103,7 +103,7 @@ bool C_IsCapturing();
 
 // [AK]
 unsigned int C_GetMessageLevel();
-bool C_ShouldInterpolateWhilePaused();
+bool C_ShouldForceInterpolation();
 void C_UpdateVirtualScreen();
 
 // [AK] Externs to global variables used for text scaling and the virtual screen.
