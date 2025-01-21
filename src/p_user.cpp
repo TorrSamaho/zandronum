@@ -4599,7 +4599,8 @@ bool P_IsPlayerTotallyFrozen(const player_t *player)
 // [AK] Checks if the local player is physically unrestricted while spectating.
 bool P_IsSpectatorUnrestricted(const AActor *viewActor)
 {
-	if ((cl_spectatormode != SPECMODE_NO_RESTRICTIONS) || (viewActor == nullptr))
+	// [AK] The server doesn't handle spectator movement.
+	if ((NETWORK_GetState() == NETSTATE_SERVER) || (cl_spectatormode != SPECMODE_NO_RESTRICTIONS) || (viewActor == nullptr))
 		return false;
 
 	return ((players[consoleplayer].bSpectating) && (viewActor == players[consoleplayer].mo));
