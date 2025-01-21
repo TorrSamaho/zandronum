@@ -234,7 +234,7 @@ CVAR( Int, con_colorinmessages, 1, CVAR_ARCHIVE )
 // [AK] Add a timestamp to every line printed to the console.
 CVAR (Bool, con_showtimestamps, false, CVAR_ARCHIVE)
 
-// [AK] Interpolates the movement of the console. This doesn't work if the game is paused.
+// [AK] Interpolates the movement of the console.
 CVAR (Bool, con_interpolate, true, CVAR_ARCHIVE)
 
 // [AK] Controls how fast the console moves.
