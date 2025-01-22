@@ -292,6 +292,7 @@ CVAR( Bool, sv_forcelogintojoin, false, CVAR_ARCHIVE|CVAR_NOSETBYACS )
 CVAR( Bool, sv_useticbuffer, true, CVAR_ARCHIVE|CVAR_NOSETBYACS|CVAR_DEBUGONLY )
 CVAR( Int, sv_showcommands, 0, CVAR_ARCHIVE|CVAR_DEBUGONLY )
 CVAR( Int, sv_smoothplayers_debuginfo, 0, CVAR_ARCHIVE|CVAR_DEBUGONLY ) // [AK]
+CVAR( Bool, sv_noplayertimeout, false, CVAR_NOSETBYACS|CVAR_DEBUGONLY ) // [SB]
 
 //*****************************************************************************
 // [AK] Smooths the movement of lagging players using extrapolation and correction.
@@ -1128,7 +1129,7 @@ void SERVER_CheckTimeouts( void )
 	{
 		if ( SERVER_IsValidClient( ulIdx ) == false )
 		{
-			if ( ( g_aClients[ulIdx].State != CLS_FREE )
+			if ( !sv_noplayertimeout && ( g_aClients[ulIdx].State != CLS_FREE )
 			     && ( ( gametic - g_aClients[ulIdx].ulLastCommandTic ) >= ( CLIENT_TIMEOUT * TICRATE ) ) )
 			{
 				Printf( "Unfinished connection from %s timed out.\n", g_aClients[ulIdx].Address.ToString() );
@@ -1141,7 +1142,7 @@ void SERVER_CheckTimeouts( void )
 
 		// If we haven't gotten a packet from this client in CLIENT_TIMEOUT seconds,
 		// disconnect him.
-		if ( lastCommandTicDiff >= CLIENT_TIMEOUT * TICRATE )
+		if ( !sv_noplayertimeout && lastCommandTicDiff >= CLIENT_TIMEOUT * TICRATE )
 		{
 		    SERVER_DisconnectClient( ulIdx, true, true, LEAVEREASON_TIMEOUT );
 			continue;
