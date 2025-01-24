@@ -714,6 +714,7 @@ bool		SERVER_IsExtrapolatingPlayer( ULONG ulClient );
 bool		SERVER_IsBacktracingPlayer( ULONG ulClient );
 void		SERVER_ResetClientTicBuffer( ULONG ulClient );
 void		SERVER_ResetClientExtrapolation( ULONG ulClient, bool bAfterBacktrace = false );
+void		SERVER_DestroyActorIfClientsidedOnly( AActor *actor );
 
 // From sv_master.cpp
 void		SERVER_MASTER_Construct( void );

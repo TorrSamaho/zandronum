@@ -4139,6 +4139,14 @@ int DLevelScript::DoSpawn (int type, fixed_t x, fixed_t y, fixed_t z, int tid, i
 					// [TP] If we're the server, sync the tid to clients (if this actor has one)
 					if ( actor->tid != 0 )
 						SERVERCOMMANDS_SetThingTID( actor );
+
+					// [AK] Destroy the actor if it's supposed to be clientsided only.
+					SERVER_DestroyActorIfClientsidedOnly( actor );
+				}
+				// [AK] If we're a client and did the spawning, then the actor is clientsided only.
+				else if ( NETWORK_InClientMode( ))
+				{
+					actor->NetworkFlags |= NETFL_CLIENTSIDEONLY;
 				}
 			}
 			else

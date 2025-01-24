@@ -5821,6 +5821,25 @@ void SERVER_ResetClientExtrapolation( ULONG ulClient, bool bAfterBacktrace )
 
 //*****************************************************************************
 //
+void SERVER_DestroyActorIfClientsidedOnly( AActor *actor )
+{
+	if (( NETWORK_GetState( ) != NETSTATE_SERVER ) || ( actor == nullptr ))
+		return;
+
+	// [AK] This actor is clientsided only, but the server might've only spawned
+	// it so that it could tell the clients to spawn it (e.g. the "summon" CCMD
+	// or from a serversided ACS script). By this point, the server doesn't need
+	// it anymore and it must be destroyed.
+	if ( actor->NetworkFlags & NETFL_CLIENTSIDEONLY )
+	{
+		actor->ClearCounters( );
+		actor->Destroy( );
+		actor = nullptr;
+	}
+}
+
+//*****************************************************************************
+//
 ClientCommRule::ClientCommRule( NETADDRESS_s address ) :
 	address( address ),
 	ignoreChat( false ),
@@ -7062,14 +7081,7 @@ static bool server_SummonCheat( BYTESTREAM_s *pByteStream, LONG lType )
 			if ( pActor )
 			{
 				SERVERCOMMANDS_SpawnMissile( pActor );
-
-				// [AK] If this actor is clientsided only then remove it from our end. We only had to
-				// spawn it so we could tell the clients to spawn it, but we don't need it anymore.
-				if ( pActor->NetworkFlags & NETFL_CLIENTSIDEONLY )
-				{
-					pActor->Destroy();
-					pActor = NULL;
-				}
+				SERVER_DestroyActorIfClientsidedOnly( pActor );
 			}
 		}
 		else
@@ -7117,13 +7129,7 @@ static bool server_SummonCheat( BYTESTREAM_s *pByteStream, LONG lType )
 						SERVERCOMMANDS_SetThingAngle( pActor );
 				}
 
-				// [AK] If this actor is clientsided only then remove it from our end. We only had to
-				// spawn it so we could tell the clients to spawn it, but we don't need it anymore.
-				if ( pActor->NetworkFlags & NETFL_CLIENTSIDEONLY )
-				{
-					pActor->Destroy();
-					pActor = NULL;
-				}
+				SERVER_DestroyActorIfClientsidedOnly( pActor );
 			}
 		}
 	}

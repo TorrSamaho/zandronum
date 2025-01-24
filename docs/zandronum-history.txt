@@ -217,6 +217,7 @@
 -	- Fixed: a player's PWO settings weren't cleared properly if the weapon's weight was zero upon closing the game. [AKMDM]
 -	- Fixed: it was possible to set chat_sound or privatechat_sound to "Doom 2" in Doom 1, which didn't work because Doom 1 only has one chat sound. Also fixed these settings for other non-Doom IWADs. [AKMDM]
 -	- Fixed: actors with the CLIENTSIDEONLY flag didn't create splashes in online games. [AKMDM]
+-	- Fixed: the server didn't destroy actors that were clientsided only and spawned from serversided ACS scripts, and clients didn't mark actors spawned from clientsided ACS scripts as clientsided only. [AKMDM]
 !	- The result value of GAMEEVENT_MEDALS event scripts can now be used to determine whether or not the player receives the medal. [AKMDM]
 !	- GAMEMODE flags are now validated after all GAMEMODE lumps have been parsed instead of after each one. The internal game mode name (e.g. "TeamLMS") is now printed with the error message instead of the actual name. [AKMDM]
 !	- Added an extra check to ensure that game modes have a (short) name. [AKMDM]
