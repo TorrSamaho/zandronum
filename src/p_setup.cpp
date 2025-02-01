@@ -3726,7 +3726,8 @@ void P_RemoveThings( void )
 		// to delete the white flags, which are used for one flag CTF.
 		if (( teamgame ) && ( oneflagctf == false ))
 		{
-			if ( pActor->IsKindOf( PClass::FindClass( "WhiteFlag" )))
+			// [TRSR] Unless a mod explicitly wants their WhiteFlag replacement to spawn in other modes.
+			if (( pActor->IsKindOf( PClass::FindClass( "WhiteFlag" ))) && ( pActor->flags & MF_NOTDMATCH ))
 			{
 				P_RemoveThingLocal( pActor );
 				continue;

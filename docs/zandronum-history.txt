@@ -270,6 +270,7 @@
 !	- The end level delay no longer ticks while the game's paused. [AKMDM]
 !	- Players now earn medals while cl_medals is disabled, but the medals themselves still remain unseen. [AKMDM]
 !	- Removed the hardcoded spawning behaviour that was used specifically for Team LMS, in favour of using sv_spawnfarthest. [AKMDM]
+!	- Adding -NOTDMATCH to WhiteFlag inheriting actors now allows them to spawn in non-1FCTF gamemodes. [Trillster]
 
 
 3.1
