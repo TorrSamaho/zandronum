@@ -42,4 +42,7 @@ bool P_UndoMonsterMorph (AMorphedMonster *beast, bool force = false);
 bool P_UpdateMorphedMonster (AActor *actor);
 bool P_MorphedDeath(AActor *actor, AActor **morphed, int *morphedstyle, int *morphedhealth);
 
+// [AK] Calls P_UndoPlayerMorph, but without an exit flash.
+bool P_UndoPlayerMorphWithoutFlash (player_t *activator, player_t *player, int unmorphflag = 0, bool force = false);
+
 #endif //__A_MORPH__

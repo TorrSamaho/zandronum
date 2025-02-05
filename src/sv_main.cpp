@@ -3168,8 +3168,9 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo, L
 	PLAYER_ResetCustomValues( ulClient );
 
 	// [BB] Morphed players need to be unmorphed before disconnecting.
-	if (players[ulClient].morphTics)
-		P_UndoPlayerMorph (&players[ulClient], &players[ulClient]);
+	// [AK] Using MORPH_UNDOBYTIMEOUT ensures this succeeds when they're invulnerable.
+	if ( players[ulClient].morphTics )
+		P_UndoPlayerMorphWithoutFlash( &players[ulClient], &players[ulClient], MORPH_UNDOBYTIMEOUT, true );
 
 	// Inform the other clients that this player has been disconnected.
 	SERVERCOMMANDS_DisconnectPlayer( ulClient );
@@ -6863,8 +6864,9 @@ static bool server_ChangeTeam( BYTESTREAM_s *pByteStream )
 	players[g_lCurrentClient].mo->DropImportantItems( false );
 
 	// [BB] Morphed players need to be unmorphed before changing teams.
+	// [AK] Using MORPH_UNDOBYTIMEOUT ensures this succeeds when they're invulnerable.
 	if ( players[g_lCurrentClient].morphTics )
-		P_UndoPlayerMorph ( &players[g_lCurrentClient], &players[g_lCurrentClient] );
+		P_UndoPlayerMorphWithoutFlash( &players[g_lCurrentClient], &players[g_lCurrentClient], MORPH_UNDOBYTIMEOUT, true );
 
 	// Save this. This will determine our message.
 	bOnTeam = players[g_lCurrentClient].bOnTeam;

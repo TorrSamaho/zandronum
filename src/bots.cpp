@@ -602,8 +602,9 @@ void BOTS_RemoveBot( ULONG ulPlayerIdx, bool bExitMsg )
 	PLAYER_ResetCustomValues( ulPlayerIdx );
 
 	// [BB] Morphed bots need to be unmorphed before disconnecting.
-	if (players[ulPlayerIdx].morphTics)
-		P_UndoPlayerMorph (&players[ulPlayerIdx], &players[ulPlayerIdx]);
+	// [AK] Using MORPH_UNDOBYTIMEOUT ensures this succeeds when they're invulnerable.
+	if ( players[ulPlayerIdx].morphTics )
+		P_UndoPlayerMorphWithoutFlash( &players[ulPlayerIdx], &players[ulPlayerIdx], MORPH_UNDOBYTIMEOUT, true );
 
 	// [RK] Stop the runing scripts for the bot.
 	FBehavior::StaticStopMyScripts (players[ulPlayerIdx].mo);

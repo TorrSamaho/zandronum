@@ -7567,8 +7567,9 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 						player->playerstate = PST_REBORNNOINVENTORY;
 
 						// [AK] Unmorph the player before respawning them with a new class.
+						// Using MORPH_UNDOBYTIMEOUT ensures this succeeds when they're invulnerable.
 						if ( player->morphTics )
-							P_UndoPlayerMorph( player, player );
+							P_UndoPlayerMorphWithoutFlash( player, player, MORPH_UNDOBYTIMEOUT, true );
 
 						// [AK] Drop any important items this player might be carrying like flags, skulls, etc.
 						pmo->DropImportantItems( false );

@@ -641,6 +641,25 @@ bool P_MorphedDeath(AActor *actor, AActor **morphed, int *morphedstyle, int *mor
 	return false;
 }
 
+//----------------------------------------------------------------------------
+//
+// [AK] FUNC P_UndoPlayerMorphWithoutFlash
+//
+// Calls P_UndoPlayerMorph, but without an exit flash. This is useful when a
+// player must be unmorphed before they disconnect, join spectators, or respawn
+// and the exit flash isn't necessary.
+//
+//----------------------------------------------------------------------------
+
+bool P_UndoPlayerMorphWithoutFlash (player_t *activator, player_t *player, int unmorphflag, bool force)
+{
+	if (player == nullptr)
+		return false;
+
+	player->MorphExitFlash = nullptr;
+	return P_UndoPlayerMorph (activator, player, unmorphflag, force);
+}
+
 //===========================================================================
 //
 // EndAllPowerupEffects

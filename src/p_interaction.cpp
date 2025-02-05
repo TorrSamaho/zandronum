@@ -2315,8 +2315,9 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 	if ( ( pPlayer->playerstate != origPlayerstate ) && ( pPlayer->playerstate == PST_REBORNNOINVENTORY ) )
 	{
 		// [BB] Morphed players need to be unmorphed before changing teams.
+		// [AK] Using MORPH_UNDOBYTIMEOUT ensures this succeeds when they're invulnerable.
 		if ( pPlayer->morphTics )
-			P_UndoPlayerMorph ( pPlayer, pPlayer );
+			P_UndoPlayerMorphWithoutFlash( pPlayer, pPlayer, MORPH_UNDOBYTIMEOUT, true );
 
 		if ( pPlayer->mo )
 		{
@@ -2480,9 +2481,10 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 
 	// [BB] Morphed players need to be unmorphed before being changed to spectators.
 	// [WS] This needs to be done before we turn our player into a spectator.
-	// [AK] Don't do this yet if they're turning into a dead spectator.
+	// [AK] Don't do this yet if they're turning into a dead spectator. Also, use
+	// MORPH_UNDOBYTIMEOUT to ensure this succeeds when they're invulnerable.
 	if (( pPlayer->morphTics ) && ( NETWORK_InClientMode( ) == false ) && ( bDeadSpectator == false ))
-		P_UndoPlayerMorph ( pPlayer, pPlayer );
+		P_UndoPlayerMorphWithoutFlash( pPlayer, pPlayer, MORPH_UNDOBYTIMEOUT, true );
 
 	// Flag this player as being a spectator.
 	pPlayer->bSpectating = true;
@@ -2583,11 +2585,9 @@ void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectato
 			}
 
 			// [AK] If the player was morphed before turning into a dead spectator, unmorph them now.
+			// Use MORPH_UNDOBYTIMEOUT to ensure this succeeds when they're invulnerable.
 			if (( pPlayer->morphTics ) && ( NETWORK_InClientMode( ) == false ))
-			{
-				pPlayer->MorphExitFlash = nullptr;
-				P_UndoPlayerMorph( pPlayer, pPlayer );
-			}
+				P_UndoPlayerMorphWithoutFlash( pPlayer, pPlayer, MORPH_UNDOBYTIMEOUT, true );
 		}
 		// [BB] In case the player is not respawned as dead spectator, we have to manually clear its TID.
 		else

@@ -2149,8 +2149,9 @@ CCMD( changeteam )
 			players[consoleplayer].mo->DropImportantItems( false );
 
 		// [BB] Morphed players need to be unmorphed before changing teams.
+		// [AK] Using MORPH_UNDOBYTIMEOUT ensures this succeeds when they're invulnerable.
 		if ( players[consoleplayer].morphTics )
-			P_UndoPlayerMorph ( &players[consoleplayer], &players[consoleplayer] );
+			P_UndoPlayerMorphWithoutFlash( &players[consoleplayer], &players[consoleplayer], MORPH_UNDOBYTIMEOUT, true );
 
 		// Save this. This will determine our message.
 		bOnTeam = players[consoleplayer].bOnTeam;
