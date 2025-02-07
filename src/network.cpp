@@ -1921,6 +1921,58 @@ void CMD5Checksum::GetMD5(const BYTE* pBuf, UINT nLength, FString &OutString)
 }
 
 //*****************************************************************************
+//
+BufferParameter &BufferParameter::operator() ( BYTESTREAM_s *byteStream )
+{
+	DeleteData( );
+
+	if ( byteStream != nullptr )
+	{
+		size = byteStream->ReadShort( );
+		data = new unsigned char[size];
+		byteStream->ReadBuffer( data, size );
+	}
+
+	return *this;
+}
+
+//*****************************************************************************
+//
+BufferParameter &BufferParameter::operator= ( const BufferParameter &other )
+{
+	if ( this != &other )
+		CopyData( other.data, other.size );
+
+	return *this;
+}
+
+//*****************************************************************************
+//
+void BufferParameter::DeleteData( void )
+{
+	if ( data != nullptr )
+	{
+		delete[] data;
+		data = nullptr;
+		size = 0;
+	}
+}
+
+//*****************************************************************************
+//
+void BufferParameter::CopyData( unsigned char *newData, unsigned short newSize )
+{
+	DeleteData( );
+
+	if (( newData != nullptr ) && ( newSize > 0 ))
+	{
+		data = new unsigned char[newSize];
+		size = newSize;
+		memcpy( data, newData, newSize );
+	}
+}
+
+//*****************************************************************************
 //	CONSOLE COMMANDS
 
 CCMD( ip )

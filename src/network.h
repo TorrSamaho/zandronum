@@ -281,6 +281,29 @@ enum
 };
 
 //*****************************************************************************
+//	STRUCTURES
+
+// [AK] Buffer parameter type used by the network protocol.
+struct BufferParameter
+{
+public:
+	unsigned char *data;
+	unsigned short size;
+
+	BufferParameter( void ) : data( nullptr ), size( 0 ) { }
+	BufferParameter( unsigned char *_data, unsigned short _size ) : BufferParameter( ) { CopyData( _data, _size ); }
+	BufferParameter( const BufferParameter &other ) : BufferParameter( other.data, other.size ) { }
+	~BufferParameter( void ) { DeleteData( ); }
+
+	BufferParameter &operator() ( BYTESTREAM_s *byteStream );
+	BufferParameter &operator= ( const BufferParameter &other );
+
+private:
+	void DeleteData( void );
+	void CopyData( unsigned char *newData, unsigned short newSize );
+};
+
+//*****************************************************************************
 //	VARIABLES
 
 extern FString g_lumpsAuthenticationChecksum;

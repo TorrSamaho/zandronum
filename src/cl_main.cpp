@@ -216,7 +216,6 @@ CUSTOM_CVAR( Int, cl_backupcommands, 0, CVAR_ARCHIVE )
 // Player functions.
 // [BB] Does not work with the latest ZDoom changes. Check if it's still necessary.
 //static	void	client_SetPlayerPieces( BYTESTREAM_s *pByteStream );
-static	void	client_PlayerVoIPAudioPacket( BYTESTREAM_s *byteStream );
 
 // Game commands.
 static	void	client_SetGameMode( BYTESTREAM_s *pByteStream );
@@ -1923,11 +1922,6 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 	case SVC_ADJUSTPUSHER:
 
 		client_AdjustPusher( pByteStream );
-		break;
-
-	case SVC_PLAYERVOIPAUDIOPACKET:
-
-		client_PlayerVoIPAudioPacket( pByteStream );
 		break;
 
 	case SVC_EXTENDEDCOMMAND:
@@ -4816,6 +4810,13 @@ void ServerCommands::PlayerSay::Execute()
 
 	// Finally, print out the chat string.
 	CHAT_PrintChatString( playerNumber, mode, message );
+}
+
+//*****************************************************************************
+//
+void ServerCommands::PlayerVoIPAudioPacket::Execute()
+{
+	VOIPController::GetInstance( ).ReceiveAudioPacket( playerNumber, frame, audio.data, audio.size );
 }
 
 //*****************************************************************************
@@ -9432,20 +9433,6 @@ static void client_CreateTranslation( BYTESTREAM_s *pByteStream )
 		pTranslation->AddDesaturation( Translation.ulStart, Translation.ulEnd, Translation.fR1, Translation.fG1, Translation.fB1, Translation.fR2, Translation.fG2, Translation.fB2 );
 
 	pTranslation->UpdateNative();
-}
-
-//*****************************************************************************
-//
-static void client_PlayerVoIPAudioPacket( BYTESTREAM_s *byteStream )
-{
-	const unsigned int player = byteStream->ReadByte( );
-	const unsigned int frame = byteStream->ReadLong( );
-	const unsigned int length = byteStream->ReadShort( );
-	unsigned char *data = new unsigned char[length];
-
-	byteStream->ReadBuffer( data, length );
-	VOIPController::GetInstance( ).ReceiveAudioPacket( player, frame, data, length );
-	delete[] data;
 }
 
 //*****************************************************************************

@@ -1311,14 +1311,11 @@ void SERVERCOMMANDS_PlayerVoIPAudioPacket( ULONG player, unsigned int frame, uns
 	const bool forbidVoiceChatToPlayers = GAMEMODE_IsClientForbiddenToChatToPlayers( player, true );
 	const int transmitFilter = players[player].userinfo.GetVoiceTransmitFilter( );
 
-	NetCommand command( SVC_PLAYERVOIPAUDIOPACKET );
-	command.addByte( player );
-	command.addLong( frame );
-	command.addShort( length );
-	command.addBuffer( data, length );
-
-	// [AK] We shouldn't care if a VoIP packet doesn't get received by the clients.
-	command.setUnreliable( true );
+	BufferParameter audio( data, length );
+	ServerCommands::PlayerVoIPAudioPacket command;
+	command.SetPlayerNumber( player );
+	command.SetFrame( frame );
+	command.SetAudio( audio );
 
 	for ( ClientIterator it( playerExtra, flags ); it.notAtEnd( ); ++it )
 	{

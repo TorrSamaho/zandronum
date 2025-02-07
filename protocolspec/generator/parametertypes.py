@@ -575,3 +575,18 @@ class NetidParameter(ShortParameter):
 	@property
 	def cxxtypename(self):
 		return 'unsigned short'
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+class BufferParameter(SpecParameter):
+	def __init__(self, **args):
+		super().__init__(**args)
+		self.cxxtypename = 'BufferParameter'
+
+	def writeread(self, writer, command, reference, **args):
+		writer.writeline('command.{reference}( bytestream );'.format(**locals()))
+
+	def writesend(self, writer, command, reference, **args):
+		writer.writecontext('''
+			command.addShort( this->{reference}.size );
+			command.addBuffer( this->{reference}.data, this->{reference}.size );'''.format(**locals()))

@@ -290,6 +290,13 @@ Command PlayerSay
 	String message
 EndCommand
 
+Command PlayerVoIPAudioPacket
+	UnreliableCommand
+	Byte playerNumber
+	Long frame
+	Buffer audio
+EndCommand
+
 Command PlayerTaunt
 	Player player with MoTest
 EndCommand
