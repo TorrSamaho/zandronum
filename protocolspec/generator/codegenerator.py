@@ -377,8 +377,9 @@ class HeaderWriter(SourceCodeWriter):
 				{
 					BuildNetCommand().sendCommandToClients( playerExtra, flags );
 				}
-			};
-		''')
+			};''')
+
+		self.writeline('')
 
 		# For each server command, create a class to represent it.
 		for command in self.getcommands('GameServerToClient'):
