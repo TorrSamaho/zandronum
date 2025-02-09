@@ -281,6 +281,16 @@ enum
 };
 
 //*****************************************************************************
+//	CLASSES
+
+// [BB] Legacy interface that redirects all calls to Skulltag's old MD5 code to the ZDoom MD5 code.
+class CMD5Checksum
+{
+public:
+	static void GetMD5( const BYTE *pBuf, UINT nLength, FString &OutString );
+};
+
+//*****************************************************************************
 //	STRUCTURES
 
 // [AK] Buffer parameter type used by the network protocol.
@@ -301,6 +311,15 @@ public:
 private:
 	void DeleteData( void );
 	void CopyData( unsigned char *newData, unsigned short newSize );
+};
+
+//*****************************************************************************
+// [TP] Now a struct
+struct NetworkPWAD
+{
+	FString name;
+	FString checksum;
+	int wadnum; // [TP] Added wadnum
 };
 
 //*****************************************************************************
@@ -328,14 +347,6 @@ ULONG			NETWORK_GetCountryIndexFromAddress( NETADDRESS_s Address );
 const char		*NETWORK_GetCountryCodeFromIndex( ULONG ulIndex, bool bGetAlpha3 );
 const char		*NETWORK_GetCountryNameFromIndex( ULONG ulIndex );
 USHORT			NETWORK_GetLocalPort( void );
-
-// [TP] Now a struct
-struct NetworkPWAD
-{
-	FString name;
-	FString checksum;
-	int wadnum; // [TP] Added wadnum
-};
 
 const TArray<NetworkPWAD>&	NETWORK_GetPWADList( void ); // [RC]
 const TArray<NetworkPWAD>&	NETWORK_GetAuthenticatedWADsList( void ); // [SB]
@@ -425,12 +436,5 @@ LONG NETWORK_GetFirstFreeID ( void )
 	Printf( "NETWORK_GetFirstFreeID: ID limit reached (>=8192)\n" );
 	return ( -1 );
 }
-
-// [BB] Legacy interface that redirects all calls to Skulltag's old MD5 code to the ZDoom MD5 code.
-class CMD5Checksum  
-{
-public:
-	static void GetMD5 ( const BYTE* pBuf, UINT nLength, FString &OutString );
-};
 
 #endif	// __NETWORK_H__
