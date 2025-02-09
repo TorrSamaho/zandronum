@@ -234,7 +234,8 @@ class ActorParameter(SpecParameter):
 
 		# Write the code to read in the netid
 		writer.declare('int', netid)
-		writer.writeline('{netid} = bytestream->ReadShort();'.format(**locals()))
+		# [SB] NetIDs are ushorts now, so ensure they are interpreted as such.
+		writer.writeline('{netid} = static_cast<unsigned short>(bytestream->ReadShort());'.format(**locals()))
 
 	def writereadchecks(self, writer, command, reference, **args):
 		netid = self.readnetid
@@ -250,7 +251,7 @@ class ActorParameter(SpecParameter):
 					   allownull=('nullallowed' in self.attributes) and 'true' or 'false', **locals()))
 
 	def writesend(self, writer, command, reference, **args):
-		writer.writeline('command.addShort( this->{reference} ? this->{reference}->NetID : -1 );'.format(**locals()))
+		writer.writeline('command.addShort( this->{reference} ? this->{reference}->NetID : 0 );'.format(**locals()))
 
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -561,3 +562,16 @@ class NameParameter(SpecParameter):
 
 	def writesend(self, writer, command, reference, **args):
 		writer.writeline('command.addName( this->{reference} );'.format(**locals()))
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+class NetidParameter(ShortParameter):
+	def writeread(self, writer, command, reference):
+		readfunction = 'Read' + self.methodname()
+		casttype = self.cxxtypename
+		writer.writeline('command.{reference} = static_cast<{casttype}>(bytestream->{readfunction}());'.format(**locals()))
+
+	@property
+	def cxxtypename(self):
+		return 'unsigned short'

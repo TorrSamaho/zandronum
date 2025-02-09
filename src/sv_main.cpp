@@ -2717,7 +2717,7 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 	{
 		// If the actor doesn't have a network ID, don't spawn it (it
 		// probably isn't important).
-		if ( pActor->NetID == -1 )
+		if ( pActor->NetID == 0 )
 			continue;
 
 		// [BB] The other clients already have destroyed this actor, so don't spawn it.
@@ -7746,8 +7746,8 @@ static bool server_CheckLogin ( const ULONG ulClient )
 //
 static bool server_InfoCheat( BYTESTREAM_s *pByteStream )
 {
-	LONG lID = pByteStream->ReadShort();
-	AActor* linetarget = CLIENT_FindThingByNetID( lID );
+	unsigned short netID = pByteStream->ReadShort();
+	AActor* linetarget = CLIENT_FindThingByNetID( netID );
 	bool extended = !!pByteStream->ReadByte();
 
 	// [TP] Except not if we don't allow cheats.
@@ -7760,7 +7760,7 @@ static bool server_InfoCheat( BYTESTREAM_s *pByteStream )
 	if ( linetarget == NULL )
 	{
 		SERVER_PrintfPlayer( g_lCurrentClient,
-			"The server couldn't find the actor you're pointing at! netid: %ld\n", lID );
+			"The server couldn't find the actor you're pointing at! netid: %u\n", netID );
 		return false;
 	}
 

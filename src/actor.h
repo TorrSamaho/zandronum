@@ -40,6 +40,9 @@
 #include "memarena.h"
 #include "g_level.h"
 
+// [AK] Needed for std::numeric_limits in the IDList class.
+#include <limits>
+
 struct subsector_t;
 //
 // NOTES: AActor
@@ -1152,7 +1155,7 @@ public:
 	int			FixedColormap;
 
 	// ID used to identify this actor over network games.
-	int			NetID;
+	unsigned short NetID;
 
 	// Pointer to the pickup spot this item was spawned from.
 	ABaseMonsterInvasionSpot		*pMonsterSpot;
@@ -1370,9 +1373,6 @@ void PrintMiscActorInfo(AActor * query);
 template <typename T>
 class IDList
 {
-public:
-	const static int MAX_NETID = 32768;
-
 private:
 	// List of all possible network ID's for an actor. Slot is true if it available for use.
 	typedef struct
@@ -1385,12 +1385,12 @@ private:
 
 	} IDNODE_t;
 
-	IDNODE_t _entries[MAX_NETID];
-	ULONG _firstFreeID;
+	IDNODE_t _entries[ static_cast<unsigned int>(( std::numeric_limits<unsigned short>::max )( )) + 1];
+	unsigned short _firstFreeID;
 
-	inline bool isIndexValid ( const LONG lNetID ) const
+	inline bool isIndexValid ( const unsigned short netID ) const
 	{
-		return ( lNetID >= 0 ) && ( lNetID < MAX_NETID );
+		return ( netID > 0 );
 	}
 public:
 	void clear ( );
@@ -1403,26 +1403,26 @@ public:
 		clear ( );
 	}
 
-	void useID ( const LONG lNetID, T *pActor );
+	void useID ( const unsigned short netID, T *actor );
 
-	void freeID ( const LONG lNetID )
+	void freeID ( const unsigned short netID )
 	{
-		if ( isIndexValid ( lNetID ) )
+		if ( isIndexValid ( netID ) )
 		{
-			_entries[lNetID].bFree = true;
-			_entries[lNetID].pActor = NULL;
+			_entries[netID].bFree = true;
+			_entries[netID].pActor = NULL;
 		}
 	}
 
-	ULONG getNewID ( );
+	unsigned short getNewID ( );
 
-	T* findPointerByID ( const LONG lNetID ) const
+	T* findPointerByID ( const unsigned short netID ) const
 	{
-		if ( isIndexValid ( lNetID ) == false )
+		if ( isIndexValid ( netID ) == false )
 			return ( NULL );
 
-		if (( _entries[lNetID].bFree == false ) && ( _entries[lNetID].pActor ))
-			return ( _entries[lNetID].pActor );
+		if (( _entries[netID].bFree == false ) && ( _entries[netID].pActor ))
+			return ( _entries[netID].pActor );
 
 		return ( NULL );
 	}

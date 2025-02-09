@@ -3,7 +3,7 @@ Command SpawnThing
 	AproxFixed y
 	AproxFixed z
 	Class type
-	Short id
+	NetID id
 EndCommand
 
 Command SpawnThingNoNetID
@@ -18,7 +18,7 @@ Command SpawnThingExact
 	Fixed y
 	Fixed z
 	Class type
-	Short id
+	NetID id
 EndCommand
 
 Command SpawnThingExactNoNetID
@@ -34,7 +34,7 @@ Command LevelSpawnThing
 	AproxFixed y
 	AproxFixed z
 	Class type
-	Short id
+	NetID id
 EndCommand
 
 Command LevelSpawnThingNoNetID
@@ -370,7 +370,7 @@ Command SpawnPuff
 	AproxFixed y
 	AproxFixed z
 	Class pufftype
-	Short id
+	NetID id
 EndCommand
 
 Command SpawnPuffNoNetID

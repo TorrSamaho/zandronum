@@ -788,9 +788,9 @@ void BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, FString &Input )
 
 //*****************************************************************************
 //
-bool BOTCMD_IgnoreItem( CSkullBot *pBot, LONG lIdx, bool bVisibilityCheck )
+bool BOTCMD_IgnoreItem( CSkullBot *pBot, unsigned short netID, bool bVisibilityCheck )
 {
-	AActor *pActor = g_ActorNetIDList.findPointerByID ( lIdx );
+	AActor *pActor = g_ActorNetIDList.findPointerByID ( netID );
 	if (( pActor == NULL ) ||
 		(( pActor->flags & MF_SPECIAL ) == false ) ||
 		( bVisibilityCheck && ( BOTS_IsVisible( pBot->GetPlayer( )->mo, pActor ) == false )))
@@ -824,9 +824,9 @@ void botcmd_ValidatePlayerID( const LONG lPlayerID, const char *pszFunctionName 
 
 //*****************************************************************************
 //
-void botcmd_ValidateItemNetID( const LONG lNetID, const char *pszFunctionName )
+void botcmd_ValidateItemNetID( const unsigned short netID, const char *pszFunctionName )
 {
-	botcmd_CheckIfInputIsValid( lNetID, IDList<AActor>::MAX_NETID, pszFunctionName, "Illegal item index" );
+	botcmd_CheckIfInputIsValid( netID, static_cast<LONG>(( std::numeric_limits<unsigned short>::max )( )) + 1, pszFunctionName, "Illegal item index" );
 }
 
 //*****************************************************************************
@@ -918,28 +918,24 @@ static void botcmd_StringsAreEqual( CSkullBot *pBot )
 template <typename T>
 int botcmd_LookForItemType( CSkullBot *pBot, const char *FunctionName )
 {
-	LONG		lIdx;
-	bool		bVisibilityCheck;
-
-	bVisibilityCheck = !!pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
+	bool visibilityCheck = !!pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
 	pBot->PopStack( );
 
-	lIdx = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
+	unsigned short netID = static_cast<unsigned short>( pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1] );
 	pBot->PopStack( );
 
-	botcmd_ValidateItemNetID( lIdx, FunctionName );
+	botcmd_ValidateItemNetID( netID, FunctionName );
 
-	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
-		( g_ActorNetIDList.findPointerByID ( lIdx )->GetClass( )->IsDescendantOf( RUNTIME_CLASS( T )) == false ))
+	while (( BOTCMD_IgnoreItem( pBot, netID, visibilityCheck )) ||
+		( g_ActorNetIDList.findPointerByID( netID )->GetClass( )->IsDescendantOf( RUNTIME_CLASS( T )) == false ))
 	{
-		if ( ++lIdx == IDList<AActor>::MAX_NETID )
-			break;
+		if ( netID == ( std::numeric_limits<unsigned short>::max )( ))
+			return -1;
+
+		netID++;
 	}
 
-	if ( lIdx == IDList<AActor>::MAX_NETID )
-		return g_iReturnInt = -1;
-	else
-		return g_iReturnInt = lIdx;
+	return netID;
 }
 
 //*****************************************************************************
@@ -967,28 +963,24 @@ static void botcmd_LookForAmmo( CSkullBot *pBot )
 // [BB] Helperfunction to reduce code duplication.
 int botcmd_LookForItemWithFlag( CSkullBot *pBot, const int Flag, const char *FunctionName )
 {
-	LONG		lIdx;
-	bool		bVisibilityCheck;
-
-	bVisibilityCheck = !!pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
+	bool visibilityCheck = !!pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
 	pBot->PopStack( );
 
-	lIdx = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
+	unsigned short netID = static_cast<unsigned short>( pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1] );
 	pBot->PopStack( );
 
-	botcmd_ValidateItemNetID( lIdx, FunctionName );
+	botcmd_ValidateItemNetID( netID, FunctionName );
 
-	while (( BOTCMD_IgnoreItem( pBot, lIdx, bVisibilityCheck )) ||
-		(( g_ActorNetIDList.findPointerByID ( lIdx )->STFlags & Flag ) == false ))
+	while (( BOTCMD_IgnoreItem( pBot, netID, visibilityCheck )) ||
+		(( g_ActorNetIDList.findPointerByID( netID )->STFlags & Flag ) == false ))
 	{
-		if ( ++lIdx == IDList<AActor>::MAX_NETID )
-			break;
+		if ( netID == ( std::numeric_limits<unsigned short>::max )( ))
+			return -1;
+
+		netID++;
 	}
 
-	if ( lIdx == IDList<AActor>::MAX_NETID )
-		return -1;
-	else
-		return lIdx;
+	return netID;
 }
 
 //*****************************************************************************
@@ -1632,28 +1624,25 @@ static void botcmd_Roam( CSkullBot *pBot )
 //
 static void botcmd_GetPathingCostToItem( CSkullBot *pBot )
 {
-	LONG				lItem;
-	POS_t				GoalPos;
-	ASTARRETURNSTRUCT_t	ReturnVal;
-
-	lItem = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
+	unsigned short netID = static_cast<unsigned short>( pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1] );
 	pBot->PopStack( );
 
-	botcmd_ValidateItemNetID( lItem, "botcmd_GetPathingCostToItem" );
+	botcmd_ValidateItemNetID( netID, "botcmd_GetPathingCostToItem" );
 
-	AActor *pActor = g_ActorNetIDList.findPointerByID ( lItem );
+	AActor *pActor = g_ActorNetIDList.findPointerByID( netID );
 	if ( pActor == NULL )
 	{
 		g_iReturnInt = -1;
 		return;
 	}
 
+	POS_t GoalPos;
 	GoalPos.x = pActor->x;
 	GoalPos.y = pActor->y;
 
 	ASTAR_ClearPath(( pBot->GetPlayer( ) - players ) + MAXPLAYERS );
 
-	ReturnVal = ASTAR_Path(( pBot->GetPlayer( ) - players ) + MAXPLAYERS, GoalPos, 0, static_cast<LONG> ( botdebug_maxgiveupnodes ) );
+	ASTARRETURNSTRUCT_t ReturnVal = ASTAR_Path(( pBot->GetPlayer( ) - players ) + MAXPLAYERS, GoalPos, 0, static_cast<LONG> ( botdebug_maxgiveupnodes ) );
 	if ( ReturnVal.ulFlags & PF_COMPLETE )
 	{
 		// If it wasn't possible to create a path to the goal, try again next tick.
@@ -1670,14 +1659,12 @@ static void botcmd_GetPathingCostToItem( CSkullBot *pBot )
 //
 static void botcmd_GetDistanceToItem( CSkullBot *pBot )
 {
-	LONG	lItem;
-
-	lItem = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
+	unsigned short netID = static_cast<unsigned short>( pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1] );
 	pBot->PopStack( );
 
-	botcmd_ValidateItemNetID( lItem, "botcmd_GetDistanceToItem" );
+	botcmd_ValidateItemNetID( netID, "botcmd_GetDistanceToItem" );
 
-	AActor *pActor = g_ActorNetIDList.findPointerByID ( lItem );
+	AActor *pActor = g_ActorNetIDList.findPointerByID( netID );
 	if ( pActor )
 	{
 		g_iReturnInt = abs( P_AproxDistance( pActor->x - pBot->GetPlayer( )->mo->x, 
@@ -1691,14 +1678,12 @@ static void botcmd_GetDistanceToItem( CSkullBot *pBot )
 //
 static void botcmd_GetItemName( CSkullBot *pBot )
 {
-	LONG	lItem;
-
-	lItem = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
+	unsigned short netID = static_cast<unsigned short>( pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1] );
 	pBot->PopStack( );
 
-	botcmd_ValidateItemNetID( lItem, "botcmd_GetItemName" );
+	botcmd_ValidateItemNetID( netID, "botcmd_GetItemName" );
 
-	AActor *pActor = g_ActorNetIDList.findPointerByID ( lItem );
+	AActor *pActor = g_ActorNetIDList.findPointerByID( netID );
 	if ( pActor )
 	{
 		if ( strlen( pActor->GetClass( )->TypeName.GetChars( )) < BOTCMD_RETURNSTRING_SIZE )
@@ -1714,14 +1699,12 @@ static void botcmd_GetItemName( CSkullBot *pBot )
 //
 static void botcmd_IsItemVisible( CSkullBot *pBot )
 {
-	LONG		lIdx;
-
-	lIdx = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
+	unsigned short netID = static_cast<unsigned short>( pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1] );
 	pBot->PopStack( );
 
-	botcmd_ValidateItemNetID( lIdx, "botcmd_IsItemVisible" );
+	botcmd_ValidateItemNetID( netID, "botcmd_IsItemVisible" );
 
-	AActor *pActor = g_ActorNetIDList.findPointerByID ( lIdx );
+	AActor *pActor = g_ActorNetIDList.findPointerByID( netID );
 	if ( pActor )
 	{
 
@@ -1759,21 +1742,19 @@ static void botcmd_IsItemVisible( CSkullBot *pBot )
 //
 static void botcmd_SetGoal( CSkullBot *pBot )
 {
-	LONG	lIdx;
-
-	lIdx = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
+	unsigned short netID = static_cast<unsigned short>( pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1] );
 	pBot->PopStack( );
 
-	botcmd_ValidateItemNetID( lIdx, "botcmd_SetGoal" );
+	botcmd_ValidateItemNetID( netID, "botcmd_SetGoal" );
 
-	AActor *pActor = g_ActorNetIDList.findPointerByID ( lIdx );
+	AActor *pActor = g_ActorNetIDList.findPointerByID( netID );
 	if ( pActor )
 	{
 		pBot->m_pGoalActor = pActor;
 		pBot->m_ulPathType = BOTPATHTYPE_NONE;
 	}
 	else
-		Printf( "botcmd_SetGoal: WARNING! Tried to set goal to bad item ID, %d!\n", static_cast<int> (lIdx) );
+		Printf( "botcmd_SetGoal: WARNING! Tried to set goal to bad item ID, %u!\n", netID );
 }
 
 //*****************************************************************************
@@ -1992,14 +1973,12 @@ static void botcmd_ChangeWeapon( CSkullBot *pBot )
 //
 static void botcmd_GetWeaponFromItem( CSkullBot *pBot )
 {
-	LONG	lItem;
-
-	lItem = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
+	unsigned short netID = static_cast<unsigned short>( pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1] );
 	pBot->PopStack( );
 
-	botcmd_ValidateItemNetID( lItem, "botcmd_GetWeaponFromItem" );
+	botcmd_ValidateItemNetID( netID, "botcmd_GetWeaponFromItem" );
 
-	AActor *pActor = g_ActorNetIDList.findPointerByID ( lItem );
+	AActor *pActor = g_ActorNetIDList.findPointerByID( netID );
 	if ( pActor )
 	{
 		if ( pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AWeapon )) == false )
@@ -2020,14 +1999,12 @@ static void botcmd_GetWeaponFromItem( CSkullBot *pBot )
 //
 static void botcmd_IsWeaponOwned( CSkullBot *pBot )
 {
-	LONG	lItem;
-
-	lItem = pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1];
+	unsigned short netID = static_cast<unsigned short>( pBot->m_ScriptData.alStack[pBot->m_ScriptData.lStackPosition - 1] );
 	pBot->PopStack( );
 
-	botcmd_ValidateItemNetID( lItem, "botcmd_IsWeaponOwned" );
+	botcmd_ValidateItemNetID( netID, "botcmd_IsWeaponOwned" );
 
-	AActor *pActor = g_ActorNetIDList.findPointerByID ( lItem );
+	AActor *pActor = g_ActorNetIDList.findPointerByID( netID );
 	if ( pActor )
 	{
 		if ( pActor->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AWeapon )) == false )

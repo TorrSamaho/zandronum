@@ -1862,9 +1862,8 @@ void G_FinishTravel ()
 	TThinkerIterator<APlayerPawn> it (STAT_TRAVELLING);
 	APlayerPawn *pawn, *pawndup, *oldpawn, *next;
 	AInventory *inv;
-	// [BC]
-	LONG	lSavedNetID;
-	bool	doSweep = false; // [RK] Do a GC sweep
+	unsigned short savedNetID = 0; // [BC]
+	bool doSweep = false; // [RK] Do a GC sweep
 
 	next = it.Next ();
 	while ( (pawn = next) != NULL)
@@ -1899,7 +1898,7 @@ void G_FinishTravel ()
 			G_CooperativeSpawnPlayer( pawn->player - players, false, true );
 
 			// [BC]
-			lSavedNetID = pawndup->NetID;
+			savedNetID = pawndup->NetID;
 			pawndup = pawn->player->mo;
 			if (!(changeflags & CHANGELEVEL_KEEPFACING))
 			{
@@ -1937,7 +1936,7 @@ void G_FinishTravel ()
 			pawn->player->SendPitchLimits();
 
 			// [BC]
-			pawn->NetID = lSavedNetID;
+			pawn->NetID = savedNetID;
 			g_ActorNetIDList.useID ( pawn->NetID, pawn );
 
 			// [RK] Since the player wasn't spawned in during level load, the thinker GC sweep called in G_UnSnapshot

@@ -232,7 +232,7 @@ void APathFollower::BeginPlay ()
 	// [BB] Init custom Zandronum stuff.
 	bPostBeginPlayCalled = false;
 	bActivateCalledBeforePostBeginPlay = false;
-	ServerPrevNodeId = ServerCurrNodeId = -1;
+	ServerPrevNodeId = ServerCurrNodeId = 0;
 	fServerTime = 0;
 }
 
@@ -321,15 +321,15 @@ void APathFollower::Activate (AActor *activator)
 		// [BB] Possibly init as instructed by the server.
 		if ( NETWORK_InClientMode() )
 		{
-			if ( ServerCurrNodeId != -1 )
+			if ( ServerCurrNodeId != 0 )
 			{
 				CurrNode = static_cast<AInterpolationPoint *> ( CLIENT_FindThingByNetID ( ServerCurrNodeId ) );
-				ServerCurrNodeId = -1;
+				ServerCurrNodeId = 0;
 			}
-			if ( ServerPrevNodeId != -1 )
+			if ( ServerPrevNodeId != 0 )
 			{
 				PrevNode = static_cast<AInterpolationPoint *> ( CLIENT_FindThingByNetID ( ServerPrevNodeId ) );
-				ServerPrevNodeId = -1;
+				ServerPrevNodeId = 0;
 			}
 		}
 

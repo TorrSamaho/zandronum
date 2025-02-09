@@ -6,7 +6,7 @@ Command SpawnPlayer
 	Bool isSpectating
 	Bool isDeadSpectator
 	Bool isMorphed
-	Short netid
+	NetID netid
 	Angle angle
 	Fixed x
 	Fixed y

@@ -404,7 +404,7 @@ DEFINE_ACTION_FUNCTION(AActor, A_PoisonBagInit)
 		// [CK] This is executed both server and clientside, resulting in 
 		// clientside clouds with no netID, but the server does have a netID. 
 		// Clearing of clouds therefore fail because the client's poisoncloud 
-		// netID is -1.
+		// netID is 0.
 		// This is run on both the server and client, so since we can safely
 		// assume this is clientside only, we can ensure proper cleanup by
 		// setting NETFL_CLIENTSIDEONLY, resulting in proper removal when

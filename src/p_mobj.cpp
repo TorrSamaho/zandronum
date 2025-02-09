@@ -4783,8 +4783,8 @@ bool AActor::UpdateWaterLevel (fixed_t oldz, bool dosplash)
 template <typename T>
 void IDList<T>::clear( void )
 {
-	for ( ULONG ulIdx = 0; ulIdx < MAX_NETID; ulIdx++ )
-		freeID ( ulIdx );
+	for ( unsigned int i = 0; i <= ( std::numeric_limits<unsigned short>::max )( ); i++ )
+		freeID ( i );
 
 	_firstFreeID = 1;
 }
@@ -4802,7 +4802,7 @@ void IDList<T>::rebuild( void )
 
 	while ( (pActor = it.Next()) )
 	{
-		if (( pActor->NetID > 0 ) && ( pActor->NetID < MAX_NETID ))
+		if ( isIndexValid ( pActor->NetID ))
 			useID ( pActor->NetID, pActor );
 	}
 }
@@ -4810,15 +4810,15 @@ void IDList<T>::rebuild( void )
 //*****************************************************************************
 //
 template <typename T>
-void IDList<T>::useID ( const LONG lNetID, T *pActor )
+void IDList<T>::useID ( const unsigned short netID, T *actor )
 {
-	if ( isIndexValid ( lNetID ) )
+	if ( isIndexValid ( netID ) )
 	{
-		if ( ( _entries[lNetID].bFree == false ) && ( _entries[lNetID].pActor != pActor ) )
+		if ( ( _entries[netID].bFree == false ) && ( _entries[netID].pActor != actor ) )
 			SERVER_PrintWarning ( "IDList<T>::useID is using an already used ID.\n" );
 
-		_entries[lNetID].bFree = false;
-		_entries[lNetID].pActor = pActor;
+		_entries[netID].bFree = false;
+		_entries[netID].pActor = actor;
 	}
 }
 
@@ -4827,34 +4827,35 @@ void IDList<T>::useID ( const LONG lNetID, T *pActor )
 void CountActors ( ); // [BB]
 
 template <typename T>
-ULONG IDList<T>::getNewID( void )
+unsigned short IDList<T>::getNewID( void )
 {
 	// Actor's network ID is the first availible net ID.
-	ULONG ulID = _firstFreeID;
+	unsigned short id = _firstFreeID;
 
 	do
 	{
-		_firstFreeID++;
-		if ( _firstFreeID >= MAX_NETID )
+		if ( _firstFreeID == ( std::numeric_limits<unsigned short>::max )( ))
 			_firstFreeID = 1;
+		else
+			_firstFreeID++;
 
-		if ( _firstFreeID == ulID )
+		if ( _firstFreeID == id )
 		{
 			// [BB] In case there is no free netID, the server has to abort the current game.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 			{
 				// [BB] We can only spawn (MAX_NETID-2) actors with netID, because ID zero is reserved and
 				// we already check that a new ID for the next actor is available when assign a net ID.
-				Printf( "ACTOR_GetNewNetID: Network ID limit reached (>=%d actors)\n", MAX_NETID - 1 );
+				Printf( "ACTOR_GetNewNetID: Network ID limit reached (>=%u actors)\n", ( std::numeric_limits<unsigned short>::max )( ));
 				CountActors ( );
-				I_Error ("Network ID limit reached (>=%d actors)!\n", MAX_NETID - 1 );
+				I_Error ("Network ID limit reached (>=%u actors)!\n", ( std::numeric_limits<unsigned short>::max )( ));
 			}
 
 			return ( 0 );
 		}
 	} while ( _entries[_firstFreeID].bFree == false );
 
-	return ( ulID );
+	return ( id );
 }
 
 template class IDList<AActor>;
@@ -4866,7 +4867,7 @@ template class IDList<AActor>;
 void AActor::FreeNetID ()
 {
 	g_ActorNetIDList.freeID ( NetID );
-	NetID = -1;
+	NetID = 0;
 }
 
 //==========================================================================
@@ -5082,10 +5083,10 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 		actor->NetID = g_ActorNetIDList.getNewID( );
 		g_ActorNetIDList.useID ( actor->NetID, actor );
 		if ( ( NETWORK_GetState( ) == NETSTATE_SERVER ) && sv_showspawnnames )
-			Printf ( "%s %d\n", actor->GetClass()->TypeName.GetChars(), actor->NetID );
+			Printf ( "%s %u\n", actor->GetClass()->TypeName.GetChars(), actor->NetID );
 	}
 	else
-		actor->NetID = -1;
+		actor->NetID = 0;
 
 	// [BB] Initilize the colormap of this actor.
 	actor->FixedColormap = NOFIXEDCOLORMAP;
@@ -5314,7 +5315,7 @@ void AActor::Destroy ()
 	// [BC/BB] Free it's network ID.
 	g_ActorNetIDList.freeID ( NetID );
 
-	NetID = -1;
+	NetID = 0;
 
 	// [BB] If this is a monster corpse, we potentially have to NULL out the reference to it.
 	if ( invasion )
@@ -6512,7 +6513,7 @@ AActor *P_SpawnPuff (AActor *source, const PClass *pufftype, fixed_t x, fixed_t 
 		else if (( (flags & PF_HITTHING) && puff->SeeSound ) ||
 				 ( puff->AttackSound ) || ( ( puff->GetClass()->Meta.GetMetaString (AMETA_Obituary) != NULL ) && ( flags & PF_TEMPORARY ) ) )
 		{
-			if ( puff->NetID == -1 )
+			if ( puff->NetID == 0 )
 			{
 				puff->NetID = g_ActorNetIDList.getNewID( );
 				g_ActorNetIDList.useID ( puff->NetID, puff );

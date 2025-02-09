@@ -101,7 +101,7 @@ bool EnsureActorHasNetID( const AActor *pActor )
 	if ( pActor == NULL )
 		return false;
 
-	if ( pActor->NetID == -1 )
+	if ( pActor->NetID == 0 )
 	{
 		if ( sv_showwarnings && !( pActor->NetworkFlags & NETFL_SERVERSIDEONLY ) )
 			Printf ( "Warning: Actor %s doesn't have a netID and therefore can't be manipulated online!\n", pActor->GetClass()->TypeName.GetChars() );
@@ -1472,7 +1472,7 @@ void SERVERCOMMANDS_SpawnThing( AActor *pActor, ULONG ulPlayerExtra, ServerComma
 		return;
 
 	// If the actor doesn't have a network ID, it's better to send it ID-less.
-	if ( pActor->NetID == -1 )
+	if ( pActor->NetID == 0 )
 	{
 		SERVERCOMMANDS_SpawnThingNoNetID( pActor, ulPlayerExtra, flags );
 		return;
@@ -1518,7 +1518,7 @@ void SERVERCOMMANDS_SpawnThingExact( AActor *pActor, ULONG ulPlayerExtra, Server
 		return;
 
 	// If the actor doesn't have a network ID, it's better to send it ID-less.
-	if ( pActor->NetID == -1 )
+	if ( pActor->NetID == 0 )
 	{
 		SERVERCOMMANDS_SpawnThingExactNoNetID( pActor, ulPlayerExtra, flags );
 		return;
@@ -1559,7 +1559,7 @@ void SERVERCOMMANDS_LevelSpawnThing( AActor *pActor, ULONG ulPlayerExtra, Server
 		return;
 
 	// If the actor doesn't have a network ID, it's better to send it ID-less.
-	if ( pActor->NetID == -1 )
+	if ( pActor->NetID == 0 )
 	{
 		SERVERCOMMANDS_LevelSpawnThingNoNetID( pActor, ulPlayerExtra, flags );
 		return;
@@ -2331,7 +2331,7 @@ void SERVERCOMMANDS_SpawnPuff( AActor *pActor, ULONG ulPlayerExtra, ServerComman
 		return;
 
 	// If the actor doesn't have a network ID, it's better to send it ID-less.
-	if ( pActor->NetID == -1 )
+	if ( pActor->NetID == 0 )
 	{
 		ULONG ulState = STATE_SPAWN;
 		if ( pActor->state == pActor->MeleeState )
@@ -2841,7 +2841,7 @@ void SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra, ServerC
 	if ( pMissile->target )
 		command.SetTargetNetID( pMissile->target->NetID );
 	else
-		command.SetTargetNetID( -1 );
+		command.SetTargetNetID( 0 );
 
 	command.sendCommandToClients( ulPlayerExtra, flags );
 
@@ -2875,7 +2875,7 @@ void SERVERCOMMANDS_SpawnMissileExact( AActor *pMissile, ULONG ulPlayerExtra, Se
 	if ( pMissile->target )
 		command.SetTargetNetID( pMissile->target->NetID );
 	else
-		command.SetTargetNetID( -1 );
+		command.SetTargetNetID( 0 );
 
 	command.sendCommandToClients( ulPlayerExtra, flags );
 
@@ -3661,7 +3661,7 @@ void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSo
 	}
 
 	// [BB] If the actor doesn't have a NetID, we have to instruct the clients differently how to play the sound.
-	if ( pActor->NetID == -1 )
+	if ( pActor->NetID == 0 )
 	{
 		SERVERCOMMANDS_SoundPoint( pActor->x, pActor->y, pActor->z, lChannel, pszSound, fVolume, fAttenuation, ulPlayerExtra, flags );
 		return;
@@ -5122,14 +5122,14 @@ void SERVERCOMMANDS_SetSectorLink( ULONG ulSector, int iArg1, int iArg2, int iAr
 void SERVERCOMMANDS_DoPusher( ULONG ulType, line_t *pLine, int iMagnitude, int iAngle, AActor *pSource, int iAffectee, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	const int iLineNum = pLine ? static_cast<ULONG>( pLine - lines ) : -1;
-	const LONG lSourceNetID = pSource ? pSource->NetID : -1;
+	const unsigned short sourceNetID = pSource ? pSource->NetID : 0;
 
 	NetCommand command ( SVC_DOPUSHER );
 	command.addByte ( ulType );
 	command.addShort ( iLineNum );
 	command.addLong ( iMagnitude );
 	command.addLong ( iAngle );
-	command.addShort ( lSourceNetID );
+	command.addShort ( sourceNetID );
 	command.addShort ( iAffectee );
 	command.sendCommandToClients ( ulPlayerExtra, flags );
 }
@@ -5218,7 +5218,7 @@ void SERVERCOMMANDS_SyncCVarToAdmins( const FBaseCVar &CVar )
 void SERVERCOMMANDS_SetDefaultSkybox( ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	NetCommand command( SVC2_SETDEFAULTSKYBOX );
-	command.addShort( ( level.DefaultSkybox != NULL ) ? level.DefaultSkybox->NetID : -1 );
+	command.addShort( ( level.DefaultSkybox != NULL ) ? level.DefaultSkybox->NetID : 0 );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 //*****************************************************************************
@@ -5482,8 +5482,8 @@ void APathFollower::SyncWithClient ( const ULONG ulClient )
 
 	NetCommand command( SVC2_SYNCPATHFOLLOWER );
 	command.addShort( this->NetID );
-	command.addShort( this->CurrNode ? this->CurrNode->NetID : -1 );
-	command.addShort( this->PrevNode ? this->PrevNode->NetID : -1 );
+	command.addShort( this->CurrNode ? this->CurrNode->NetID : 0 );
+	command.addShort( this->PrevNode ? this->PrevNode->NetID : 0 );
 	command.addFloat( this->Time );
 	command.sendCommandToOneClient( ulClient );
 }

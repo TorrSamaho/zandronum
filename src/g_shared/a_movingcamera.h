@@ -48,7 +48,7 @@ protected:
 	bool bPostBeginPlayCalled;
 	bool bActivateCalledBeforePostBeginPlay;
 
-	int ServerPrevNodeId, ServerCurrNodeId;
+	unsigned short ServerPrevNodeId, ServerCurrNodeId;
 	float fServerTime;
 public:
 	bool IsActive () const;

@@ -6,8 +6,8 @@ Command SpawnMissile
 	Fixed velY
 	Fixed velZ
 	Class<AActor> missileType
-	Short netID
-	Short targetNetID
+	NetID netID
+	NetID targetNetID
 EndCommand
 
 Command SpawnMissileExact
@@ -18,8 +18,8 @@ Command SpawnMissileExact
 	Fixed velY
 	Fixed velZ
 	Class<AActor> missileType
-	Short netID
-	Short targetNetID
+	NetID netID
+	NetID targetNetID
 EndCommand
 
 Command MissileExplode

@@ -172,10 +172,10 @@ void				CLIENT_WaitForServer( void );
 
 // Support functions to make things work more smoothly.
 void				CLIENT_AuthenticateLevel( const char *pszMapName );
-AActor				*CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, LONG lNetID, BYTE spawnFlags = 0 );
-void				CLIENT_SpawnMissile( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, fixed_t VelX, fixed_t VelY, fixed_t VelZ, LONG lNetID, LONG lTargetNetID );
+AActor				*CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, unsigned short netID, BYTE spawnFlags = 0 );
+void				CLIENT_SpawnMissile( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, fixed_t VelX, fixed_t VelY, fixed_t zelZ, unsigned short netID, unsigned short targetNetID );
 void				CLIENT_MoveThing( AActor *pActor, fixed_t X, fixed_t Y, fixed_t Z );
-AActor				*CLIENT_FindThingByNetID( LONG lID );
+AActor				*CLIENT_FindThingByNetID( unsigned short netID );
 void				CLIENT_RestoreSpecialPosition( AActor *pActor );
 void				CLIENT_RestoreSpecialDoomThing( AActor *pActor, bool bFog );
 AInventory			*CLIENT_FindPlayerInventory( ULONG ulPlayer, const PClass *pType );
@@ -197,7 +197,7 @@ void				CLIENT_ClearAllPlayers( void );
 void				CLIENT_LimitProtectedCVARs( void );
 bool				CLIENT_CanClipMovement( AActor *pActor );
 void STACK_ARGS		CLIENT_PrintWarning( const char* format, ... ) GCCPRINTF( 1, 2 );
-bool				CLIENT_ReadActorFromNetID( int netid, const PClass *subclass, bool allowNull, AActor *&actor,
+bool				CLIENT_ReadActorFromNetID( unsigned short netID, const PClass *subclass, bool allowNull, AActor *&actor,
 											   const char *commandName = "CLIENT_ReadActorFromNetID",
 											   const char *parameterName = "actor" );
 bool				CLIENT_HasRCONAccess();

@@ -279,6 +279,6 @@ void		BOTCMD_SetLastChatString( const char *pszString );
 void		BOTCMD_SetLastChatPlayer( const char *pszString );
 void		BOTCMD_SetLastJoinedPlayer( const char *pszString );
 void		BOTCMD_DoChatStringSubstitutions( CSkullBot *pBot, FString &Input );
-bool		BOTCMD_IgnoreItem( CSkullBot *pBot, LONG lIdx, bool bVisibilityCheck );
+bool		BOTCMD_IgnoreItem( CSkullBot *pBot, unsigned short netID, bool bVisibilityCheck );
 
 #endif	// __BOTCOMMANDS_H__

@@ -2005,13 +2005,13 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 			case SVC2_SETTHINGREACTIONTIME:
 				{
-					const LONG lID = pByteStream->ReadShort(); 
+					const unsigned short netID = pByteStream->ReadShort();
 					const LONG lReactionTime = pByteStream->ReadShort();
-					AActor *pActor = CLIENT_FindThingByNetID( lID );
+					AActor *pActor = CLIENT_FindThingByNetID( netID );
 
 					if ( pActor == NULL )
 					{
-						CLIENT_PrintWarning( "SETTHINGREACTIONTIME: Couldn't find thing: %ld\n", lID );
+						CLIENT_PrintWarning( "SETTHINGREACTIONTIME: Couldn't find thing: %u\n", netID );
 						break;
 					}
 					pActor->reactiontime = lReactionTime;
@@ -2021,13 +2021,13 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 			// [Dusk]
 			case SVC2_SETFASTCHASESTRAFECOUNT:
 				{
-					const LONG lID = pByteStream->ReadShort();
+					const unsigned short netID = pByteStream->ReadShort();
 					const LONG lStrafeCount = pByteStream->ReadByte(); 
-					AActor *pActor = CLIENT_FindThingByNetID( lID );
+					AActor *pActor = CLIENT_FindThingByNetID( netID );
 
 					if ( pActor == NULL )
 					{
-						CLIENT_PrintWarning( "SETFASTCHASESTRAFECOUNT: Couldn't find thing: %ld\n", lID );
+						CLIENT_PrintWarning( "SETFASTCHASESTRAFECOUNT: Couldn't find thing: %u\n", netID );
 						break;
 					}
 					pActor->FastChaseStrafeCount = lStrafeCount;
@@ -2116,13 +2116,13 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 			case SVC2_SETTHINGSPECIAL:
 				{
-					const LONG lID = pByteStream->ReadShort(); 
+					const unsigned short netID = pByteStream->ReadShort();
 					const LONG lSpecial = pByteStream->ReadShort();
-					AActor *pActor = CLIENT_FindThingByNetID( lID );
+					AActor *pActor = CLIENT_FindThingByNetID( netID );
 
 					if ( pActor == NULL )
 					{
-						CLIENT_PrintWarning( "SVC2_SETTHINGSPECIAL: Couldn't find thing: %ld\n", lID );
+						CLIENT_PrintWarning( "SVC2_SETTHINGSPECIAL: Couldn't find thing: %u\n", netID );
 						break;
 					}
 					pActor->special = lSpecial;
@@ -2156,13 +2156,13 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 			case SVC2_SETTHINGHEALTH:
 				{
-					const LONG lID = pByteStream->ReadShort();
+					const unsigned short netID = pByteStream->ReadShort();
 					const int health = pByteStream->ReadByte();
-					AActor* mo = CLIENT_FindThingByNetID( lID );
+					AActor* mo = CLIENT_FindThingByNetID( netID );
 
 					if ( mo == NULL )
 					{
-						CLIENT_PrintWarning( "SVC2_SETTHINGSPECIAL: Couldn't find thing: %ld\n", lID );
+						CLIENT_PrintWarning( "SVC2_SETTHINGSPECIAL: Couldn't find thing: %u\n", netID );
 						break;
 					}
 
@@ -2226,8 +2226,8 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 			case SVC2_SETDEFAULTSKYBOX:
 				{
-					int mobjNetID = pByteStream->ReadShort();
-					if ( mobjNetID == -1  )
+					unsigned short mobjNetID = pByteStream->ReadShort();
+					if ( mobjNetID == 0  )
 						level.DefaultSkybox = NULL;
 					else
 					{
@@ -2654,7 +2654,7 @@ void CLIENT_AuthenticateLevel( const char *pszMapName )
 
 //*****************************************************************************
 //
-AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, LONG lNetID, BYTE spawnFlags )
+AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, unsigned short netID, BYTE spawnFlags )
 {
 	AActor			*pActor;
 
@@ -2667,16 +2667,16 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 
 	// Potentially print the name, position, and network ID of the thing spawning.
 	if ( cl_showspawnnames )
-		Printf( "Name: %s: (%d, %d, %d), %d\n", pType->TypeName.GetChars( ), X >> FRACBITS, Y >> FRACBITS, Z >> FRACBITS, static_cast<int> (lNetID) );
+		Printf( "Name: %s: (%d, %d, %d), %u\n", pType->TypeName.GetChars( ), X >> FRACBITS, Y >> FRACBITS, Z >> FRACBITS, netID );
 
 	// If there's already an actor with the network ID of the thing we're spawning, kill it!
-	pActor = CLIENT_FindThingByNetID( lNetID );
+	pActor = CLIENT_FindThingByNetID( netID );
 	if ( pActor )
 	{
 #ifdef	_DEBUG
 		if ( pActor == players[consoleplayer].mo )
 		{
-			Printf( "CLIENT_SpawnThing: WARNING! Tried to delete console player's body! lNetID = %ld\n", lNetID );
+			Printf( "CLIENT_SpawnThing: WARNING! Tried to delete console player's body! netID = %u\n", netID );
 			return NULL;
 		}
 #endif
@@ -2728,8 +2728,8 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 			}
 		}
 
-		pActor->NetID = lNetID;
-		g_ActorNetIDList.useID ( lNetID, pActor );
+		pActor->NetID = netID;
+		g_ActorNetIDList.useID( netID, pActor );
 
 		pActor->SpawnPoint[0] = X;
 		pActor->SpawnPoint[1] = Y;
@@ -2758,14 +2758,14 @@ AActor *CLIENT_SpawnThing( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z,
 			pActor->InvasionWave = INVASION_GetCurrentWave( );
 	}
 	else
-		CLIENT_PrintWarning( "CLIENT_SpawnThing: Failed to spawn actor %s with id %ld\n", pType->TypeName.GetChars( ), lNetID );
+		CLIENT_PrintWarning( "CLIENT_SpawnThing: Failed to spawn actor %s with id %u\n", pType->TypeName.GetChars( ), netID );
 
 	return ( pActor );
 }
 
 //*****************************************************************************
 //
-void CLIENT_SpawnMissile( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, fixed_t VelX, fixed_t VelY, fixed_t VelZ, LONG lNetID, LONG lTargetNetID )
+void CLIENT_SpawnMissile( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, fixed_t VelX, fixed_t VelY, fixed_t VelZ, unsigned short netID, unsigned short targetNetID )
 {
 	AActor				*pActor;
 
@@ -2778,10 +2778,10 @@ void CLIENT_SpawnMissile( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, 
 
 	// Potentially print the name, position, and network ID of the thing spawning.
 	if ( cl_showspawnnames )
-		Printf( "Name: %s: (%d, %d, %d), %d\n", pType->TypeName.GetChars( ), X >> FRACBITS, Y >> FRACBITS, Z >> FRACBITS, static_cast<int> (lNetID) );
+		Printf( "Name: %s: (%d, %d, %d), %u\n", pType->TypeName.GetChars( ), X >> FRACBITS, Y >> FRACBITS, Z >> FRACBITS, netID );
 
 	// If there's already an actor with the network ID of the thing we're spawning, kill it!
-	pActor = CLIENT_FindThingByNetID( lNetID );
+	pActor = CLIENT_FindThingByNetID( netID );
 	if ( pActor )
 	{
 		pActor->Destroy( );
@@ -2791,7 +2791,7 @@ void CLIENT_SpawnMissile( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, 
 	pActor = Spawn( pType, X, Y, Z, NO_REPLACE );
 	if ( pActor == NULL )
 	{
-		CLIENT_PrintWarning( "CLIENT_SpawnMissile: Failed to spawn missile: %ld\n", lNetID );
+		CLIENT_PrintWarning( "CLIENT_SpawnMissile: Failed to spawn missile: %u\n", netID );
 		return;
 	}
 
@@ -2803,11 +2803,11 @@ void CLIENT_SpawnMissile( const PClass *pType, fixed_t X, fixed_t Y, fixed_t Z, 
 	// Derive the thing's angle from its velocity.
 	pActor->angle = R_PointToAngle2( 0, 0, VelX, VelY );
 
-	pActor->NetID = lNetID;
-	g_ActorNetIDList.useID ( lNetID, pActor );
+	pActor->NetID = netID;
+	g_ActorNetIDList.useID( netID, pActor );
 
 	// [RK] Moved this up since we need the target before we play the sound.
-	pActor->target = CLIENT_FindThingByNetID(lTargetNetID);
+	pActor->target = CLIENT_FindThingByNetID( targetNetID );
 
 	// Play the seesound if this missile has one.
 	// [RK] Play the sound at the target if the missile has MF_SPAWNSOUNDSOURCE.
@@ -2900,9 +2900,9 @@ bool CLIENT_GainingRCONAccess()
 
 //*****************************************************************************
 //
-AActor *CLIENT_FindThingByNetID( LONG lNetID )
+AActor *CLIENT_FindThingByNetID( unsigned short netID )
 {
-    return ( g_ActorNetIDList.findPointerByID ( lNetID ) );
+    return ( g_ActorNetIDList.findPointerByID( netID ));
 }
 
 //*****************************************************************************
@@ -3313,10 +3313,10 @@ void CLIENT_SetActorToLastDeathStateFrame ( AActor *pActor )
 //
 // 'actor' MUST be either NULL or an instance of the provided subclass!
 //
-bool CLIENT_ReadActorFromNetID( int netid, const PClass *subclass, bool allowNull, AActor *&actor,
+bool CLIENT_ReadActorFromNetID( unsigned short netID, const PClass *subclass, bool allowNull, AActor *&actor,
 								const char *commandName, const char *parameterName )
 {
-	actor = CLIENT_FindThingByNetID( netid );
+	actor = CLIENT_FindThingByNetID( netID );
 
 	if ( actor && ( actor->IsKindOf( subclass ) == false ))
 	{
@@ -3331,7 +3331,7 @@ bool CLIENT_ReadActorFromNetID( int netid, const PClass *subclass, bool allowNul
 
 	if (( actor == NULL ) && ( allowNull == false ))
 	{
-		CLIENT_PrintWarning( "%s: couldn't find %s: %d\n", commandName, parameterName, netid );
+		CLIENT_PrintWarning( "%s: couldn't find %s: %u\n", commandName, parameterName, netID );
 		return false;
 	}
 
@@ -3492,7 +3492,7 @@ void ServerCommands::SpawnPlayer::Execute()
 
 	// [BB] Potentially print the player number, position, and network ID of the player spawning.
 	if ( cl_showspawnnames )
-		Printf( "Player %d body: (%d, %d, %d), %d\n", static_cast<int>(ulPlayer), x >> FRACBITS, y >> FRACBITS, z >> FRACBITS, static_cast<int> (netid) );
+		Printf( "Player %d body: (%d, %d, %d), %u\n", static_cast<int>(ulPlayer), x >> FRACBITS, y >> FRACBITS, z >> FRACBITS, netid );
 
 	// [BB] Remember if we were already ignoring WeaponSelect commands. If so, the server
 	// told us to ignore them and we need to continue to do so after spawning the player.
@@ -5046,7 +5046,7 @@ void ServerCommands::SpawnThing::Execute()
 //
 void ServerCommands::SpawnThingNoNetID::Execute()
 {
-	CLIENT_SpawnThing( type, x, y, z, -1 );
+	CLIENT_SpawnThing( type, x, y, z, 0 );
 }
 
 //*****************************************************************************
@@ -5060,7 +5060,7 @@ void ServerCommands::SpawnThingExact::Execute()
 //
 void ServerCommands::SpawnThingExactNoNetID::Execute()
 {
-	CLIENT_SpawnThing( type, x, y, z, -1 );
+	CLIENT_SpawnThing( type, x, y, z, 0 );
 }
 
 //*****************************************************************************
@@ -5074,7 +5074,7 @@ void ServerCommands::LevelSpawnThing::Execute()
 //
 void ServerCommands::LevelSpawnThingNoNetID::Execute()
 {
-	CLIENT_SpawnThing( type, x, y, z, -1, SPAWNFLAG_LEVELTHING );
+	CLIENT_SpawnThing( type, x, y, z, 0, SPAWNFLAG_LEVELTHING );
 }
 
 //*****************************************************************************
@@ -5828,7 +5828,7 @@ void ServerCommands::SpawnPuff::Execute()
 //
 void ServerCommands::SpawnPuffNoNetID::Execute()
 {
-	AActor *puff = CLIENT_SpawnThing( pufftype, x, y, z, -1, SPAWNFLAG_PUFF );
+	AActor *puff = CLIENT_SpawnThing( pufftype, x, y, z, 0, SPAWNFLAG_PUFF );
 
 	if ( puff == NULL )
 		return;
@@ -9133,13 +9133,12 @@ static void client_SetPolyobjRotation( BYTESTREAM_s *pByteStream )
 static void client_EarthQuake( BYTESTREAM_s *pByteStream )
 {
 	AActor	*pCenter;
-	LONG	lID;
 	LONG	lIntensity;
 	LONG	lDuration;
 	LONG	lTremorRadius;
 
 	// Read in the center's network ID.
-	lID = pByteStream->ReadShort();
+	unsigned short netID = pByteStream->ReadShort();
 
 	// Read in the intensity of the quake.
 	lIntensity = pByteStream->ReadByte();
@@ -9155,7 +9154,7 @@ static void client_EarthQuake( BYTESTREAM_s *pByteStream )
 
 	// Find the actor that represents the center of the quake based on the network
 	// ID sent. If we can't find the actor, then the quake has no center.
-	pCenter = CLIENT_FindThingByNetID( lID );
+	pCenter = CLIENT_FindThingByNetID( netID );
 	if ( pCenter == NULL )
 		return;
 
@@ -9328,14 +9327,13 @@ static void client_GenericCheat( BYTESTREAM_s *pByteStream )
 //
 static void client_SetCameraToTexture( BYTESTREAM_s *pByteStream )
 {
-	LONG		lID;
 	const char	*pszTexture;
 	LONG		lFOV;
 	AActor		*pCamera;
 	FTextureID	picNum;
 
 	// Read in the ID of the camera.
-	lID = pByteStream->ReadShort();
+	unsigned short netID = pByteStream->ReadShort();
 
 	// Read in the name of the texture.
 	pszTexture = pByteStream->ReadString();
@@ -9345,7 +9343,7 @@ static void client_SetCameraToTexture( BYTESTREAM_s *pByteStream )
 
 	// Find the actor that represents the camera. If we can't find the actor, then
 	// break out.
-	pCamera = CLIENT_FindThingByNetID( lID );
+	pCamera = CLIENT_FindThingByNetID( netID );
 	if ( pCamera == NULL )
 		return;
 
@@ -9458,11 +9456,11 @@ static void client_DoPusher( BYTESTREAM_s *pByteStream )
 	const int iLineNum = pByteStream->ReadShort();
 	const int iMagnitude = pByteStream->ReadLong();
 	const int iAngle = pByteStream->ReadLong();
-	const LONG lSourceNetID = pByteStream->ReadShort();
+	const unsigned short sourceNetID = pByteStream->ReadShort();
 	const int iAffectee = pByteStream->ReadShort();
 
 	line_t *pLine = ( iLineNum >= 0 && iLineNum < numlines ) ? &lines[iLineNum] : NULL;
-	new DPusher ( static_cast<DPusher::EPusher> ( ulType ), pLine, iMagnitude, iAngle, CLIENT_FindThingByNetID( lSourceNetID ), iAffectee );
+	new DPusher ( static_cast<DPusher::EPusher> ( ulType ), pLine, iMagnitude, iAngle, CLIENT_FindThingByNetID( sourceNetID ), iAffectee );
 }
 
 //*****************************************************************************
@@ -9488,9 +9486,9 @@ void ServerCommands::ReplaceTextures::Execute()
 //
 void APathFollower::InitFromStream ( BYTESTREAM_s *pByteStream )
 {
-	APathFollower *pPathFollower = static_cast<APathFollower*> ( CLIENT_FindThingByNetID( pByteStream->ReadShort() ) );
-	const int currNodeId = pByteStream->ReadShort();
-	const int prevNodeId = pByteStream->ReadShort();
+	APathFollower *pPathFollower = static_cast<APathFollower*> ( CLIENT_FindThingByNetID( static_cast<unsigned short>( pByteStream->ReadShort() ) ) );
+	const unsigned short currNodeId = static_cast<unsigned short>(pByteStream->ReadShort());
+	const unsigned short prevNodeId = static_cast<unsigned short>(pByteStream->ReadShort());
 	const float serverTime = pByteStream->ReadFloat();
 
 	if ( pPathFollower )

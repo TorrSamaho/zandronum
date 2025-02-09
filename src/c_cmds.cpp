@@ -1272,7 +1272,7 @@ CCMD(linetarget)
 	if (linetarget)
 	{
 		// [TP] If we're the client, ask the server for information about the linetarget.
-		if ( NETWORK_GetState() == NETSTATE_CLIENT && linetarget->NetID != -1 )
+		if ( NETWORK_GetState() == NETSTATE_CLIENT && linetarget->NetID != 0 )
 		{
 			CLIENTCOMMANDS_InfoCheat( linetarget, false );
 			return;
@@ -1298,7 +1298,7 @@ CCMD(info)
 	if (linetarget)
 	{
 		// [TP] If we're the client, ask the server for information about the linetarget.
-		if ( NETWORK_GetState() == NETSTATE_CLIENT && linetarget->NetID != -1 )
+		if ( NETWORK_GetState() == NETSTATE_CLIENT && linetarget->NetID != 0 )
 		{
 			CLIENTCOMMANDS_InfoCheat( linetarget, true );
 			return;
