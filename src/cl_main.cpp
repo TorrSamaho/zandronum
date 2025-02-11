@@ -1224,13 +1224,14 @@ void CLIENT_CheckForMissingPackets( void )
 				CLIENTSTATISTICS_AddToMissingPacketsRequested ( 1 );
 
 				// [Leo] Print how many packets we missed.
-				if ( cl_showpacketloss )
+				// [AK] This should only appear after the client is fully connected.
+				if (( cl_showpacketloss ) && ( StatusBar != nullptr ) && ( CLIENT_GetConnectionState( ) == CTS_ACTIVE ))
 				{
 					FString message;
 					message.Format( "Client missed %d packets.", static_cast<int>( g_lHighestReceivedSequence - g_lLastParsedSequence ));
 
-					DHUDMessageFadeOut *pMsg = new DHUDMessageFadeOut( SmallFont, message, 1.5f, 0.9f, 0, 0, CR_GREEN, 2.f, 0.35f );
-					StatusBar->AttachMessage( pMsg, MAKE_ID( 'P', 'C', 'K', 'T' ));
+					DHUDMessageFadeOut *msg = new DHUDMessageFadeOut( SmallFont, message, 1.5f, 0.9f, 0, 0, CR_GREEN, 2.f, 0.35f );
+					StatusBar->AttachMessage( msg, MAKE_ID( 'P', 'C', 'K', 'T' ));
 				}
 			}
 		}
