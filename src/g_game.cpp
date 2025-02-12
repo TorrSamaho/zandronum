@@ -2489,7 +2489,9 @@ void G_DeathMatchSpawnPlayer (int playernum, bool clientUpdate)
 	// At level start, none of the players have mobjs attached to them,
 	// so we always use the random deathmatch spawn. During the game,
 	// though, we use whatever dmflags specifies.
-	if ((dmflags & DF_SPAWN_FARTHEST) && players[playernum].mo)
+	// [AK] Try spawning them as far away as possible anyways, and if
+	// that doesn't work, then spawn them at a random spot.
+	if ((dmflags & DF_SPAWN_FARTHEST) /*&& players[playernum].mo*/)
 		spot = SelectFarthestDeathmatchSpot (playernum, selections);
 	else
 		spot = SelectRandomDeathmatchSpot (playernum, selections);
