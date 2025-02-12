@@ -1283,6 +1283,7 @@ OptionMenu ScoreboardOptions
 	Option "Colorize pings",		"cl_colorizepings", "YesNo"
 	Option "Use short column names",	"cl_useshortcolumnnames", "YesNo"
 	Option "Show intermission timer",	"cl_intermissiontimer", "YesNo"
+	Option "No countries if unavailable",	"cl_nocountriesifunavailable", "YesNo"
 	Option "Country code format",		"cl_usealpha3countrycode", "ZA_CountryCodeFormat"
 	Option "Limit string format",		"cl_showscoreleft", "ZA_LimitStringFormat"
 	Slider "Translucency",			"cl_scoreboardalpha", 0, 1, 0.05

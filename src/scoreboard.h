@@ -309,6 +309,7 @@ public:
 	virtual ULONG GetValueWidthOrHeight( const PlayerValue &Value, const bool bGetHeight ) const;
 	virtual PlayerValue GetValue( const ULONG ulPlayer ) const;
 	virtual void ParseCommand( FScanner &sc, const COLUMNCMD_e Command, const FString CommandName );
+	virtual void Refresh( void );
 	virtual void Update( void );
 	virtual void DrawValue( const ULONG ulPlayer, const ULONG ulColor, const LONG lYPos, const ULONG ulHeight, const float fAlpha ) const;
 

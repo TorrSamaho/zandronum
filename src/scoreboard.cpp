@@ -132,6 +132,9 @@ CVAR( Bool, cl_usescoreboardscale, false, CVAR_ARCHIVE )
 // [AK] Whether to use the screen's ratio to scale the scoreboard, if scaling is enabled.
 CVAR( Bool, cl_usescoreboardscale_screenratio, false, CVAR_ARCHIVE )
 
+// [AK] If true, then the country columns will be disabled if everyone's country is unavailable.
+CVAR( Bool, cl_nocountriesifunavailable, false, CVAR_ARCHIVE )
+
 // [AK] How much to offset the scoreboard horizontally.
 CVAR( Int, cl_scoreboardx, 0, CVAR_ARCHIVE );
 
@@ -2009,6 +2012,37 @@ void DataScoreColumn::ParseCommand( FScanner &sc, const COLUMNCMD_e Command, con
 		default:
 			ScoreColumn::ParseCommand( sc, Command, CommandName );
 			break;
+	}
+}
+
+//*****************************************************************************
+//
+// [AK] DataScoreColumn::Refresh
+//
+// On top of performing the regular checks to see if this column needs to be
+// disabled, if this is also a country column, check if it should be disabled
+// because every connected player's country is unavailable. This only matters
+// if cl_nocountriesifunavailable is enabled.
+//
+//*****************************************************************************
+
+void DataScoreColumn::Refresh( void )
+{
+	// [AK] Call the superclass's refresh function first.
+	ScoreColumn::Refresh( );
+
+	if (( bDisabled ) || ( cl_nocountriesifunavailable == false ))
+		return;
+
+	if (( NativeType == COLUMNTYPE_COUNTRYNAME ) || ( NativeType == COLUMNTYPE_COUNTRYCODE ) || ( NativeType == COLUMNTYPE_COUNTRYFLAG ))
+	{
+		for ( unsigned int i = 0; i < MAXPLAYERS; i++ )
+		{
+			if (( CanDrawForPlayer( i )) && ( players[i].ulCountryIndex > 0 ))
+				return;
+		}
+
+		bDisabled = true;
 	}
 }
 
