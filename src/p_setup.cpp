@@ -4487,6 +4487,13 @@ void P_SetupLevel (char *lumpname, int position)
 	delete[] sidetemp;
 	sidetemp = NULL;
 
+	// [AK] If there's available start points for each player, add them to the list.
+	for ( i = 0; i < MAXPLAYERS; i++ )
+	{
+		if ( playerstarts[i].type != 0 )
+			AvailableCooperativeStarts.Push( playerstarts[i] );
+	}
+
 	/* [BC/BB] Zandronum handles spawning differently.
 	// if deathmatch, randomly spawn the active players
 	if (deathmatch)
@@ -4516,10 +4523,6 @@ void P_SetupLevel (char *lumpname, int position)
 	*/
 	for ( i = 0; i < MAXPLAYERS; i++ )
 	{
-		// [AK] If there's an available start point for this player, add it to the list.
-		if ( playerstarts[i].type != 0 )
-			AvailableCooperativeStarts.Push( playerstarts[i] );
-
 		if ( playeringame[i] == false )
 			continue;
 
