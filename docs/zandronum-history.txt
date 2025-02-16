@@ -278,6 +278,7 @@
 !	- Removed the hardcoded spawning behaviour that was used specifically for Team LMS, in favour of using sv_spawnfarthest. [AKMDM]
 !	- Adding -NOTDMATCH to WhiteFlag inheriting actors now allows them to spawn in non-1FCTF gamemodes. [Trillster]
 !	- NetIDs are now unsigned, doubling the maximum NetID possible from 32767 to 65535. [AKMDM, Sean]
+!	- Custom properties in skins are no longer ignored and can now be used with "GetSkinProperty". [Trillster]
 
 
 3.1
