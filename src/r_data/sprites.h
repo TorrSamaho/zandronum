@@ -1,6 +1,9 @@
 #ifndef __RES_SPRITES_H
 #define __RES_SPRITES_H
 
+// [TRSR] For PlayerValue usage in FPlayerSkin.
+#include "scoreboard.h"
+
 // [BC] This is the maximum length a skin name can be.
 #define	MAX_SKIN_NAME					24
 
@@ -72,6 +75,13 @@ public:
 
 	// Is this skin a cheat skin?
 	bool		bCheat;
+
+	// [TRSR] Properties stored for GetSkinProperty mapping.
+	int			game;
+	const PClass *classType;
+
+	// [TRSR] Lookup table for GetSkinProperty.
+	TMap<FName, TArray<PlayerValue>> propertyList;
 	// [BC] End of new skin properties.
 };
 

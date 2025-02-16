@@ -1881,6 +1881,44 @@ static int SendNetworkString ( FBehavior* module, AActor* activator, int script,
 	return 0;
 }
 
+// ================================================================================================
+//
+// [TRSR] GetPlayerValue
+//
+// Parses a PlayerValue variable into an ACS usable value.
+//
+// ================================================================================================
+
+static int GetPlayerValue ( const PlayerValue &Val )
+{
+	switch ( Val.GetDataType( ))
+	{
+		case DATATYPE_INT:
+			return Val.GetValue<int>( );
+
+		case DATATYPE_BOOL:
+			return Val.GetValue<bool>( );
+
+		case DATATYPE_FLOAT:
+			return FLOAT2FIXED( Val.GetValue<float>( ));
+
+		case DATATYPE_STRING:
+			return GlobalACSStrings.AddString( Val.GetValue<const char *>( ));
+
+		case DATATYPE_COLOR:
+			return Val.GetValue<PalEntry>( );
+
+		case DATATYPE_TEXTURE:
+		{
+			FTexture *pTexture = Val.GetValue<FTexture *>( );
+			return GlobalACSStrings.AddString( pTexture != NULL ? pTexture->Name : "" );
+		}
+
+		default:
+			return 0;
+	}
+}
+
 //---- Plane watchers ----//
 
 class DPlaneWatcher : public DThinker
@@ -5492,6 +5530,7 @@ enum EACSFunctions
 	ACSF_SkipJoinQueue,
 	ASCF_GetControlPointInfo, // [TRSR] Added Domination functions.
 	ASCF_SetControlPointInfo,
+	ASCF_GetSkinProperty, // [TRSR]
 
 	// ZDaemon
 	ACSF_GetTeamScore = 19620,	// (int team)
@@ -8138,32 +8177,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				{
 					const PlayerValue Val = pData->GetValue( args[1] );
 
-					switch ( Val.GetDataType( ))
-					{
-						case DATATYPE_INT:
-							return Val.GetValue<int>( );
-
-						case DATATYPE_BOOL:
-							return Val.GetValue<bool>( );
-
-						case DATATYPE_FLOAT:
-							return FLOAT2FIXED( Val.GetValue<float>( ));
-
-						case DATATYPE_STRING:
-							return GlobalACSStrings.AddString( Val.GetValue<const char *>( ));
-
-						case DATATYPE_COLOR:
-							return Val.GetValue<PalEntry>( );
-
-						case DATATYPE_TEXTURE:
-						{
-							FTexture *pTexture = Val.GetValue<FTexture *>( );
-							return GlobalACSStrings.AddString( pTexture != NULL ? pTexture->Name : "" );
-						}
-
-						default:
-							return 0;
-					}
+					return GetPlayerValue( Val );
 				}
 
 				return 0;
@@ -8686,9 +8700,9 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 					if (( skinName != nullptr ) && ( strlen( skinName ) > 0 ))
 						skinIndex = R_FindSkin( skinName, player->CurrentPlayerClass );
 
-					// [AK] If the skin doesn't exist, return an empty string.
+					// [AK/TRSR] If the skin doesn't exist, return -1.
 					if (( skinIndex == player->CurrentPlayerClass ) && (( skinName == nullptr ) || ( stricmp( skinName, "Base" ) != 0 )))
-						return GlobalACSStrings.AddString( "" );
+						return -1;
 				}
 				// [AK] ...or if we want to know the skin that's visible using without any
 				// guess and check, then use their overridden skin (i.e. weapon preferred skin
@@ -8703,15 +8717,32 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 						skinIndex = player->userinfo.GetSkin( );
 				}
 
-				// [AK] Return the name of their skin if they're using one, or "Base" if not.
-				if ( skinIndex != player->CurrentPlayerClass )
-					return GlobalACSStrings.AddString( skins[skinIndex].name );
-				else
-					return GlobalACSStrings.AddString( "Base" );
+				// [TRSR] Return the index of their skin.
+				return skinIndex;
 			}
 
-			// [AK] Return an empty string for invalid players instead.
-			return GlobalACSStrings.AddString( "" );
+			// [AK/TRSR] Return -1 for invalid players instead.
+			return -1;
+		}
+
+		case ASCF_GetSkinProperty:
+		{
+			const unsigned int skinIndex = args[0];
+			const FName property = FBehavior::StaticLookupString( args[1] );
+			const bool checkType = argCount >= 3 ? !!args[2] : false;
+			const unsigned int propertyIndex = argCount >= 4 ? args[3] : 0;
+
+			if (( skinIndex >= skins.Size() ) || ( !skins[skinIndex].propertyList.CheckKey(property) ) || ( propertyIndex >= skins[skinIndex].propertyList[property].Size() ))
+			{
+				if ( checkType )
+					return DATATYPE_e::DATATYPE_UNKNOWN;
+				else
+					return 0;
+			}
+
+			const PlayerValue value = skins[skinIndex].propertyList[property][propertyIndex];
+
+			return checkType ? value.GetDataType() : GetPlayerValue( value );
 		}
 
 		case ACSF_GetPlayerCountry:
