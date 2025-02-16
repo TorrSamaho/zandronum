@@ -1757,7 +1757,12 @@ CSkullBot::CSkullBot( const char *pszName, const char *pszTeamName, ULONG ulPlay
 	m_pPlayer = &players[ulPlayerNum];
 	m_pPlayer->pSkullBot = this;
 	m_pPlayer->bIsBot = true;
-	m_pPlayer->bSpectating = false;
+
+	// [AK] Later on, PLAYER_ShouldSpawnAsSpectator gets called, which in turn
+	// calls GAMEMODE_PreventPlayersFromJoining and then DUEL_CountActiveDuelers.
+	// Thus, The bot's spectating status should be initialized to true, or else
+	// they could be prevented from joining.
+	m_pPlayer->bSpectating = true;
 	m_pPlayer->bDeadSpectator = false;
 
 	// [AK] Bots have a local connection to the host, so set their country index to LAN.
