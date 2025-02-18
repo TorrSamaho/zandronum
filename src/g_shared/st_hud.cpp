@@ -1009,7 +1009,7 @@ static void HUD_RenderHolders( void )
 
 		int numPoints = 0;
 		int longestPointWidth = -1;
-		for ( int i = 0; i < level.info->SectorInfo.Points.Size(); i++ )
+		for ( unsigned int i = 0; i < level.info->SectorInfo.Points.Size(); i++ )
 		{
 			if ( level.info->SectorInfo.Points[i].disabled )
 				continue;

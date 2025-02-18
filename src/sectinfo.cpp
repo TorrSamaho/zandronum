@@ -68,7 +68,7 @@ bool DPOINT_s::PlayerInsidePoint( const ULONG ulPlayer )
 
 	for ( unsigned int i = 0; i < sectors.Size(); i++ )
 	{
-		if ( sectors[i] == players[ulPlayer].mo->Sector->sectornum )
+		if ( sectors[i] == static_cast<unsigned>( players[ulPlayer].mo->Sector->sectornum ))
 			return true;
 	}
 

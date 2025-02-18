@@ -252,7 +252,7 @@ void DOMINATION_SetOwnership(unsigned int point, unsigned int team, bool broadca
 		return;
 
 	// [TRSR] Need to save previous team for event script below.
-	int prevTeam = level.info->SectorInfo.Points[point].owner;
+	unsigned int prevTeam = level.info->SectorInfo.Points[point].owner;
 	if ( team == prevTeam )
 		return;
 

@@ -8013,7 +8013,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 						DOMINATION_SetOwnership( point, value );
 						break;
 					case POINTINFO_DISABLED:
-						DOMINATION_SetDisabled( point, static_cast<bool>(value) );
+						DOMINATION_SetDisabled( point, !!value );
 						break;
 					default:
 						return false;
