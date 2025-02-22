@@ -2513,6 +2513,23 @@ static void AddAutoloadFiles(const char *gamesection)
 
 //==========================================================================
 //
+// [TRSR] AddPostloadFiles
+//
+//==========================================================================
+
+static void AddPostloadFiles()
+{
+	if (!(gameinfo.flags & GI_SHAREWARE) && !Args->CheckParm("-nopostload"))
+	{
+		// [TRSR] Add any .wad or .pk3 files in the postload directory
+		// Under Unix looks into SHARE_DIR, progdir and HOME/.zdoom dir.
+		// Under Windows looks into progdir and HOME/.zdoom dir.
+		D_AddSubdirectory ( "postload" );
+	}
+}
+
+//==========================================================================
+//
 // CheckCmdLine
 //
 //==========================================================================
@@ -2822,6 +2839,9 @@ void D_DoomMain (void)
 		{
 			exec->AddPullins(allwads);
 		}
+
+		// [TRSR] Add any files in postload directory
+		AddPostloadFiles();
 
 		// Since this function will never leave we must delete this array here manually.
 		pwads.Clear();
