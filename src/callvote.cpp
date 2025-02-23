@@ -275,7 +275,7 @@ const TArray<VOTETYPE_s> &CALLVOTE_GetCustomVotes( void )
 const VOTETYPE_s* CALLVOTE_GetCustomVoteTypeDefinition( ULONG ulVoteType )
 {
 	const ULONG index = ulVoteType - NUM_VOTECMDS - 1;
-	if ( ( index >= 0 ) && ( index < g_VoteTypeDefinitions.Size() ) )
+	if ( index < g_VoteTypeDefinitions.Size() )
 	{
 		return &g_VoteTypeDefinitions[index];
 	}
