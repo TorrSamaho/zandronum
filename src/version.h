@@ -40,7 +40,7 @@ const char *GetGitTime();
 const char *GetVersionString();
 // [BB]
 const char *GetVersionStringRev();
-unsigned int GetRevisionNumber();
+int GetRevisionNumber();
 
 /** Lots of different version numbers **/
 

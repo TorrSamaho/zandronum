@@ -79,7 +79,7 @@ const char *GetVersionStringRev()
 }
 
 // [BB]
-unsigned int GetRevisionNumber()
+int GetRevisionNumber()
 {
 	return HG_REVISION_NUMBER;
 }

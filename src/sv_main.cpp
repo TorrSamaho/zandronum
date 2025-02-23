@@ -1923,7 +1923,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	FString			clientVersion;
 	FString			clientPassword;
 	char			szServerPassword[MAX_NETWORK_STRING];
-	unsigned int	clientNetworkGameVersion;
+	int				clientNetworkGameVersion;
 	IPStringArray	szAddress;
 	ULONG			ulIdx;
 	NETADDRESS_s	AddressFrom;
