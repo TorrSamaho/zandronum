@@ -133,7 +133,6 @@ void				CLIENT_EndTick( void );
 CONNECTIONSTATE_e	CLIENT_GetConnectionState( void );
 void				CLIENT_SetConnectionState( CONNECTIONSTATE_e State );
 NETBUFFER_s			*CLIENT_GetLocalBuffer( void );
-void				CLIENT_SetLocalBuffer( NETBUFFER_s *pBuffer );
 ULONG				CLIENT_GetLastServerTick( void );
 void				CLIENT_SetLastServerTick( ULONG ulTick );
 ULONG				CLIENT_GetLastConsolePlayerUpdateTick( void );

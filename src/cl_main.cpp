@@ -719,13 +719,6 @@ NETBUFFER_s *CLIENT_GetLocalBuffer( void )
 
 //*****************************************************************************
 //
-void CLIENT_SetLocalBuffer( NETBUFFER_s *pBuffer )
-{
-	g_LocalBuffer = *pBuffer;
-}
-
-//*****************************************************************************
-//
 ULONG CLIENT_GetLastServerTick( void )
 {
 	return ( g_ulLastServerTick );
