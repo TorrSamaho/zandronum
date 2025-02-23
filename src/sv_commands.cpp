@@ -609,7 +609,7 @@ void SERVERCOMMANDS_SetPlayerUserInfo( ULONG ulPlayer, const std::set<FName> &na
 			element.name = name;
 			// [BB] Skin needs special treatment, so that the clients can use skins the server doesn't have.
 			if ( name == NAME_Skin )
-				element.value = SERVER_GetClient( ulPlayer )->szSkin;
+				element.value = SERVER_GetClient( ulPlayer )->skinName;
 			else
 				element.value = cvar->GetGenericRep( CVAR_String ).String;
 

@@ -2129,7 +2129,7 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	g_aClients[lClient].bSuspicious = false;
 	g_aClients[lClient].ulNumConsistencyWarnings = 0;
 	g_aClients[lClient].numMissingPackets = 0;
-	g_aClients[lClient].szSkin[0] = 0;
+	g_aClients[lClient].skinName = "";
 	g_aClients[lClient].commRules.clear( );
 	g_aClients[lClient].ScreenWidth = 0;
 	g_aClients[lClient].ScreenHeight = 0;
@@ -2354,7 +2354,7 @@ bool SERVER_GetUserInfo( BYTESTREAM_s *pByteStream, bool bAllowKick, bool bEnfor
 	{
 		// Store the name of the skin the client gave us, so others can view the skin
 		// even if the server doesn't have the skin loaded.
-		strncpy( g_aClients[g_lCurrentClient].szSkin, szSkin, MAX_SKIN_NAME + 1 );
+		g_aClients[g_lCurrentClient].skinName = szSkin;
 
 		// [BB] This can't be done if PlayerClass == -1, but shouldn't be necessary anyway,
 		// since it's done as soon as the player is spawned in P_SpawnPlayer.

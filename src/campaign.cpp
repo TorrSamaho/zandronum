@@ -494,8 +494,7 @@ static void campaign_ParseCampaignInfoLump( FScanner &sc )
 				if (( lBotIndex < 0 ) || ( lBotIndex >= MAXPLAYERS ))
 					I_Error( "CAMPAIGN_ParseCampaignInfo: Invalid \"bot\" index, %d!", static_cast<int> (lBotIndex) );
 
-				strncpy( pInfo->BotSpawn[lBotIndex].szBotName, szValue, 31 );
-				pInfo->BotSpawn[lBotIndex].szBotName[31] = 0;
+				snprintf( pInfo->BotSpawn[lBotIndex].szBotName, sizeof( pInfo->BotSpawn[lBotIndex].szBotName ), "%s", szValue );
 			}
 			else
 				I_Error( "CAMPAIGN_ParseCampaignInfo: Unknown CMPGNINF property, \"%s\"!", szKey );

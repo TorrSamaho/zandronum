@@ -3810,10 +3810,10 @@ void GAME_ResetMap( bool bRunEnterScripts )
 			bSendSkyUpdate = true;
 		}
 
-		strncpy( level.skypic1, pLevelInfo->skypic1, 8 );
-		strncpy( level.skypic2, pLevelInfo->skypic2, 8 );
+		snprintf( level.skypic1, sizeof( level.skypic1 ), "%s", pLevelInfo->skypic1 );
+		snprintf( level.skypic2, sizeof( level.skypic2 ), "%s", pLevelInfo->skypic2 );
 		if ( level.skypic2[0] == 0 )
-			strncpy( level.skypic2, level.skypic1, 8 );
+			snprintf( level.skypic2, sizeof( level.skypic2 ), "%s", level.skypic1 );
 
 		sky1texture = TexMan.GetTexture( level.skypic1, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable );
 		sky2texture = TexMan.GetTexture( level.skypic2, FTexture::TEX_Wall, FTextureManager::TEXMAN_Overridable );

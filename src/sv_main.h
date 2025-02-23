@@ -518,7 +518,7 @@ struct CLIENT_s
 	unsigned int	numMissingPackets;
 
 	// What is the name of the client's skin?
-	char			szSkin[MAX_SKIN_NAME+1];
+	FString			skinName;
 
 	// [AK] A list of IP addresses that this client has set up communication rules for.
 	std::list<ClientCommRule> commRules;

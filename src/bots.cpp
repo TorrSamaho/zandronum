@@ -1784,7 +1784,7 @@ CSkullBot::CSkullBot( const char *pszName, const char *pszTeamName, ULONG ulPlay
 	// Store the name of the skin the client gave us, so others can view the skin
 	// even if the server doesn't have the skin loaded.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		strncpy( SERVER_GetClient( ulPlayerNum )->szSkin, g_BotInfo[m_ulBotInfoIdx].szSkinName, MAX_SKIN_NAME + 1 );
+		SERVER_GetClient( ulPlayerNum )->skinName = g_BotInfo[m_ulBotInfoIdx].szSkinName;
 
 	LONG lSkin = R_FindSkin( g_BotInfo[m_ulBotInfoIdx].szSkinName, 0 );
 	m_pPlayer->userinfo.SkinNumChanged ( lSkin );
