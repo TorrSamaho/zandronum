@@ -1782,7 +1782,7 @@ static void network_InitPWADList( void )
 	for ( ULONG ulIdx = 0; Wads.GetWadName( ulIdx ) != NULL; ulIdx++ )
 	{
 		// [SB] Skip nested WADs, they can't be checksummed and only their parents matter anyway. 
-		if ( Wads.GetParentWad( ulIdx ) != ulIdx )
+		if ( Wads.GetParentWad( ulIdx ) != static_cast<int>( ulIdx ))
 		{
 			continue;
 		}

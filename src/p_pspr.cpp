@@ -695,7 +695,7 @@ void P_BobWeapon (player_t *player, pspdef_t *psp, fixed_t *x, fixed_t *y)
 	if (viewpitchoffset != 0.0f)
 	{
 		fixed_t halfmin = FIXED_MIN >> 1;
-		fixed_t value;
+		fixed_t value = 0;
 
 		switch (viewpitchstyle)
 		{

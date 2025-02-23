@@ -1263,17 +1263,17 @@ CCMD (spyto)
 		return;
 	}
 
-	ULONG ulPlayer = SERVER_GetPlayerIndexFromName( argv[1], true, true );
+	int player = SERVER_GetPlayerIndexFromName( argv[1], true, true );
 
 	// [AK] Make sure the player exists.
-	if ( ulPlayer == MAXPLAYERS )
+	if ( player == MAXPLAYERS )
 	{
 		Printf( "There isn't a player named %s" TEXTCOLOR_NORMAL ".\n", argv[1] );
 		return;
 	}
 
 	// allow spy mode changes even during the demo
-	ChangeSpy ( ulPlayer != static_cast<ULONG>( consoleplayer ) ? ulPlayer : SPY_CANCEL );
+	ChangeSpy ( player != consoleplayer ? player : static_cast<int>( SPY_CANCEL ));
 }
 
 // [AK] Spy on a player by passing their number.

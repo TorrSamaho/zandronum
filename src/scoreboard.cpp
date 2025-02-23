@@ -3133,7 +3133,7 @@ void Scoreboard::Refresh( const unsigned int displayPlayer, const int minYPos )
 
 		// [AK] Don't use cl_usescoreboardscale_screenratio if the resolution of
 		// the scoreboard matches the screen's actual ratio.
-		if (( g_ScreenWidth != SCREENWIDTH ) || ( g_ScreenHeight != SCREENHEIGHT ))
+		if (( g_ScreenWidth != static_cast<unsigned>( SCREENWIDTH )) || ( g_ScreenHeight != static_cast<unsigned>( SCREENHEIGHT )))
 			g_KeepScreenRatio = cl_usescoreboardscale_screenratio;
 		else
 			g_KeepScreenRatio = true;
@@ -3146,7 +3146,7 @@ void Scoreboard::Refresh( const unsigned int displayPlayer, const int minYPos )
 	}
 
 	// [AK] The minimum y-position needs to be scaled if the scoreboard is too.
-	if ( g_ScreenHeight != SCREENHEIGHT )
+	if ( g_ScreenHeight != static_cast<unsigned>( SCREENHEIGHT ))
 	{
 		const float scale = static_cast<float>( g_ScreenHeight ) / SCREENHEIGHT;
 		scaledMinYPos = static_cast<int>( minYPos * scale );

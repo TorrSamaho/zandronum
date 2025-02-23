@@ -641,7 +641,7 @@ public:
 
 		if ( opt != nullptr )
 		{
-			int numRecordDrivers = ( *opt )->mValues.Size( );
+			unsigned int numRecordDrivers = ( *opt )->mValues.Size( );
 
 			// [AK] "None" doesn't count as a record driver.
 			if ( stricmp(( *opt )->mValues[0].Text, "None" ) == 0 )

@@ -2485,7 +2485,7 @@ void CLIENT_QuitNetworkGame( const char *pszString )
 	}
 
 	// Clear out our copy of the server address.
-	memset( &g_AddressServer, 0, sizeof( g_AddressServer ));
+	g_AddressServer.Clear( );
 	CLIENT_SetConnectionState( CTS_DISCONNECTED );
 
 	// Go back to the full console.
@@ -9305,7 +9305,7 @@ static void client_SetCameraToTexture( BYTESTREAM_s *pByteStream )
 //
 static void client_CreateTranslation( BYTESTREAM_s *pByteStream )
 {
-	EDITEDTRANSLATION_s	Translation;
+	EDITEDTRANSLATION_s	Translation = { };
 	FRemapTable	*pTranslation;
 
 	// Read in which translation is being created.

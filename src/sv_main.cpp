@@ -3230,7 +3230,7 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo, L
 	// [BB] Clear any cheats the player had. Note: This may not be done before the player dropped the important items!
 	players[ulClient].cheats = players[ulClient].cheats2 = 0;
 
-	memset( &g_aClients[ulClient].Address, 0, sizeof( g_aClients[ulClient].Address ));
+	g_aClients[ulClient].Address.Clear( );
 	g_aClients[ulClient].State = CLS_FREE;
 	g_aClients[ulClient].ulLastGameTic = 0;
 	playeringame[ulClient] = false;
@@ -4355,9 +4355,10 @@ void SERVER_ClearSectorLinks( void )
 //
 void SERVER_UpdateLoopingChannels( AActor *pActor, int channel, FSoundID soundid, float fVolume, float fAttenuation, bool bRemove )
 {
-	FSoundChan chan;
+	FSoundChan chan = { };
 
-	chan.NextChan = NULL;
+	chan.NextChan = nullptr;
+	chan.PrevChan = nullptr;
 	chan.Actor = pActor;
 	chan.EntChannel = channel & 7;
 	chan.ChanFlags = channel & ~7;

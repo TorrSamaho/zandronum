@@ -213,6 +213,7 @@ class ScoreColumn
 {
 public:
 	ScoreColumn( const char *pszName );
+	virtual ~ScoreColumn( void ) { }
 
 	Scoreboard *GetScoreboard( void ) const { return pScoreboard; }
 	const char *GetInternalName( void ) const { return InternalName.GetChars( ); }

@@ -1519,7 +1519,7 @@ protected:
 							{
 								// [AK] If the slash was entered incorrectly, or there's
 								// more than one, don't format the phrase.
-								if (( slashIndex == 0 ) || ( slashIndex == phrase.Len( ) - 1 ) || ( phrase.LastIndexOf( '/' ) != slashIndex ))
+								if (( slashIndex == 0 ) || ( slashIndex == static_cast<long>( phrase.Len( ) - 1 )) || ( phrase.LastIndexOf( '/' ) != slashIndex ))
 									text.AppendFormat( "{%s}", phrase.GetChars( ));
 								// [AK] Choose either the singular or plural text.
 								else if ( usePluralWords == false )
@@ -3147,7 +3147,7 @@ FString SCOREBOARD_BuildChampionString( void )
 {
 	const bool inResults = GAMEMODE_IsGameInResultSequence( );
 	unsigned int winner = MAXPLAYERS;
-	int highestFrags = LONG_MIN;
+	int highestFrags = INT_MIN;
 	FString championString;
 
 	for ( unsigned int i = 0; i < MAXPLAYERS; i++ )
