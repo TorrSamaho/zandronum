@@ -176,7 +176,6 @@ void NETWORK_Construct( USHORT usPort, const char *pszIPAddress )
 	// can hold the biggest possible size we may get after decompressing (aka Huffman decoding)
 	// the incoming UDP packet.
 	g_NetworkMessage.Init( ((MAX_UDP_PACKET * 8) / 3 + 1), BUFFERTYPE_READ );
-	g_NetworkMessage.Clear();
 
 	// [BB] Get and save our local IP.
 	if ( ( ulInAddr == INADDR_ANY ) || ( pszIPAddress == NULL ) )

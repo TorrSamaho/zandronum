@@ -85,7 +85,6 @@ NETBUFFER_s::NETBUFFER_s ( )
 NETBUFFER_s::NETBUFFER_s ( const NETBUFFER_s &Buffer )
 {
 	Init ( Buffer.ulMaxSize, Buffer.BufferType );
-	Clear();
 
 	memcpy( this->pbData, Buffer.pbData, Buffer.ulMaxSize );
 	this->ByteStream.pbStream = this->pbData + ( Buffer.ByteStream.pbStream - Buffer.pbData );
@@ -101,10 +100,10 @@ NETBUFFER_s::NETBUFFER_s ( const NETBUFFER_s &Buffer )
 //
 void NETBUFFER_s::Init( ULONG ulLength, BUFFERTYPE_e BufferType )
 {
-	memset( this, 0, sizeof( *this ));
 	this->ulMaxSize = ulLength;
 	this->pbData = new BYTE[ulLength];
 	this->BufferType = BufferType;
+	Clear();
 }
 
 //*****************************************************************************

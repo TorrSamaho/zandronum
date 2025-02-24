@@ -225,7 +225,6 @@ bool OutgoingPacketBuffer::SendPacket( unsigned int packetNumber, const NETADDRE
 	// Now that we've found the packet, send it.
 	NETBUFFER_s TempBuffer;
 	TempBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-	TempBuffer.Clear();
 	TempBuffer.ByteStream.WriteHeader( SVC_HEADER );
 	TempBuffer.ByteStream.WriteLong( packetNumber );
 	if ( packetSize > 0 )

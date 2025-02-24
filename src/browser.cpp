@@ -102,11 +102,9 @@ void BROWSER_Construct( void )
 
 	// Setup our master server message buffer.
 	g_MasterServerBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-	g_MasterServerBuffer.Clear();
 
 	// Setup our server message buffer.
 	g_ServerBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-	g_ServerBuffer.Clear();
 
 	// Allow the user to specify which port the master server is on.
 	pszPort = Args->CheckValue( "-masterport" );

@@ -547,11 +547,9 @@ void SERVER_MASTER_Construct( void )
 
 	// Setup our message buffer.
 	g_MasterServerBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-	g_MasterServerBuffer.Clear();
 
 	// [SB] Buffer for assembling segments.
 	g_SegmentBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-	g_SegmentBuffer.Clear();
 
 	// Allow the user to specify which port the master server is on.
 	pszPort = Args->CheckValue( "-masterport" );

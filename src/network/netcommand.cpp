@@ -109,7 +109,6 @@ NetCommand::NetCommand ( const SVC Header ) :
 	_unreliable( false )
 {
 	_buffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-	_buffer.Clear();
 	addByte( Header );
 }
 
@@ -119,7 +118,6 @@ NetCommand::NetCommand ( const SVC2 Header2 ) :
 	_unreliable( false )
 {
 	_buffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-	_buffer.Clear();
 	addByte( SVC_EXTENDEDCOMMAND );
 	addByte( Header2 );
 }

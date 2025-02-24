@@ -128,8 +128,6 @@ CVAR( String, authhostname, "auth.zandronum.com:16666", CVAR_ARCHIVE|CVAR_GLOBAL
 void NETWORK_AUTH_Construct( void )
 {
 	g_AuthServerBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-	g_AuthServerBuffer.Clear();
-
 	g_AuthServerAddressCached = false;
 
 	atterm( NETWORK_AUTH_Destruct );

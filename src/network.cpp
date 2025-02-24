@@ -377,7 +377,6 @@ void NETWORK_Construct( USHORT usPort, bool bAllocateLANSocket )
 	// can hold the biggest possible size we may get after decompressing (aka Huffman decoding)
 	// the incoming UDP packet.
 	g_NetworkMessage.Init( ((MAX_UDP_PACKET * 8) / 3 + 1), BUFFERTYPE_READ );
-	g_NetworkMessage.Clear();
 
 	// If hosting, update the server GUI.
 	if( NETWORK_GetState() == NETSTATE_SERVER )

@@ -531,7 +531,6 @@ void SERVER_Construct( void )
 	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
     {
 		g_aClients[ulIdx].PacketBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-		g_aClients[ulIdx].PacketBuffer.Clear();
 
 		// Initialize the saved packet buffer.
 		g_aClients[ulIdx].SavedPackets.Initialize( g_ulMaxPacketSize );
@@ -539,7 +538,6 @@ void SERVER_Construct( void )
 
 		// Initialize the unreliable packet buffer.
 		g_aClients[ulIdx].UnreliablePacketBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-		g_aClients[ulIdx].UnreliablePacketBuffer.Clear();
 
 		// This is currently an open slot.
 		g_aClients[ulIdx].State = CLS_FREE;
@@ -2417,7 +2415,6 @@ void SERVER_ConnectionError( NETADDRESS_s Address, const char *pszMessage, ULONG
 	NETBUFFER_s	TempBuffer;
 
 	TempBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-	TempBuffer.Clear();
 
 	// Display error message locally in the console.
 	Printf( "Denied connection for %s: %s\n", Address.ToString(), pszMessage );

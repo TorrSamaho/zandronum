@@ -137,7 +137,6 @@ public:
 			_destServer ( DestServer )
 	{
 		_netBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-		_netBuffer.Clear();
 	}
 
 	~BanlistPacketSender ( )
@@ -724,7 +723,6 @@ int main( int argc, char **argv )
 
 	// Initialize the message buffer we send messages to the launcher in.
 	g_MessageBuffer.Init ( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-	g_MessageBuffer.Clear();
 
 	// Initialize the bans subsystem.
 	std::cerr << "Initializing ban list...\n";

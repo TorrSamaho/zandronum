@@ -507,7 +507,6 @@ void CLIENT_Construct( void )
 	NETWORK_Construct( usPort, true );
 
 	g_LocalBuffer.Init( MAX_UDP_PACKET * 8, BUFFERTYPE_WRITE );
-	g_LocalBuffer.Clear();
 
 	// Initialize the stored packets buffer.
 	g_ReceivedPacketBuffer.lMaxSize = MAX_UDP_PACKET * PACKET_BUFFER_SIZE;

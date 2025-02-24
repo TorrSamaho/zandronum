@@ -455,7 +455,6 @@ void CLIENTCOMMANDS_Pong( unsigned int time )
 	// other commands tic-synced in CLIENT_EndTick().
 	NETBUFFER_s	TempBuffer;
 	TempBuffer.Init( MAX_UDP_PACKET, BUFFERTYPE_WRITE );
-	TempBuffer.Clear();
 	TempBuffer.ByteStream.WriteByte( CLC_PONG );
 	TempBuffer.ByteStream.WriteLong( time );
 	NETWORK_LaunchPacket( &TempBuffer, NETWORK_GetFromAddress( ) );
