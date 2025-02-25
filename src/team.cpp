@@ -276,7 +276,7 @@ void TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner )
 	{
 		if ( NETWORK_InClientMode() == false )
 			static_cast<ATeamItem *>( pTeamItem )->ReturnFlag( pReturner );
-		static_cast<ATeamItem *>( pTeamItem )->DisplayFlagReturn( );
+		static_cast<ATeamItem *>( pTeamItem )->DisplayFlagReturn( pReturner );
 	}
 
 	static_cast<ATeamItem *>( pTeamItem )->ResetReturnTicks( );
@@ -305,7 +305,7 @@ void TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner )
 
 	// Tell clients that the flag has been returned.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_TeamFlagReturned( ulTeamIdx );
+		SERVERCOMMANDS_TeamFlagReturned(( pReturner && pReturner->player ) ? pReturner->player - players : MAXPLAYERS, ulTeamIdx );
 	else
 		HUD_ShouldRefreshBeforeRendering( );
 }

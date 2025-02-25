@@ -158,7 +158,7 @@ bool ATeamItem::TryPickup( AActor *&toucher )
 				}
 
 				// Display text saying that the item has been returned.
-				DisplayFlagReturn( );
+				DisplayFlagReturn( toucher );
 			}
 
 			// Reset the return ticks for this item.
@@ -176,7 +176,8 @@ bool ATeamItem::TryPickup( AActor *&toucher )
 				SERVERCOMMANDS_DestroyThing( this );
 
 				// Tell clients that the item has been returned.
-				SERVERCOMMANDS_TeamFlagReturned( TEAM_GetTeamFromItem( this ));
+				// [AK] Also tell them who returned the item.
+				SERVERCOMMANDS_TeamFlagReturned( toucher->player ? toucher->player - players : MAXPLAYERS, TEAM_GetTeamFromItem( this ));
 			}
 			else
 			{
@@ -416,35 +417,14 @@ void ATeamItem::ReturnFlag( AActor *returner )
 				TEAM_SetAssistPlayer( returner->player->Team, returningPlayer );
 		}
 
-		// [RC] Create the "returned by" message for this team.
-		message.Format( "Returned by: %s", players[returningPlayer].userinfo.GetName( ));
-
 		// [CK] Send out an event that a flag/skull was returned, this is the easiest place to do it
 		// Second argument is the team index, third argument is what kind of return it was
 		GAMEMODE_HandleEvent( GAMEEVENT_RETURNS, returner, team, GAMEEVENT_RETURN_PLAYERRETURN );
 	}
 	else
 	{
-		// [RC] Create the "returned automatically" message for this team.
-		message = "Returned automatically.";
-
 		// [CK] Indicate the server returned the flag/skull after a timeout
 		GAMEMODE_HandleEvent( GAMEEVENT_RETURNS, nullptr, team, GAMEEVENT_RETURN_TIMEOUTRETURN );
-	}
-
-	HUD_DrawSUBSMessage( message.GetChars( ), static_cast<EColorRange>( TEAM_GetTextColor( team )), 3.0f, 0.25f, true );
-
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		FString itemName = TEXTCOLOR_ESCAPE;
-		itemName.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "%s", TEAM_GetTextColorName( team ), TEAM_GetName( team ), GetType( ));
-
-		if ( returningPlayer != MAXPLAYERS )
-			message.Format( "%s returned the %s.", players[returningPlayer].userinfo.GetName( ), itemName.GetChars( ));
-		else
-			message.Format( "%s returned.", itemName.GetChars( ));
-
-		SERVER_Printf( PRINT_MEDIUM, "%s\n", message.GetChars( ));
 	}
 }
 
@@ -475,15 +455,39 @@ void ATeamItem::AnnounceFlagReturn( void )
 //
 //===========================================================================
 
-void ATeamItem::DisplayFlagReturn( void )
+void ATeamItem::DisplayFlagReturn( AActor *returner )
 {
+	const unsigned int returningPlayer = ( returner && returner->player ) ? static_cast<unsigned>( returner->player - players ) : MAXPLAYERS;
 	const unsigned int team = TEAM_GetTeamFromItem( this );
 	const EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( team ));
 	FString message;
 
+	FString itemName = TEXTCOLOR_ESCAPE;
+	itemName.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "%s", TEAM_GetTextColorName( team ), TEAM_GetName( team ), GetType( ));
+
+	if ( returningPlayer != MAXPLAYERS )
+		message.Format( "%s returned the %s.", players[returningPlayer].userinfo.GetName( ), itemName.GetChars( ));
+	else
+		message.Format( "%s returned.", itemName.GetChars( ));
+
+	Printf( PRINT_MEDIUM, "%s\n", message.GetChars( ));
+
+	// [AK] The server doesn't need to do anything past this point.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
 	// Create the "returned" message.
 	message.Format( "%s %s returned", TEAM_GetName( team ), GetType( ));
 	HUD_DrawCNTRMessage( message.GetChars( ), color );
+
+	// [RC] Create the "returned by" message for this team.
+	if ( returningPlayer != MAXPLAYERS )
+		message.Format( "Returned by: %s", players[returningPlayer].userinfo.GetName( ));
+	// [RC] Create the "returned automatically" message for this team.
+	else
+		message = "Returned automatically.";
+
+	HUD_DrawSUBSMessage( message.GetChars( ), color );
 }
 
 //===========================================================================
@@ -559,9 +563,7 @@ bool AFlag::HandlePickup( AInventory *item )
 			// Award the scorer with a "Capture!" medal.
 			MEDAL_GiveMedal( player, "Capture" );
 
-			// [RC] Clear the 'returned automatically' message. A bit hackish, but leaves the flag structure unchanged.
 			this->ReturnFlag( nullptr );
-			HUD_DrawSUBSMessage( "", CR_UNTRANSLATED, 3.0f, 0.5f, true );
 
 			// Create the "captured" message.
 			message.Format( "%s team scores!", TEAM_GetName( team ));
@@ -863,7 +865,7 @@ void AWhiteFlag::AnnounceFlagReturn( void )
 //
 //===========================================================================
 
-void AWhiteFlag::DisplayFlagReturn( void )
+void AWhiteFlag::DisplayFlagReturn( AActor *returner )
 {
 	// Create the "returned" message.
 	HUD_DrawCNTRMessage( "White flag returned", CR_GREY );

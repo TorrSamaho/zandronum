@@ -6397,13 +6397,13 @@ static void client_SetTeamReturnTicks( BYTESTREAM_s *pByteStream )
 //
 static void client_TeamFlagReturned( BYTESTREAM_s *pByteStream )
 {
-	ULONG	ulTeam;
-
 	// Read in the team that the flag has been returned for.
-	ulTeam = pByteStream->ReadByte();
+	// [AK] Read in the player that returned the item first.
+	const unsigned int player = pByteStream->ReadByte( );
+	const unsigned int team = pByteStream->ReadByte( );
 
 	// Finally, just call this function that does all the dirty work.
-	TEAM_ExecuteReturnRoutine( ulTeam, NULL );
+	TEAM_ExecuteReturnRoutine( team, PLAYER_IsValidPlayer( player ) ? players[player].mo : nullptr );
 }
 
 //*****************************************************************************

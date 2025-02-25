@@ -145,7 +145,7 @@ public:
 	virtual void DisplayFlagTaken( AActor *toucher );
 	virtual void ReturnFlag( AActor *returner );
 	virtual void AnnounceFlagReturn( void );
-	virtual void DisplayFlagReturn( void );
+	virtual void DisplayFlagReturn( AActor *returner );
 	void MarkFlagTaken( bool bTaken );
 	void ResetReturnTicks( void );
 
@@ -174,7 +174,7 @@ public:
 	virtual void DisplayFlagTaken( AActor *toucher );
 	virtual void ReturnFlag( AActor *returner );
 	virtual void AnnounceFlagReturn( void );
-	virtual void DisplayFlagReturn( void );
+	virtual void DisplayFlagReturn( AActor *returner );
 };
 
 class ASkull : public ATeamItem
