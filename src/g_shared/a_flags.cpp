@@ -321,8 +321,19 @@ LONG ATeamItem::AllowFlagPickup( AActor *pToucher )
 //
 //===========================================================================
 
-void ATeamItem::AnnounceFlagPickup( AActor *pToucher )
+void ATeamItem::AnnounceFlagPickup( AActor *toucher )
 {
+	// Don't announce the pickup if the item is being given to someone as part of a snapshot.
+	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) == CTS_RECEIVINGSNAPSHOT ))
+		return;
+
+	// Build the message. Whatever the team's name is, is the first part of
+	// the message, followed by the item's current type. This way we don't have
+	// to change every announcer to use a new system.
+	FString name = TEAM_GetName( TEAM_GetTeamFromItem( this ));
+	name.AppendFormat( "%sTaken", GetType( ));
+
+	ANNOUNCER_PlayEntry( cl_announcer, name.GetChars( ));
 }
 
 //===========================================================================
@@ -402,6 +413,13 @@ void ATeamItem::ReturnFlag( AActor *pReturner )
 
 void ATeamItem::AnnounceFlagReturn( void )
 {
+	// Build the message. Whatever the team's name is, is the first part of
+	// the message, followed by the item's current type. This way we don't have
+	// to change every announcer to use a new system.
+	FString name = TEAM_GetName( TEAM_GetTeamFromItem( this ));
+	name.AppendFormat( "%sReturned", GetType( ));
+
+	ANNOUNCER_PlayEntry( cl_announcer, name.GetChars( ));
 }
 
 //===========================================================================
@@ -628,30 +646,6 @@ LONG AFlag::AllowFlagPickup( AActor *pToucher )
 
 //===========================================================================
 //
-// AFlag :: AnnounceFlagPickup
-//
-// Play the announcer sound for picking up this flag.
-//
-//===========================================================================
-
-void AFlag::AnnounceFlagPickup( AActor *toucher )
-{
-	// Don't announce the pickup if the flag is being given to someone as part of a snapshot.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) == CTS_RECEIVINGSNAPSHOT ))
-		return;
-
-	// Build the message.
-	// Whatever the team's name is, is the first part of the message. For example:
-	// if the "blue" team has been defined then the message will be "BlueFlagTaken".
-	// This way we don't have to change every announcer to use a new system.
-	FString name = TEAM_GetName( TEAM_GetTeamFromItem( this ));
-	name.AppendFormat( "%sTaken", GetType( ));
-
-	ANNOUNCER_PlayEntry( cl_announcer, name.GetChars( ));
-}
-
-//===========================================================================
-//
 // AFlag :: ReturnFlag
 //
 // Spawn a new flag at its original location.
@@ -724,26 +718,6 @@ void AFlag::ReturnFlag( AActor *pReturner )
 		else
 			SERVER_Printf( PRINT_MEDIUM, "\034%s%s " TEXTCOLOR_NORMAL "flag returned.\n", TEAM_GetTextColorName( TEAM_GetTeamFromItem( this )), TEAM_GetName( TEAM_GetTeamFromItem( this )));
 	}
-}
-
-//===========================================================================
-//
-// AFlag :: AnnounceFlagReturn
-//
-// Play the announcer sound for this flag being returned.
-//
-//===========================================================================
-
-void AFlag::AnnounceFlagReturn( void )
-{
-	// Build the message.
-	// Whatever the team's name is, is the first part of the message. For example:
-	// if the "blue" team has been defined then the message will be "BlueFlagReturned".
-	// This way we don't have to change every announcer to use a new system.
-	FString name = TEAM_GetName( TEAM_GetTeamFromItem( this ));
-	name.AppendFormat( "%sReturned", GetType( ));
-
-	ANNOUNCER_PlayEntry( cl_announcer, name.GetChars( ));
 }
 
 // White flag ---------------------------------------------------------------
@@ -1044,30 +1018,6 @@ LONG ASkull::AllowFlagPickup( AActor *pToucher )
 
 //===========================================================================
 //
-// ASkull :: AnnounceFlagPickup
-//
-// Play the announcer sound for picking up this flag.
-//
-//===========================================================================
-
-void ASkull::AnnounceFlagPickup( AActor *toucher )
-{
-	// Don't announce the pickup if the flag is being given to someone as part of a snapshot.
-	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) == CTS_RECEIVINGSNAPSHOT ))
-		return;
-
-	// Build the message.
-	// Whatever the team's name is, is the first part of the message. For example:
-	// if the "blue" team has been defined then the message will be "BlueSkullTaken".
-	// This way we don't have to change every announcer to use a new system.
-	FString name = TEAM_GetName( TEAM_GetTeamFromItem( this ));
-	name.AppendFormat( "%sTaken", GetType( ));
-
-	ANNOUNCER_PlayEntry( cl_announcer, name.GetChars( ));
-}
-
-//===========================================================================
-//
 // ASkull :: ReturnFlag
 //
 // Spawn a new flag at its original location.
@@ -1139,24 +1089,4 @@ void ASkull::ReturnFlag( AActor *pReturner )
 		else
 			SERVER_Printf( PRINT_MEDIUM, "\034%s%s " TEXTCOLOR_NORMAL "skull returned.\n", TEAM_GetTextColorName( TEAM_GetTeamFromItem( this )), TEAM_GetName( TEAM_GetTeamFromItem( this )));
 	}
-}
-
-//===========================================================================
-//
-// ASkull :: AnnounceFlagReturn
-//
-// Play the announcer sound for this flag being returned.
-//
-//===========================================================================
-
-void ASkull::AnnounceFlagReturn( void )
-{
-	// Build the message.
-	// Whatever the team's name is, is the first part of the message. For example:
-	// if the "blue" team has been defined then the message will be "BlueSkullReturned".
-	// This way we don't have to change every announcer to use a new system.
-	FString name = TEAM_GetName( TEAM_GetTeamFromItem( this ));
-	name.AppendFormat( "%sReturned", GetType( ));
-
-	ANNOUNCER_PlayEntry( cl_announcer, name.GetChars( ));
 }
