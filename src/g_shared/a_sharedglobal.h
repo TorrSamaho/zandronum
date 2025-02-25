@@ -168,8 +168,7 @@ public:
 class ASkull : public ATeamItem
 {
 	DECLARE_CLASS( ASkull, ATeamItem )
-protected:
-
+public:
 	virtual LONG AllowFlagPickup( AActor *pToucher );
 	virtual void AnnounceFlagPickup( AActor *pToucher );
 	virtual void DisplayFlagTaken( AActor *pToucher );

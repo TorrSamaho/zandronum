@@ -67,9 +67,12 @@
 //*****************************************************************************
 //	DEFINES
 
-#define	DENY_PICKUP			0
-#define	ALLOW_PICKUP		1
-#define	RETURN_FLAG			2
+enum
+{
+	DENY_PICKUP,
+	ALLOW_PICKUP,
+	RETURN_FLAG,
+};
 
 // Base team item -----------------------------------------------------------
 
@@ -797,8 +800,7 @@ void AFlag::DisplayFlagReturn( void )
 class AWhiteFlag : public AFlag
 {
 	DECLARE_CLASS( AWhiteFlag, AFlag )
-protected:
-
+public:
 	virtual bool HandlePickup( AInventory *pItem );
 	virtual LONG AllowFlagPickup( AActor *pToucher );
 	virtual void AnnounceFlagPickup( AActor *pToucher );
