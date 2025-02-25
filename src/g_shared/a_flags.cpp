@@ -543,140 +543,104 @@ IMPLEMENT_CLASS( AFlag )
 //
 //===========================================================================
 
-bool AFlag::HandlePickup( AInventory *pItem )
+bool AFlag::HandlePickup( AInventory *item )
 {
-	char				szString[256];
-	DHUDMessageFadeOut	*pMsg;
-	AInventory			*pInventory;
-	bool				selfAssist = false;
-	int playerAssistNumber = GAMEEVENT_CAPTURE_NOASSIST; // [CK] Need these for game event activators
+	const unsigned int player = static_cast<unsigned>( Owner->player - players );
+	const unsigned int team = players[player].Team;
+	EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( team ));
+	FString message;
 
 	// If this object being given isn't a flag, then we don't really care.
-	if ( pItem->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AFlag )) == false )
-		return ( Super::HandlePickup( pItem ));
+	if ( item->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AFlag )) == false )
+		return ( Super::HandlePickup( item ));
 
 	// If we're carrying the opposing team's flag, and trying to pick up our flag,
 	// then that means we've captured the flag. Award a point.
-	if (( this->GetClass( ) != TEAM_GetItem( Owner->player->Team )) &&
-		( pItem->GetClass( ) == TEAM_GetItem( Owner->player->Team )))
+	if (( this->GetClass( ) != TEAM_GetItem( team )) && ( item->GetClass( ) == TEAM_GetItem( team )))
 	{
-		//[NS] Do not allow scoring when the round is over.
-		if ( GAMEMODE_IsGameInProgress() == false )
-			return ( Super::HandlePickup( pItem ));
+		// [NS] Do not allow scoring when the round is over.
+		if ( GAMEMODE_IsGameInProgress( ) == false )
+			return ( Super::HandlePickup( item ));
 
 		// Don't award a point if we're touching a dropped version of our flag.
-		if ( static_cast<AFlag *>( pItem )->AllowFlagPickup( Owner ) == RETURN_FLAG )
-			return ( Super::HandlePickup( pItem )); 
+		if ( static_cast<AFlag *>( item )->AllowFlagPickup( Owner ) == RETURN_FLAG )
+			return ( Super::HandlePickup( item ));
 
-		if (( TEAM_GetSimpleCTFSTMode( )) && ( NETWORK_InClientMode() == false ))
+		if (( TEAM_GetSimpleCTFSTMode( )) && ( NETWORK_InClientMode( ) == false ))
 		{
 			// Give his team a point.
-			TEAM_SetPointCount( Owner->player->Team, TEAM_GetPointCount( Owner->player->Team ) + 1, true );
-			PLAYER_SetPoints ( Owner->player, Owner->player->lPointCount + 1 );
+			TEAM_SetPointCount( team, TEAM_GetPointCount( team ) + 1, true );
+			PLAYER_SetPoints( Owner->player, Owner->player->lPointCount + 1 );
 
 			// Award the scorer with a "Capture!" medal.
-			MEDAL_GiveMedal( ULONG( Owner->player - players ), "Capture" );
+			MEDAL_GiveMedal( player, "Capture" );
 
 			// [RC] Clear the 'returned automatically' message. A bit hackish, but leaves the flag structure unchanged.
-			this->ReturnFlag( NULL );
-			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-			{
-				pMsg = new DHUDMessageFadeOut( SmallFont, "", 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, CR_UNTRANSLATED, 3.0f, 0.5f );
-				StatusBar->AttachMessage( pMsg, MAKE_ID( 'S','U','B','S' ));
-			}
-			// If necessary, send it to clients.
-			else
-				SERVERCOMMANDS_PrintHUDMessage( "", 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_UNTRANSLATED, 3.0f, 0.0f, 0.5f, "SmallFont", MAKE_ID( 'S', 'U', 'B', 'S' ) );
+			this->ReturnFlag( nullptr );
+			HUD_DrawSUBSMessage( "", CR_UNTRANSLATED, 3.0f, 0.5f, true );
 
 			// Create the "captured" message.
-			sprintf( szString, "\\c%s%s team scores!", TEAM_GetTextColorName( Owner->player->Team ), TEAM_GetName( Owner->player->Team ));
-			V_ColorizeString( szString );
+			message.Format( "%s team scores!", TEAM_GetName( team ));
+			HUD_DrawCNTRMessage( message.GetChars( ), color, 3.0f, 0.5f, true );
 
-			// Now, print it.
-			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-			{
-				pMsg = new DHUDMessageFadeOut( BigFont, szString,
-					1.5f,
-					TEAM_MESSAGE_Y_AXIS,
-					0,
-					0,
-					CR_UNTRANSLATED,
-					3.0f,
-					0.5f );
-				StatusBar->AttachMessage( pMsg, MAKE_ID( 'C','N','T','R' ));
-			}
-			// If necessary, send it to clients.
-			else
-			{
-				SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_UNTRANSLATED, 3.0f, 0.0f, 0.5f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
-			}
+			const unsigned int assistPlayer = TEAM_GetAssistPlayer( team );
+			const bool selfAssisted = ( assistPlayer == player );
 
 			// [RC] Create the "scored by" and "assisted by" message.
-			sprintf( szString, "\\c%sScored by: %s", TEAM_GetTextColorName( Owner->player->Team ), Owner->player->userinfo.GetName() );
-			const bool bAssisted = (TEAM_GetAssistPlayer(Owner->player->Team) != MAXPLAYERS);
-			if ( bAssisted )
-			{
-				for(ULONG i = 0; i < MAXPLAYERS; i++)
-					if(&players[i] == Owner->player)
-						if( TEAM_GetAssistPlayer( Owner->player->Team) == i)
-							selfAssist = true;
+			message.Format( "Scored by: %s", players[player].userinfo.GetName( ));
 
-				if ( selfAssist )
-					sprintf( szString + strlen ( szString ), "\n\\c%s[ Self-Assisted ]", TEAM_GetTextColorName( Owner->player->Team ));
-				else
-					sprintf( szString + strlen ( szString ), "\n\\c%sAssisted by: %s", TEAM_GetTextColorName( Owner->player->Team ), players[TEAM_GetAssistPlayer( Owner->player->Team )].userinfo.GetName());
+			if ( assistPlayer != MAXPLAYERS )
+			{
+				message += '\n';
+
+				if ( selfAssisted )
+					message += "[ Self-Assisted ]";
+ 				else
+					message.AppendFormat( "Assisted by: %s", players[assistPlayer].userinfo.GetName( ));
 			}
 
-			V_ColorizeString( szString );
-
-			// Now, print it.
-			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-			{
-				pMsg = new DHUDMessageFadeOut( SmallFont, szString,
-					1.5f,
-					TEAM_MESSAGE_Y_AXIS_SUB,
-					0,
-					0,
-					CR_UNTRANSLATED,
-					3.0f,
-					0.5f );
-				StatusBar->AttachMessage( pMsg, MAKE_ID( 'S','U','B','S' ));
-			}
-			// If necessary, send it to clients.
-			else
-			{
-				SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_UNTRANSLATED, 3.0f, 0.0f, 0.5f, "SmallFont", MAKE_ID( 'S', 'U', 'B', 'S' ) );
-
-				if( ( bAssisted ) && ( ! selfAssist ) )
-					SERVER_Printf( "%s and %s scored for the \034%s%s " TEXTCOLOR_NORMAL "team!\n", Owner->player->userinfo.GetName(), players[TEAM_GetAssistPlayer( Owner->player->Team )].userinfo.GetName(), TEAM_GetTextColorName( Owner->player->Team ), TEAM_GetName( Owner->player->Team ));
-				else
-					SERVER_Printf( "%s scored for the \034%s%s " TEXTCOLOR_NORMAL "team!\n", Owner->player->userinfo.GetName(), TEAM_GetTextColorName( Owner->player->Team ), TEAM_GetName( Owner->player->Team ));
-			}
-
-			
-			// If someone just recently returned the flag, award him with an "Assist!" medal.
-			if ( bAssisted )
-			{
-				// [CK] Mark the assisting player
-				playerAssistNumber = TEAM_GetAssistPlayer( Owner->player->Team );
-
-				MEDAL_GiveMedal( playerAssistNumber, "Assist" );
-				TEAM_SetAssistPlayer( Owner->player->Team, MAXPLAYERS );
-			}
-
-			// [CK] Now we have the information to trigger an event script (Activator is the capturer, assister is the second arg)
-			// PlayerAssistNumber will be GAMEEVENT_CAPTURE_NOASSIST (-1) if there was no assister
-			// [AK] Also pass the number of points earned.
-			GAMEMODE_HandleEvent ( GAMEEVENT_CAPTURES, Owner, playerAssistNumber, 1 );
-
-			// Take the flag away.
-			pInventory = Owner->FindInventory( this->GetClass( ));
+			HUD_DrawSUBSMessage( message.GetChars( ), color, 3.0f, 0.5f, true );
 
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_TakeInventory( ULONG( Owner->player - players ), pInventory->GetClass(), 0 );
-			if ( pInventory )
-				Owner->RemoveInventory( pInventory );
+			{
+				message = players[player].userinfo.GetName( );
 
+				// [AK] Include the assisting player's name in the message if they're not the one who's capturing.
+				if (( assistPlayer != MAXPLAYERS ) && ( selfAssisted == false ))
+					message.AppendFormat( " and %s", players[assistPlayer].userinfo.GetName( ));
+
+				message += " scored for the ";
+				message += TEXTCOLOR_ESCAPE;
+				message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "team!", TEAM_GetTextColorName( team ), TEAM_GetName( team ));
+				SERVER_Printf( "%s\n", message.GetChars( ));
+			}
+
+			// If someone just recently returned the flag, award him with an "Assist!" medal.
+			// [CK] Trigger an event script (activator is the capturer, assister is the second arg),
+			// The second arg will be GAMEEVENT_CAPTURE_NOASSIST (-1) if there was no assister.
+			// [AK] Also pass the number of points earned.
+			if ( assistPlayer != MAXPLAYERS )
+			{
+				MEDAL_GiveMedal( assistPlayer, "Assist" );
+				TEAM_SetAssistPlayer( team, MAXPLAYERS );
+
+				GAMEMODE_HandleEvent( GAMEEVENT_CAPTURES, Owner, assistPlayer, 1 );
+			}
+			else
+			{
+				GAMEMODE_HandleEvent( GAMEEVENT_CAPTURES, Owner, GAMEEVENT_CAPTURE_NOASSIST, 1 );
+			}
+
+			// Take the flag away.
+			AInventory *inventory = Owner->FindInventory( this->GetClass( ));
+
+			if ( inventory )
+			{
+				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+					SERVERCOMMANDS_TakeInventory( player, inventory->GetClass( ), 0 );
+
+				Owner->RemoveInventory( inventory );
+			}
 
 			// Also, refresh the HUD.
 			HUD_ShouldRefreshBeforeRendering( );
@@ -685,7 +649,7 @@ bool AFlag::HandlePickup( AInventory *pItem )
 		return ( true );
 	}
 
-	return ( Super::HandlePickup( pItem ));
+	return ( Super::HandlePickup( item ));
 }
 
 //===========================================================================

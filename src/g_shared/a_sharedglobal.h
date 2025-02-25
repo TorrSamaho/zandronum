@@ -159,7 +159,7 @@ class AFlag : public ATeamItem
 {
 	DECLARE_CLASS( AFlag, ATeamItem )
 public:
-	virtual bool HandlePickup( AInventory *pItem );
+	virtual bool HandlePickup( AInventory *item );
 	virtual LONG AllowFlagPickup( AActor *pToucher );
 
 protected:
