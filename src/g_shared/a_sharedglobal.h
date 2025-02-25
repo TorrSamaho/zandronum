@@ -172,7 +172,7 @@ class ASkull : public ATeamItem
 	DECLARE_CLASS( ASkull, ATeamItem )
 public:
 	virtual LONG AllowFlagPickup( AActor *pToucher );
-	virtual void ReturnFlag( AActor *pReturner );
+	virtual void ReturnFlag( AActor *returner );
 
 protected:
 	virtual const char *GetType( void ) { return "skull"; }
