@@ -727,7 +727,7 @@ public:
 	virtual LONG AllowFlagPickup( AActor *pToucher );
 	virtual void AnnounceFlagPickup( AActor *toucher );
 	virtual void DisplayFlagTaken( AActor *toucher );
-	virtual void ReturnFlag( AActor *pReturner );
+	virtual void ReturnFlag( AActor *returner );
 	virtual void AnnounceFlagReturn( void );
 	virtual void DisplayFlagReturn( void );
 };
@@ -945,28 +945,27 @@ void AWhiteFlag::DisplayFlagTaken( AActor *toucher )
 //
 //===========================================================================
 
-void AWhiteFlag::ReturnFlag( AActor *pReturner )
+void AWhiteFlag::ReturnFlag( AActor *returner )
 {
-	POS_t	WhiteFlagOrigin;
-	AActor	*pActor;
-
 	// Respawn the white flag.
-	WhiteFlagOrigin = TEAM_GetItemOrigin( teams.Size( ));
-	pActor = Spawn( this->GetClass( ), WhiteFlagOrigin.x, WhiteFlagOrigin.y, WhiteFlagOrigin.z, NO_REPLACE );
+	const POS_t origin = TEAM_GetItemOrigin( teams.Size( ));
+	AActor *actor = Spawn( this->GetClass( ), origin.x, origin.y, origin.z, NO_REPLACE );
 
-	// If we're the server, tell clients to spawn the new skull.
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( pActor ))
-		SERVERCOMMANDS_SpawnThing( pActor );
+	if ( actor )
+	{
+		// If we're the server, tell clients to spawn the new white flag.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnThing( actor );
 
-	// Since all inventory spawns with the MF_DROPPED flag, we need to unset it.
-	if ( pActor )
-		pActor->flags &= ~MF_DROPPED;
+		// Since all inventory spawns with the MF_DROPPED flag, we need to unset it.
+		actor->flags &= ~MF_DROPPED;
+	}
 
 	// Mark the white flag as no longer being taken.
 	TEAM_SetItemTaken( teams.Size( ), false );
 
 	// [AK] Trigger an event script. Since the white flag doesn't belong to any team, don't pass any team's ID.
-	GAMEMODE_HandleEvent( GAMEEVENT_RETURNS, NULL, teams.Size() );
+	GAMEMODE_HandleEvent( GAMEEVENT_RETURNS, nullptr, teams.Size( ));
 }
 
 //===========================================================================
