@@ -149,8 +149,6 @@ public:
 	void MarkFlagTaken( bool bTaken );
 	void ResetReturnTicks( void );
 
-	LONG lTick;
-
 protected:
 	virtual const char *GetType( void ) { return "item"; }
 };
