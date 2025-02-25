@@ -414,6 +414,13 @@ void ATeamItem::AnnounceFlagReturn( void )
 
 void ATeamItem::DisplayFlagReturn( void )
 {
+	const unsigned int team = TEAM_GetTeamFromItem( this );
+	const EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( team ));
+	FString message;
+
+	// Create the "returned" message.
+	message.Format( "%s %s returned", TEAM_GetName( team ), GetType( ));
+	HUD_DrawCNTRMessage( message.GetChars( ), color );
 }
 
 //===========================================================================
@@ -737,25 +744,6 @@ void AFlag::AnnounceFlagReturn( void )
 	name += TEAM_GetName( TEAM_GetTeamFromItem( this ));
 	name += "FlagReturned";
 	ANNOUNCER_PlayEntry( cl_announcer, name.GetChars( ));
-}
-
-//===========================================================================
-//
-// AFlag :: DisplayFlagReturn
-//
-// Display the text for this flag being returned.
-//
-//===========================================================================
-
-void AFlag::DisplayFlagReturn( void )
-{
-	const unsigned int team = TEAM_GetTeamFromItem( this );
-	const EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( team ));
-	FString message;
-
-	// Create the "returned" message.
-	message.Format( "%s %s returned", TEAM_GetName( team ), GetType( ));
-	HUD_DrawCNTRMessage( message.GetChars( ), color );
 }
 
 // White flag ---------------------------------------------------------------
@@ -1171,23 +1159,4 @@ void ASkull::AnnounceFlagReturn( void )
 	name += TEAM_GetName( TEAM_GetTeamFromItem( this ));
 	name += "SkullReturned";
 	ANNOUNCER_PlayEntry( cl_announcer, name.GetChars( ));
-}
-
-//===========================================================================
-//
-// ASkull :: DisplayFlagReturn
-//
-// Display the text for this flag being returned.
-//
-//===========================================================================
-
-void ASkull::DisplayFlagReturn( void )
-{
-	const unsigned int team = TEAM_GetTeamFromItem( this );
-	const EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( team ));
-	FString message;
-
-	// Create the "returned" message.
-	message.Format( "%s %s returned", TEAM_GetName( team ), GetType( ));
-	HUD_DrawCNTRMessage( message.GetChars( ), color );
 }

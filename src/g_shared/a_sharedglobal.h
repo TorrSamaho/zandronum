@@ -164,7 +164,6 @@ public:
 	virtual void AnnounceFlagPickup( AActor *pToucher );
 	virtual void ReturnFlag( AActor *pReturner );
 	virtual void AnnounceFlagReturn( void );
-	virtual void DisplayFlagReturn( void );
 
 protected:
 	virtual const char *GetType( void ) { return "flag"; }
@@ -178,7 +177,6 @@ public:
 	virtual void AnnounceFlagPickup( AActor *pToucher );
 	virtual void ReturnFlag( AActor *pReturner );
 	virtual void AnnounceFlagReturn( void );
-	virtual void DisplayFlagReturn( void );
 
 protected:
 	virtual const char *GetType( void ) { return "skull"; }
