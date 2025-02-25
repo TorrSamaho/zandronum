@@ -749,14 +749,13 @@ void AFlag::AnnounceFlagReturn( void )
 
 void AFlag::DisplayFlagReturn( void )
 {
-	char						szString[256];
+	const unsigned int team = TEAM_GetTeamFromItem( this );
+	const EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( team ));
+	FString message;
 
 	// Create the "returned" message.
-	sprintf( szString, "\\c%s%s flag returned", TEAM_GetTextColorName( TEAM_GetTeamFromItem( this )), TEAM_GetName ( TEAM_GetTeamFromItem( this )));
-
-	V_ColorizeString( szString );
-
-	HUD_DrawCNTRMessage( szString, CR_UNTRANSLATED );
+	message.Format( "%s %s returned", TEAM_GetName( team ), GetType( ));
+	HUD_DrawCNTRMessage( message.GetChars( ), color );
 }
 
 // White flag ---------------------------------------------------------------
