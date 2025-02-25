@@ -791,6 +791,8 @@ void AWhiteFlag::DisplayFlagTaken( AActor *toucher )
 {
 	const int touchingPlayer = static_cast<int>( toucher->player - players );
 
+	Printf( PRINT_MEDIUM, "%s has taken the " TEXTCOLOR_GREY "White " TEXTCOLOR_NORMAL "flag.\n", players[touchingPlayer].userinfo.GetName( ));
+
 	// [AK] The server doesn't need to do anything here.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;
@@ -869,6 +871,7 @@ void AWhiteFlag::DisplayFlagReturn( AActor *returner )
 {
 	// Create the "returned" message.
 	HUD_DrawCNTRMessage( "White flag returned", CR_GREY );
+	Printf( PRINT_MEDIUM, TEXTCOLOR_GREY "White " TEXTCOLOR_NORMAL "flag returned.\n" );
 }
 
 // Skulltag skull -----------------------------------------------------------
