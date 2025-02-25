@@ -97,14 +97,13 @@ bool ATeamItem::ShouldRespawn( )
 //
 //===========================================================================
 
-bool ATeamItem::TryPickup( AActor *&pToucher )
+bool ATeamItem::TryPickup( AActor *&toucher )
 {
-	AInventory	*pCopy;
-	AInventory	*pInventory;
+	AInventory *inventory = toucher->Inventory;
 
 	// If we're not in teamgame mode, just use the default pickup handling.
-	if ( !( GAMEMODE_GetCurrentFlags() & GMF_USETEAMITEM ) )
-		return ( Super::TryPickup( pToucher ));
+	if (( GAMEMODE_GetCurrentFlags( ) & GMF_USETEAMITEM ) == false )
+		return ( Super::TryPickup( toucher ));
 
 	// First, check to see if any of the toucher's inventory items want to
 	// handle the picking up of this flag (other flags, perhaps?).
@@ -113,7 +112,7 @@ bool ATeamItem::TryPickup( AActor *&pToucher )
 	// to indicate that this item has been picked up. If the item cannot be
 	// picked up, then it leaves the flag cleared.
 	ItemFlags &= ~IF_PICKUPGOOD;
-	if (( pToucher->Inventory != NULL ) && ( pToucher->Inventory->HandlePickup( this )))
+	if (( inventory != nullptr ) && ( inventory->HandlePickup( this )))
 	{
 		// Let something else the player is holding intercept the pickup.
 		if (( ItemFlags & IF_PICKUPGOOD ) == false )
@@ -126,120 +125,117 @@ bool ATeamItem::TryPickup( AActor *&pToucher )
 		return ( true );
 	}
 
-	// Only players that are on a team may pickup flags.
-	if (( pToucher->player == NULL ) || ( pToucher->player->bOnTeam == false ))
+	// Only players that are on a team may pickup items.
+	if (( toucher->player == nullptr ) || ( toucher->player->bOnTeam == false ))
 		return ( false );
 
-	switch ( AllowFlagPickup( pToucher ))
+	// [AK] Check if we're allowed to pickup this item.
+	const int allowPickup = AllowFlagPickup( toucher );
+
+	// If we're not allowed to pickup this item, return false.
+	if ( allowPickup != ALLOW_PICKUP )
 	{
-	case DENY_PICKUP:
-
-		// If we're not allowed to pickup this flag, return false.
-		return ( false );
-	case RETURN_FLAG:
-
-		// Execute the return scripts.
-		if ( NETWORK_InClientMode() == false )
+		if ( allowPickup == RETURN_FLAG )
 		{
-			if ( this->IsKindOf( PClass::FindClass( "WhiteFlag" ) ))
+			// Execute the return scripts.
+			if ( NETWORK_InClientMode( ) == false )
 			{
-				FBehavior::StaticStartTypedScripts( SCRIPT_WhiteReturn, NULL, true );
+				if ( this->IsKindOf( PClass::FindClass( "WhiteFlag" )))
+					FBehavior::StaticStartTypedScripts( SCRIPT_WhiteReturn, nullptr, true );
+				else
+					FBehavior::StaticStartTypedScripts( TEAM_GetReturnScriptOffset( TEAM_GetTeamFromItem( this )), nullptr, true );
+			}
+			// In non-simple CTF mode, scripts take care of the returning and displaying messages.
+			if ( TEAM_GetSimpleCTFSTMode( ))
+			{
+				if ( NETWORK_InClientMode( ) == false )
+				{
+					// The player is touching his own dropped item; return it now.
+					ReturnFlag( toucher );
+
+					// Mark the item as no longer being taken.
+					MarkFlagTaken( false );
+				}
+
+				// Display text saying that the item has been returned.
+				DisplayFlagReturn( );
+			}
+
+			// Reset the return ticks for this item.
+			ResetReturnTicks( );
+
+			// Announce that the item has been returned.
+			AnnounceFlagReturn( );
+
+			// Delete the item.
+			GoAwayAndDie( );
+
+			// If we're the server, tell clients to destroy the item.
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			{
+				SERVERCOMMANDS_DestroyThing( this );
+
+				// Tell clients that the item has been returned.
+				SERVERCOMMANDS_TeamFlagReturned( TEAM_GetTeamFromItem( this ));
 			}
 			else
 			{
-				FBehavior::StaticStartTypedScripts( TEAM_GetReturnScriptOffset( TEAM_GetTeamFromItem( this )), NULL, true );
+				HUD_ShouldRefreshBeforeRendering( );
 			}
 		}
-
-		// In non-simple CTF mode, scripts take care of the returning and displaying messages.
-		if ( TEAM_GetSimpleCTFSTMode( ))
-		{
-			if ( NETWORK_InClientMode() == false )
-			{
-				// The player is touching his own dropped flag; return it now.
-				ReturnFlag( pToucher );
-
-				// Mark the flag as no longer being taken.
-				MarkFlagTaken( false );
-			}
-
-			// Display text saying that the flag has been returned.
-			DisplayFlagReturn( );
-		}
-
-		// Reset the return ticks for this flag.
-		ResetReturnTicks( );
-
-		// Announce that the flag has been returned.
-		AnnounceFlagReturn( );
-
-		// Delete the flag.
-		GoAwayAndDie( );
-
-		// If we're the server, tell clients to destroy the flag.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_DestroyThing( this );
-
-		// Tell clients that the flag has been returned.
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		{
-			SERVERCOMMANDS_TeamFlagReturned( TEAM_GetTeamFromItem( this ) );
-		}
-		else
-			HUD_ShouldRefreshBeforeRendering( );
 
 		return ( false );
 	}
 
-	// Announce the pickup of this flag.
-	AnnounceFlagPickup( pToucher );
+	// [AK] If we reached this point, the player is picking up the item. Execute the pickup scripts.
+	if ( NETWORK_InClientMode( ) == false )
+		FBehavior::StaticStartTypedScripts( SCRIPT_Pickup, toucher, true );
 
-	// Player is picking up the flag.
-	if ( NETWORK_InClientMode() == false )
+	// If we're in simple CTF mode, we need to display the pickup messages.
+	if ( TEAM_GetSimpleCTFSTMode( ))
 	{
-		FBehavior::StaticStartTypedScripts( SCRIPT_Pickup, pToucher, true );
-
-		// If we're in simple CTF mode, we need to display the pickup messages.
-		if ( TEAM_GetSimpleCTFSTMode( ))
+		if ( NETWORK_InClientMode( ) == false )
 		{
 			// [CK] Signal that the flag/skull/some pickableable team item was taken
-			GAMEMODE_HandleEvent ( GAMEEVENT_TOUCHES, pToucher, static_cast<int> ( TEAM_GetTeamFromItem( this ) ) );
+			GAMEMODE_HandleEvent( GAMEEVENT_TOUCHES, toucher, static_cast<int>( TEAM_GetTeamFromItem( this )));
 
-			// Display the flag taken message.
-			DisplayFlagTaken( pToucher );
-
-			// Also, mark the flag as being taken.
+			// Also, mark the item as being taken.
 			MarkFlagTaken( true );
 		}
 
-		// Reset the return ticks for this flag.
-		ResetReturnTicks( );
-
-		// Also, refresh the HUD.
-		HUD_ShouldRefreshBeforeRendering( );
+		// Display the item taken message.
+		DisplayFlagTaken( toucher );
 	}
 
-	pCopy = CreateCopy( pToucher );
-	if ( pCopy == NULL )
+	// Reset the return ticks for this item.
+	ResetReturnTicks( );
+
+	// Announce the pickup of this item.
+	AnnounceFlagPickup( toucher );
+
+	// Also, refresh the HUD.
+	HUD_ShouldRefreshBeforeRendering( );
+
+	AInventory *copy = CreateCopy( toucher );
+
+	if ( copy == nullptr )
 		return ( false );
 
-	pCopy->AttachToOwner( pToucher );
+	copy->AttachToOwner( toucher );
 
-	// When we pick up a flag, take away any invisibility objects the player has.
-	pInventory = pToucher->Inventory;
-	while ( pInventory )
+	// When we pick up the item, take away any invisibility objects the player has.
+	while ( inventory )
 	{
-		if (( pInventory->IsKindOf( RUNTIME_CLASS( APowerInvisibility ))) ||
-			( pInventory->IsKindOf( RUNTIME_CLASS( APowerTranslucency ))))
+		if (( inventory->IsKindOf( RUNTIME_CLASS( APowerInvisibility ))) || ( inventory->IsKindOf( RUNTIME_CLASS( APowerTranslucency ))))
 		{
 			// If we're the server, tell clients to destroy this inventory item.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_TakeInventory( ULONG( pToucher->player - players ), pInventory->GetClass(), 0 );
+				SERVERCOMMANDS_TakeInventory( static_cast<unsigned>( toucher->player - players ), inventory->GetClass( ), 0 );
 
-			pInventory->Destroy( );
+			inventory->Destroy( );
 		}
 
-		pInventory = pInventory->Inventory;
+		inventory = inventory->Inventory;
 	}
 
 	return ( true );
@@ -350,43 +346,32 @@ void ATeamItem::DisplayFlagTaken( AActor *toucher )
 	EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( team ));
 	FString message;
 
-	// Create the "pickup" message and print it... or if necessary, send it to clients.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		if ( touchingPlayer == consoleplayer )
-			message.Format( "You have the %s %s!", TEAM_GetName( team ), GetType( ));
-		else
-			message.Format( "%s %s taken!", TEAM_GetName( team ), GetType( ));
+	message.Format( "%s has taken the ", players[touchingPlayer].userinfo.GetName( ));
+	message += TEXTCOLOR_ESCAPE;
+	message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "%s.", TEAM_GetTextColorName( team ), TEAM_GetName( team ), GetType( ));
 
-		HUD_DrawCNTRMessage( message.GetChars( ), color );
-	}
-	else
-	{
+	Printf( PRINT_MEDIUM, "%s\n", message.GetChars( ));
+
+	// [AK] The server doesn't need to do anything past this point.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
+	if ( touchingPlayer == consoleplayer )
 		message.Format( "You have the %s %s!", TEAM_GetName( team ), GetType( ));
-		HUD_DrawCNTRMessage( message.GetChars( ), color, 3.0f, 0.25f, true, touchingPlayer, SVCF_ONLYTHISCLIENT );
-
+	else
 		message.Format( "%s %s taken!", TEAM_GetName( team ), GetType( ));
-		HUD_DrawCNTRMessage( message.GetChars( ), color, 3.0f, 0.25f, true, touchingPlayer, SVCF_SKIPTHISCLIENT );
-	}
+
+	HUD_DrawCNTRMessage( message.GetChars( ), color );
 
 	// [RC] Create the "held by" message for the team.
 	// [AK] Don't show this message to the player picking up the item.
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) || ( touchingPlayer != consoleplayer ))
+	if ( touchingPlayer != consoleplayer )
 	{
 		color = static_cast<EColorRange>( TEAM_GetTextColor( players[touchingPlayer].Team ));
 		message.Format( "Held by: %s", players[touchingPlayer].userinfo.GetName( ));
 
 		// Now, print it... or if necessary, send it to clients.
-		HUD_DrawSUBSMessage( message.GetChars( ), color, 3.0f, 0.25f, true, touchingPlayer, SVCF_SKIPTHISCLIENT );
-	}
-
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		message.Format( "%s has taken the ", players[touchingPlayer].userinfo.GetName( ));
-		message += TEXTCOLOR_ESCAPE;
-		message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "%s.", TEAM_GetTextColorName( team ), TEAM_GetName( team ), GetType( ));
-
-		SERVER_Printf( PRINT_MEDIUM, "%s\n", message.GetChars( ));
+		HUD_DrawSUBSMessage( message.GetChars( ), color );
 	}
 }
 
@@ -804,20 +789,16 @@ void AWhiteFlag::DisplayFlagTaken( AActor *toucher )
 {
 	const int touchingPlayer = static_cast<int>( toucher->player - players );
 
-	// Create the "pickup" message and print it... or if necessary, send it to clients.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		HUD_DrawCNTRMessage( touchingPlayer == consoleplayer ? "You have the flag!" : "White flag taken!", CR_GREY );
-	}
-	else
-	{
-		HUD_DrawCNTRMessage( "You have the flag!", CR_GREY, 3.0f, 0.25f, true, touchingPlayer, SVCF_ONLYTHISCLIENT );
-		HUD_DrawCNTRMessage( "White flag taken!", CR_GREY, 3.0f, 0.25f, true, touchingPlayer, SVCF_SKIPTHISCLIENT );
-	}
+	// [AK] The server doesn't need to do anything here.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+		return;
+
+	// Create the "pickup" message and print it.
+	HUD_DrawCNTRMessage( touchingPlayer == consoleplayer ? "You have the flag!" : "White flag taken!", CR_GREY );
 
 	// [BC] Rivecoder's "held by" messages.
 	// [AK] Don't show this message to the player picking up the item.
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) || ( touchingPlayer != consoleplayer ))
+	if ( touchingPlayer != consoleplayer )
 	{
 		const EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( players[touchingPlayer].Team ));
 		FString message;
@@ -826,7 +807,7 @@ void AWhiteFlag::DisplayFlagTaken( AActor *toucher )
 		message.Format( "Held by: %s", players[touchingPlayer].userinfo.GetName( ));
 
 		// Now, print it... or if necessary, send it to clients.
-		HUD_DrawSUBSMessage( message.GetChars( ), color, 3.0f, 0.25f, true, touchingPlayer, SVCF_SKIPTHISCLIENT );
+		HUD_DrawSUBSMessage( message.GetChars( ), color );
 	}
 }
 

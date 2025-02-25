@@ -138,7 +138,7 @@ class ATeamItem : public AInventory
 	DECLARE_CLASS( ATeamItem, AInventory )
 public:
 	virtual bool ShouldRespawn( );
-	virtual bool TryPickup( AActor *&pToucher );
+	virtual bool TryPickup( AActor *&toucher );
 	virtual bool HandlePickup( AInventory *pItem );
 	virtual int AllowFlagPickup( AActor *toucher );
 	virtual void AnnounceFlagPickup( AActor *toucher );
