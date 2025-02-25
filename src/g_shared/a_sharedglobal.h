@@ -166,6 +166,19 @@ protected:
 	virtual const char *GetType( void ) { return "flag"; }
 };
 
+class AWhiteFlag : public AFlag
+{
+	DECLARE_CLASS( AWhiteFlag, AFlag )
+public:
+	virtual bool HandlePickup( AInventory *item );
+	virtual int AllowFlagPickup( AActor *toucher );
+	virtual void AnnounceFlagPickup( AActor *toucher );
+	virtual void DisplayFlagTaken( AActor *toucher );
+	virtual void ReturnFlag( AActor *returner );
+	virtual void AnnounceFlagReturn( void );
+	virtual void DisplayFlagReturn( void );
+};
+
 class ASkull : public ATeamItem
 {
 	DECLARE_CLASS( ASkull, ATeamItem )
