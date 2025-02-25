@@ -342,34 +342,6 @@ void ATeamItem::DisplayFlagTaken( AActor *pToucher )
 
 //===========================================================================
 //
-// ATeamItem :: MarkFlagTaken
-//
-// Signal to the team module whether or not this flag has been taken.
-//
-//===========================================================================
-
-void ATeamItem::MarkFlagTaken( bool bTaken )
-{
-	// [AK] For the white flag, TEAM_GetTeamFromItem should return teams.size( ).
-	TEAM_SetItemTaken( TEAM_GetTeamFromItem( this ), bTaken );
-}
-
-//===========================================================================
-//
-// ATeamItem :: ResetReturnTicks
-//
-// Reset the return ticks for the team associated with this flag.
-//
-//===========================================================================
-
-void ATeamItem::ResetReturnTicks( void )
-{
-	// [AK] For the white flag, TEAM_GetTeamFromItem should return teams.size( ).
-	TEAM_SetReturnTicks( TEAM_GetTeamFromItem( this ), 0 );
-}
-
-//===========================================================================
-//
 // ATeamItem :: ReturnFlag
 //
 // Spawn a new flag at its original location.
@@ -402,6 +374,34 @@ void ATeamItem::AnnounceFlagReturn( void )
 
 void ATeamItem::DisplayFlagReturn( void )
 {
+}
+
+//===========================================================================
+//
+// ATeamItem :: MarkFlagTaken
+//
+// Signal to the team module whether or not this flag has been taken.
+//
+//===========================================================================
+
+void ATeamItem::MarkFlagTaken( bool bTaken )
+{
+	// [AK] For the white flag, TEAM_GetTeamFromItem should return teams.size( ).
+	TEAM_SetItemTaken( TEAM_GetTeamFromItem( this ), bTaken );
+}
+
+//===========================================================================
+//
+// ATeamItem :: ResetReturnTicks
+//
+// Reset the return ticks for the team associated with this flag.
+//
+//===========================================================================
+
+void ATeamItem::ResetReturnTicks( void )
+{
+	// [AK] For the white flag, TEAM_GetTeamFromItem should return teams.size( ).
+	TEAM_SetReturnTicks( TEAM_GetTeamFromItem( this ), 0 );
 }
 
 // Skulltag flag ------------------------------------------------------------
