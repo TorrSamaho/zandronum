@@ -1104,71 +1104,50 @@ void ASkull::AnnounceFlagPickup( AActor *pToucher )
 //
 //===========================================================================
 
-void ASkull::DisplayFlagTaken( AActor *pToucher )
+void ASkull::DisplayFlagTaken( AActor *toucher )
 {
-	char				szString[256];
-	DHUDMessageFadeOut	*pMsg;
+	const int touchingPlayer = static_cast<int>( toucher->player - players );
+	const unsigned int team = TEAM_GetTeamFromItem( this );
+	EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( team ));
+	FString message;
 
-	// Create the "pickup" message.
-	if (( pToucher->player - players ) == consoleplayer )
-		sprintf( szString, "\\c%sYou have the %s skull!", TEAM_GetTextColorName( TEAM_GetTeamFromItem( this )), TEAM_GetName( TEAM_GetTeamFromItem( this )));
-	else
-		sprintf( szString, "\\c%s%s skull taken!", TEAM_GetTextColorName( TEAM_GetTeamFromItem( this )), TEAM_GetName( TEAM_GetTeamFromItem( this )));
-
-	V_ColorizeString( szString );
-
-	// Now, print it.
+	// Create the "pickup" message and print it... or if necessary, send it to clients.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		pMsg = new DHUDMessageFadeOut( BigFont, szString,
-			1.5f,
-			TEAM_MESSAGE_Y_AXIS,
-			0,
-			0,
-			CR_UNTRANSLATED,
-			3.0f,
-			0.25f );
-		StatusBar->AttachMessage( pMsg, MAKE_ID( 'C','N','T','R' ));
+		if ( touchingPlayer == consoleplayer )
+			message.Format( "You have the %s %s!", TEAM_GetName( team ), GetType( ));
+		else
+			message.Format( "%s %s taken!", TEAM_GetName( team ), GetType( ));
+
+		HUD_DrawCNTRMessage( message.GetChars( ), color );
 	}
-	// If necessary, send it to clients.
 	else
 	{
-		sprintf( szString, "\\c%sYou have the %s skull!", TEAM_GetTextColorName( TEAM_GetTeamFromItem( this )), TEAM_GetName( TEAM_GetTeamFromItem( this )));
-		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_UNTRANSLATED, 3.0f, 0.0f, 0.25f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ), ULONG( pToucher->player - players ), SVCF_ONLYTHISCLIENT );
+		message.Format( "You have the %s %s!", TEAM_GetName( team ), GetType( ));
+		HUD_DrawCNTRMessage( message.GetChars( ), color, 3.0f, 0.25f, true, touchingPlayer, SVCF_ONLYTHISCLIENT );
 
-		sprintf( szString, "\\c%s%s skull taken!", TEAM_GetTextColorName( TEAM_GetTeamFromItem( this )), TEAM_GetName( TEAM_GetTeamFromItem( this )));
-		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_UNTRANSLATED, 3.0f, 0.0f, 0.25f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
+		message.Format( "%s %s taken!", TEAM_GetName( team ), GetType( ));
+		HUD_DrawCNTRMessage( message.GetChars( ), color, 3.0f, 0.25f, true, touchingPlayer, SVCF_SKIPTHISCLIENT );
 	}
 
-	// [RC] Create the "held by" message for this team.
-	ULONG playerIndex = ULONG( pToucher->player - players );
-	sprintf( szString, "\\c%sHeld by: %s", TEAM_GetTextColorName( players[playerIndex].Team ), players[playerIndex].userinfo.GetName());
-
-	V_ColorizeString( szString );
-
-	// Now, print it.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	// [RC] Create the "held by" message for the team.
+	// [AK] Don't show this message to the player picking up the item.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) || ( touchingPlayer != consoleplayer ))
 	{
-		if (( pToucher->player - players ) != consoleplayer )
-		{
-			pMsg = new DHUDMessageFadeOut( SmallFont, szString,
-				1.5f,
-				TEAM_MESSAGE_Y_AXIS_SUB,
-				0,
-				0,
-				CR_UNTRANSLATED,
-				3.0f,
-				0.25f );
-			StatusBar->AttachMessage( pMsg, MAKE_ID( 'S','U','B','S' ));
-		}
+		color = static_cast<EColorRange>( TEAM_GetTextColor( players[touchingPlayer].Team ));
+		message.Format( "Held by: %s", players[touchingPlayer].userinfo.GetName( ));
+
+		// Now, print it... or if necessary, send it to clients.
+		HUD_DrawSUBSMessage( message.GetChars( ), color, 3.0f, 0.25f, true, touchingPlayer, SVCF_SKIPTHISCLIENT );
 	}
-	// If necessary, send it to clients.
-	else
+
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_UNTRANSLATED, 3.0f, 0.0f, 0.25f, "SmallFont", MAKE_ID( 'S', 'U', 'B', 'S' ), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
-		SERVER_Printf( PRINT_MEDIUM, "%s has taken the \034%s%s " TEXTCOLOR_NORMAL "skull.\n", players[playerIndex].userinfo.GetName(), TEAM_GetTextColorName( TEAM_GetTeamFromItem( this )), TEAM_GetName( TEAM_GetTeamFromItem( this )));
+		message.Format( "%s has taken the ", players[touchingPlayer].userinfo.GetName( ));
+		message += TEXTCOLOR_ESCAPE;
+		message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "%s.", TEAM_GetTextColorName( team ), TEAM_GetName( team ), GetType( ));
+
+		SERVER_Printf( PRINT_MEDIUM, "%s\n", message.GetChars( ));
 	}
 }
 
