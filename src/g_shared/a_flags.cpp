@@ -652,71 +652,68 @@ LONG AFlag::AllowFlagPickup( AActor *pToucher )
 //
 //===========================================================================
 
-void AFlag::ReturnFlag( AActor *pReturner )
+void AFlag::ReturnFlag( AActor *returner )
 {
-	POS_t	FlagOrigin;
-	AFlag	*pActor;
+	const unsigned int returningPlayer = ( returner && returner->player ) ? static_cast<unsigned>( returner->player - players ) : MAXPLAYERS;
+	const unsigned int team = TEAM_GetTeamFromItem( this );
+	FString message;
 
 	// Respawn the flag.
-	FlagOrigin = TEAM_GetItemOrigin( TEAM_GetTeamFromItem( this ));
+	const POS_t origin = TEAM_GetItemOrigin( TEAM_GetTeamFromItem( this ));
+	AActor *actor = Spawn( this->GetClass( ), origin.x, origin.y, origin.z, NO_REPLACE );
 
-	pActor = (AFlag *)Spawn( this->GetClass( ), FlagOrigin.x, FlagOrigin.y, FlagOrigin.z, NO_REPLACE );
+	if ( actor )
+	{
+		// If we're the server, tell clients to spawn the new flag.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnThing( actor );
 
-	// If we're the server, tell clients to spawn the new skull.
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( pActor ))
-		SERVERCOMMANDS_SpawnThing( pActor );
+		// Since all inventory spawns with the MF_DROPPED flag, we need to unset it.
+		actor->flags &= ~MF_DROPPED;
+	}
 
-	// Since all inventory spawns with the MF_DROPPED flag, we need to unset it.
-	if ( pActor )
-		pActor->flags &= ~MF_DROPPED;
-
-	ULONG ulItemTeam = TEAM_GetTeamFromItem( this );
 	// Mark the flag as no longer being taken.
-	TEAM_SetItemTaken( ulItemTeam, false );
+	TEAM_SetItemTaken( team, false );
 
 	// If an opposing team's flag has been taken by one of the team members of the returner
 	// the player who returned this flag has the chance to earn an "Assist!" medal.
-	if ( pReturner && pReturner->player )
+	if ( returningPlayer != MAXPLAYERS )
 	{
-		for ( ULONG i = 0; i < MAXPLAYERS; i++ )
+		for ( unsigned int i = 0; i < MAXPLAYERS; i++ )
 		{
-			if ( ( players[i].Team == ulItemTeam )
-			     && TEAM_FindOpposingTeamsItemInPlayersInventory ( &players[i] ) )
-			{
-				TEAM_SetAssistPlayer( pReturner->player->Team, ULONG( pReturner->player - players ));
-			}
+			if (( players[i].Team == team ) && ( TEAM_FindOpposingTeamsItemInPlayersInventory( &players[i] )))
+				TEAM_SetAssistPlayer( returner->player->Team, returningPlayer );
 		}
-	}
 
-	char szString[256];
-	if ( pReturner && pReturner->player )
-	{
 		// [RC] Create the "returned by" message for this team.
-		ULONG playerIndex = ULONG( pReturner->player - players );
-		sprintf( szString, "\\c%sReturned by: %s", TEAM_GetTextColorName( players[playerIndex].Team ), players[playerIndex].userinfo.GetName() );
+		message.Format( "Returned by: %s", players[returningPlayer].userinfo.GetName( ));
 
 		// [CK] Send out an event that a flag/skull was returned, this is the easiest place to do it
 		// Second argument is the team index, third argument is what kind of return it was
-		GAMEMODE_HandleEvent ( GAMEEVENT_RETURNS, pReturner, static_cast<int> ( ulItemTeam ), GAMEEVENT_RETURN_PLAYERRETURN );
+		GAMEMODE_HandleEvent( GAMEEVENT_RETURNS, returner, team, GAMEEVENT_RETURN_PLAYERRETURN );
 	}
 	else
 	{
 		// [RC] Create the "returned automatically" message for this team.
-		sprintf( szString, "\\c%sReturned automatically.", TEAM_GetTextColorName( TEAM_GetTeamFromItem( this )));
+		message = "Returned automatically.";
 
 		// [CK] Indicate the server returned the flag/skull after a timeout
-		GAMEMODE_HandleEvent ( GAMEEVENT_RETURNS, NULL, static_cast<int> ( ulItemTeam ), GAMEEVENT_RETURN_TIMEOUTRETURN );
+		GAMEMODE_HandleEvent( GAMEEVENT_RETURNS, nullptr, team, GAMEEVENT_RETURN_TIMEOUTRETURN );
 	}
 
-	V_ColorizeString( szString );
-	HUD_DrawSUBSMessage( szString, CR_UNTRANSLATED, 3.0f, 0.25f, true );
+	HUD_DrawSUBSMessage( message.GetChars( ), static_cast<EColorRange>( TEAM_GetTextColor( team )), 3.0f, 0.25f, true );
 
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		if ( pReturner && pReturner->player )
-			SERVER_Printf( PRINT_MEDIUM, "%s returned the \034%s%s " TEXTCOLOR_NORMAL "flag.\n", pReturner->player->userinfo.GetName(), TEAM_GetTextColorName( TEAM_GetTeamFromItem( this )), TEAM_GetName( TEAM_GetTeamFromItem( this )));
+		FString itemName = TEXTCOLOR_ESCAPE;
+		itemName.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "%s", TEAM_GetTextColorName( team ), TEAM_GetName( team ), GetType( ));
+
+		if ( returningPlayer != MAXPLAYERS )
+			message.Format( "%s returned the %s.", players[returningPlayer].userinfo.GetName( ), itemName.GetChars( ));
 		else
-			SERVER_Printf( PRINT_MEDIUM, "\034%s%s " TEXTCOLOR_NORMAL "flag returned.\n", TEAM_GetTextColorName( TEAM_GetTeamFromItem( this )), TEAM_GetName( TEAM_GetTeamFromItem( this )));
+			message.Format( "%s returned.", itemName.GetChars( ));
+
+		SERVER_Printf( PRINT_MEDIUM, "%s\n", message.GetChars( ));
 	}
 }
 

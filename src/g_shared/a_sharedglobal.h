@@ -161,7 +161,7 @@ class AFlag : public ATeamItem
 public:
 	virtual bool HandlePickup( AInventory *pItem );
 	virtual LONG AllowFlagPickup( AActor *pToucher );
-	virtual void ReturnFlag( AActor *pReturner );
+	virtual void ReturnFlag( AActor *returner );
 
 protected:
 	virtual const char *GetType( void ) { return "flag"; }
