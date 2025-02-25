@@ -780,7 +780,7 @@ public:
 	virtual bool HandlePickup( AInventory *pItem );
 	virtual LONG AllowFlagPickup( AActor *pToucher );
 	virtual void AnnounceFlagPickup( AActor *pToucher );
-	virtual void DisplayFlagTaken( AActor *pToucher );
+	virtual void DisplayFlagTaken( AActor *toucher );
 	virtual void ReturnFlag( AActor *pReturner );
 	virtual void AnnounceFlagReturn( void );
 	virtual void DisplayFlagReturn( void );
@@ -961,72 +961,34 @@ void AWhiteFlag::AnnounceFlagPickup( AActor *pToucher )
 //
 //===========================================================================
 
-void AWhiteFlag::DisplayFlagTaken( AActor *pToucher )
+void AWhiteFlag::DisplayFlagTaken( AActor *toucher )
 {
-	ULONG				ulPlayer;
-	char				szString[256];
-	char				szName[48];
-	DHUDMessageFadeOut	*pMsg;
+	const int touchingPlayer = static_cast<int>( toucher->player - players );
 
-	// Create the "pickup" message.
-	if (( pToucher != NULL ) && ( pToucher->player != NULL ) && ( pToucher->player - players ) == consoleplayer )
-		sprintf( szString, "\\cCYou have the flag!" );
-	else
-		sprintf( szString, "\\cCWhite flag taken!" );
-	V_ColorizeString( szString );
-
-	// Now, print it.
+	// Create the "pickup" message and print it... or if necessary, send it to clients.
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
-		pMsg = new DHUDMessageFadeOut( BigFont, szString,
-			1.5f,
-			TEAM_MESSAGE_Y_AXIS,
-			0,
-			0,
-			CR_WHITE,
-			3.0f,
-			0.25f );
-		StatusBar->AttachMessage( pMsg, MAKE_ID( 'C','N','T','R' ));
+		HUD_DrawCNTRMessage( touchingPlayer == consoleplayer ? "You have the flag!" : "White flag taken!", CR_GREY );
 	}
-	// If necessary, send it to clients.
 	else
 	{
-		sprintf( szString, "\\cCYou have the flag!" );
-		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_WHITE, 3.0f, 0.0f, 0.25f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ), ULONG( pToucher->player - players ), SVCF_ONLYTHISCLIENT );
-
-		sprintf( szString, "\\cCWhite flag taken!" );
-		V_ColorizeString( szString );
-		SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_WHITE, 3.0f, 0.0f, 0.25f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
+		HUD_DrawCNTRMessage( "You have the flag!", CR_GREY, 3.0f, 0.25f, true, touchingPlayer, SVCF_ONLYTHISCLIENT );
+		HUD_DrawCNTRMessage( "White flag taken!", CR_GREY, 3.0f, 0.25f, true, touchingPlayer, SVCF_SKIPTHISCLIENT );
 	}
 
 	// [BC] Rivecoder's "held by" messages.
-	ulPlayer = ULONG( pToucher->player - players );
-	sprintf( szName, "%s", players[ulPlayer].userinfo.GetName() );
-	V_RemoveColorCodes( szName );
-
-	sprintf( szString, "\\ccHeld by: \\c%s%s", TEAM_GetTextColorName( players[ulPlayer].Team ), szName );
-	V_ColorizeString( szString );
-
-	// Now, print it.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	// [AK] Don't show this message to the player picking up the item.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) || ( touchingPlayer != consoleplayer ))
 	{
-		if (( pToucher->player - players ) != consoleplayer )
-		{
-			pMsg = new DHUDMessageFadeOut( SmallFont, szString,
-				1.5f,
-				TEAM_MESSAGE_Y_AXIS_SUB,
-				0,
-				0,
-				CR_UNTRANSLATED,
-				3.0f,
-				0.25f );
-			StatusBar->AttachMessage( pMsg, MAKE_ID( 'S','U','B','S' ));
-		}
+		const EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( players[touchingPlayer].Team ));
+		FString message = players[touchingPlayer].userinfo.GetName( );
+
+		V_RemoveColorCodes( message );
+		message.Insert( 0, TEXTCOLOR_GREY "Held by: " TEXTCOLOR_NORMAL );
+
+		// Now, print it... or if necessary, send it to clients.
+		HUD_DrawSUBSMessage( message.GetChars( ), color, 3.0f, 0.25f, true, touchingPlayer, SVCF_SKIPTHISCLIENT );
 	}
-	// If necessary, send it to clients.
-	else
-		SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_UNTRANSLATED, 3.0f, 0.0f, 0.25f, "SmallFont", MAKE_ID( 'S', 'U', 'B', 'S' ), ULONG( pToucher->player - players ), SVCF_SKIPTHISCLIENT );
 }
 
 //===========================================================================
