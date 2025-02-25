@@ -273,41 +273,40 @@ bool ATeamItem::HandlePickup( AInventory *pItem )
 //
 //===========================================================================
 
-LONG ATeamItem::AllowFlagPickup( AActor *pToucher )
+int ATeamItem::AllowFlagPickup( AActor *toucher )
 {
 	// [BB] Only players on a team can pick up team items.
-	if (( pToucher == NULL ) || ( pToucher->player == NULL ) || ( pToucher->player->bOnTeam == false ))
+	if (( toucher == nullptr ) || ( toucher->player == nullptr ) || ( toucher->player->bOnTeam == false ))
 		return ( DENY_PICKUP );
 
 	// [BB] Players are always allowed to return their own dropped team item.
-	if (( this->GetClass( ) == TEAM_GetItem( pToucher->player->Team )) &&
-		( this->flags & MF_DROPPED ))
+	if (( this->GetClass( ) == TEAM_GetItem( toucher->player->Team )) && ( this->flags & MF_DROPPED ))
 		return ( RETURN_FLAG );
 
 	// [BB] If a client gets here, the server already made all necessary checks. So just allow the pickup.
-	if ( NETWORK_InClientMode() )
+	if ( NETWORK_InClientMode( ))
 		return ( ALLOW_PICKUP );
 
 	// [BB] If a player already carries an enemy team item, don't let him pick up another one.
-	if ( TEAM_FindOpposingTeamsItemInPlayersInventory ( pToucher->player ) )
+	if ( TEAM_FindOpposingTeamsItemInPlayersInventory( toucher->player ))
 		return ( DENY_PICKUP );
 
 	// [BB] If the team the item belongs to doesn't have any players, don't let it be picked up.
-	if ( TEAM_CountPlayers ( TEAM_GetTeamFromItem ( this ) ) == 0 )
+	if ( TEAM_CountPlayers( TEAM_GetTeamFromItem( this )) == 0 )
 	{
 		FString message;
 		message.Format( "You can't pick up the %s\nof a team with no players!", GetType( ));
 
-		HUD_DrawSUBSMessage( message.GetChars(), CR_UNTRANSLATED, 3.0f, 0.25f, true, static_cast<ULONG>(pToucher->player - players), SVCF_ONLYTHISCLIENT );
+		HUD_DrawSUBSMessage( message.GetChars( ), CR_UNTRANSLATED, 3.0f, 0.25f, true, static_cast<unsigned>( toucher->player - players ), SVCF_ONLYTHISCLIENT );
 		return ( DENY_PICKUP );
 	}
 
 	// [CK] Do not let pickups occur after the match has ended
-	if ( GAMEMODE_IsGameInProgress( ) == false ) 
+	if ( GAMEMODE_IsGameInProgress( ) == false )
 		return ( DENY_PICKUP );
 
 	// Player is touching the enemy flag.
-	if ( this->GetClass( ) != TEAM_GetItem( pToucher->player->Team ))
+	if ( this->GetClass( ) != TEAM_GetItem( toucher->player->Team ))
 		return ( ALLOW_PICKUP );
 
 	return ( DENY_PICKUP );
@@ -660,13 +659,13 @@ bool AFlag::HandlePickup( AInventory *item )
 //
 //===========================================================================
 
-LONG AFlag::AllowFlagPickup( AActor *pToucher )
+int AFlag::AllowFlagPickup( AActor *toucher )
 {
 	// Don't allow the pickup of flags in One Flag CTF.
 	if ( oneflagctf )
 		return ( DENY_PICKUP );
 
-	return Super::AllowFlagPickup( pToucher );
+	return Super::AllowFlagPickup( toucher );
 }
 
 // White flag ---------------------------------------------------------------
@@ -676,7 +675,7 @@ class AWhiteFlag : public AFlag
 	DECLARE_CLASS( AWhiteFlag, AFlag )
 public:
 	virtual bool HandlePickup( AInventory *item );
-	virtual LONG AllowFlagPickup( AActor *pToucher );
+	virtual int AllowFlagPickup( AActor *toucher );
 	virtual void AnnounceFlagPickup( AActor *toucher );
 	virtual void DisplayFlagTaken( AActor *toucher );
 	virtual void ReturnFlag( AActor *returner );
@@ -769,10 +768,10 @@ bool AWhiteFlag::HandlePickup( AInventory *item )
 //
 //===========================================================================
 
-LONG AWhiteFlag::AllowFlagPickup( AActor *pToucher )
+int AWhiteFlag::AllowFlagPickup( AActor *toucher )
 {
 	// [BB] Carrying more than one WhiteFlag is not allowed.
-	if (( pToucher == NULL ) || ( pToucher->FindInventory( PClass::FindClass( "WhiteFlag" ), true ) == NULL ) )
+	if (( toucher == nullptr ) || ( toucher->FindInventory( PClass::FindClass( "WhiteFlag" ), true ) == nullptr ))
 		return ( ALLOW_PICKUP );
 	else
 		return ( DENY_PICKUP );
@@ -914,7 +913,7 @@ IMPLEMENT_CLASS( ASkull )
 //
 //===========================================================================
 
-LONG ASkull::AllowFlagPickup( AActor *pToucher )
+int ASkull::AllowFlagPickup( AActor *toucher )
 {
-	return Super::AllowFlagPickup( pToucher );
+	return Super::AllowFlagPickup( toucher );
 }

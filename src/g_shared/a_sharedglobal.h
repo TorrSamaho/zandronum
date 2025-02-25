@@ -140,7 +140,7 @@ public:
 	virtual bool ShouldRespawn( );
 	virtual bool TryPickup( AActor *&pToucher );
 	virtual bool HandlePickup( AInventory *pItem );
-	virtual LONG AllowFlagPickup( AActor *pToucher );
+	virtual int AllowFlagPickup( AActor *toucher );
 	virtual void AnnounceFlagPickup( AActor *toucher );
 	virtual void DisplayFlagTaken( AActor *toucher );
 	virtual void ReturnFlag( AActor *returner );
@@ -160,7 +160,7 @@ class AFlag : public ATeamItem
 	DECLARE_CLASS( AFlag, ATeamItem )
 public:
 	virtual bool HandlePickup( AInventory *item );
-	virtual LONG AllowFlagPickup( AActor *pToucher );
+	virtual int AllowFlagPickup( AActor *toucher );
 
 protected:
 	virtual const char *GetType( void ) { return "flag"; }
@@ -170,7 +170,7 @@ class ASkull : public ATeamItem
 {
 	DECLARE_CLASS( ASkull, ATeamItem )
 public:
-	virtual LONG AllowFlagPickup( AActor *pToucher );
+	virtual int AllowFlagPickup( AActor *toucher );
 
 protected:
 	virtual const char *GetType( void ) { return "skull"; }
