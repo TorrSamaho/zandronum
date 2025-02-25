@@ -675,7 +675,7 @@ class AWhiteFlag : public AFlag
 {
 	DECLARE_CLASS( AWhiteFlag, AFlag )
 public:
-	virtual bool HandlePickup( AInventory *pItem );
+	virtual bool HandlePickup( AInventory *item );
 	virtual LONG AllowFlagPickup( AActor *pToucher );
 	virtual void AnnounceFlagPickup( AActor *toucher );
 	virtual void DisplayFlagTaken( AActor *toucher );
@@ -695,115 +695,70 @@ IMPLEMENT_CLASS( AWhiteFlag )
 //
 //===========================================================================
 
-bool AWhiteFlag::HandlePickup( AInventory *pItem )
+bool AWhiteFlag::HandlePickup( AInventory *item )
 {
-	char				szString[256];
-	DHUDMessageFadeOut	*pMsg;
-	AInventory			*pInventory;
-	ULONG				ulTeam;
-	int playerAssistNumber = GAMEEVENT_CAPTURE_NOASSIST; // [AK] Need this for game event.
+	const unsigned int player = static_cast<unsigned>( Owner->player - players );
+	const unsigned int team = players[player].Team;
+	EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( team ));
+	FString message;
 
 	// If this object being given isn't a flag, then we don't really care.
-	if ( pItem->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AFlag )) == false )
-		return ( Super::HandlePickup( pItem ));
+	if ( item->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AFlag )) == false )
+		return ( Super::HandlePickup( item ));
 
 	// If this isn't one flag CTF mode, then we don't really care here.
 	if ( oneflagctf == false )
-		return ( Super::HandlePickup( pItem ));
+		return ( Super::HandlePickup( item ));
 
 	// [BB] Bringing a WhiteFlag to another WhiteFlag doesn't give a point.
-	if ( pItem->IsKindOf ( PClass::FindClass( "WhiteFlag" ) ) )
+	if ( item->IsKindOf ( PClass::FindClass( "WhiteFlag" )))
 		return ( false );
 
-	ulTeam = TEAM_GetTeamFromItem( this );
-
-	if ( TEAM_GetTeamFromItem( pItem ) == Owner->player->Team )
+	if ( TEAM_GetTeamFromItem( item ) == team )
 		return ( false );
 
 	// If we're trying to pick up the opponent's flag, award a point since we're
 	// carrying the white flag.
-	if (( TEAM_GetSimpleCTFSTMode( )) && ( NETWORK_InClientMode() == false ))
+	if (( TEAM_GetSimpleCTFSTMode( )) && ( NETWORK_InClientMode( ) == false ))
 	{
 		// Give his team a point.
-		TEAM_SetPointCount( Owner->player->Team, TEAM_GetPointCount( Owner->player->Team ) + 1, true );
-		PLAYER_SetPoints ( Owner->player, Owner->player->lPointCount + 1 );
+		TEAM_SetPointCount( team, TEAM_GetPointCount( team ) + 1, true );
+		PLAYER_SetPoints( Owner->player, Owner->player->lPointCount + 1 );
 
 		// Award the scorer with a "Capture!" medal.
-		MEDAL_GiveMedal( ULONG( Owner->player - players ), "Capture" );
-
-		// If someone just recently returned the flag, award him with an "Assist!" medal.
-		if ( TEAM_GetAssistPlayer( Owner->player->Team ) != MAXPLAYERS )
-		{
-			// [AK] Mark the assisting player.
-			playerAssistNumber = TEAM_GetAssistPlayer( Owner->player->Team );
-			MEDAL_GiveMedal( playerAssistNumber, "Assist" );
-
-			TEAM_SetAssistPlayer( Owner->player->Team, MAXPLAYERS );
-		}
+		MEDAL_GiveMedal( player, "Capture" );
 
 		// Create the "captured" message.
-		sprintf( szString, "\\c%s%s team scores!", TEAM_GetTextColorName( Owner->player->Team ), TEAM_GetName( Owner->player->Team ));
-		V_ColorizeString( szString );
-
-		// Now, print it.
-		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		{
-			pMsg = new DHUDMessageFadeOut( BigFont, szString,
-				1.5f,
-				TEAM_MESSAGE_Y_AXIS,
-				0,
-				0,
-				CR_WHITE,
-				3.0f,
-				0.25f );
-			StatusBar->AttachMessage( pMsg, MAKE_ID( 'C','N','T','R' ));
-		}
-		// If necessary, send it to clients.
-		else
-		{
-			SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_WHITE, 3.0f, 0.0f, 0.25f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
-		}
+		message.Format( "%s team scores!", TEAM_GetName( team ));
+		HUD_DrawCNTRMessage( message.GetChars( ), color, 3.0f, 0.5f, true );
 
 		// [BC] Rivecoder's "scored by" message.
-		sprintf( szString, "\\c%sScored by: %s", TEAM_GetTextColorName( Owner->player->Team ), Owner->player->userinfo.GetName() );
-		V_ColorizeString( szString );
-
-		// Now, print it.
-		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		{
-			pMsg = new DHUDMessageFadeOut( SmallFont, szString,
-				1.5f,
-				TEAM_MESSAGE_Y_AXIS_SUB,
-				0,
-				0,
-				CR_UNTRANSLATED,
-				3.0f,
-				0.5f );
-			StatusBar->AttachMessage( pMsg, MAKE_ID( 'S','U','B','S' ));
-		}
-		// If necessary, send it to clients.
-		else
-			SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_UNTRANSLATED, 3.0f, 0.0f, 0.5f, "SmallFont", MAKE_ID( 'S', 'U', 'B', 'S' ) );
+		message.Format( "Scored by: %s", players[player].userinfo.GetName( ));
+		HUD_DrawSUBSMessage( message.GetChars( ), color, 3.0f, 0.5f, true );
 
 		// [AK] Trigger an event script when the white flag is captured.
-		GAMEMODE_HandleEvent( GAMEEVENT_CAPTURES, Owner, playerAssistNumber, 1 );
+		GAMEMODE_HandleEvent( GAMEEVENT_CAPTURES, Owner, GAMEEVENT_CAPTURE_NOASSIST, 1 );
 
 		// Take the flag away.
-		pInventory = Owner->FindInventory( this->GetClass( ));
-		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			SERVERCOMMANDS_TakeInventory( ULONG( Owner->player - players ), this->GetClass(), 0 );
-		if ( pInventory )
-			Owner->RemoveInventory( pInventory );
+		AInventory *inventory = Owner->FindInventory( this->GetClass( ));
 
-		this->ReturnFlag( NULL );
+		if ( inventory )
+		{
+			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+				SERVERCOMMANDS_TakeInventory( player, inventory->GetClass( ), 0 );
+
+ 			Owner->RemoveInventory( inventory );
+		}
+
+		this->ReturnFlag( nullptr );
 
 		// Also, refresh the HUD.
 		HUD_ShouldRefreshBeforeRendering( );
-	
+
 		return ( true );
 	}
 
-	return ( Super::HandlePickup( pItem ));
+	return ( Super::HandlePickup( item ));
 }
 
 //===========================================================================
