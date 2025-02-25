@@ -142,7 +142,7 @@ public:
 	virtual bool HandlePickup( AInventory *pItem );
 	virtual LONG AllowFlagPickup( AActor *pToucher );
 	virtual void AnnounceFlagPickup( AActor *pToucher );
-	virtual void DisplayFlagTaken( AActor *pToucher );
+	virtual void DisplayFlagTaken( AActor *toucher );
 	virtual void ReturnFlag( AActor *pReturner );
 	virtual void AnnounceFlagReturn( void );
 	virtual void DisplayFlagReturn( void );
@@ -162,7 +162,6 @@ public:
 	virtual bool HandlePickup( AInventory *pItem );
 	virtual LONG AllowFlagPickup( AActor *pToucher );
 	virtual void AnnounceFlagPickup( AActor *pToucher );
-	virtual void DisplayFlagTaken( AActor *toucher );
 	virtual void ReturnFlag( AActor *pReturner );
 	virtual void AnnounceFlagReturn( void );
 	virtual void DisplayFlagReturn( void );
@@ -177,7 +176,6 @@ class ASkull : public ATeamItem
 public:
 	virtual LONG AllowFlagPickup( AActor *pToucher );
 	virtual void AnnounceFlagPickup( AActor *pToucher );
-	virtual void DisplayFlagTaken( AActor *toucher );
 	virtual void ReturnFlag( AActor *pReturner );
 	virtual void AnnounceFlagReturn( void );
 	virtual void DisplayFlagReturn( void );

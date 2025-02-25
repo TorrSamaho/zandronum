@@ -333,8 +333,51 @@ void ATeamItem::AnnounceFlagPickup( AActor *pToucher )
 //
 //===========================================================================
 
-void ATeamItem::DisplayFlagTaken( AActor *pToucher )
+void ATeamItem::DisplayFlagTaken( AActor *toucher )
 {
+	const int touchingPlayer = static_cast<int>( toucher->player - players );
+	const unsigned int team = TEAM_GetTeamFromItem( this );
+	EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( team ));
+	FString message;
+
+	// Create the "pickup" message and print it... or if necessary, send it to clients.
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	{
+		if ( touchingPlayer == consoleplayer )
+			message.Format( "You have the %s %s!", TEAM_GetName( team ), GetType( ));
+		else
+			message.Format( "%s %s taken!", TEAM_GetName( team ), GetType( ));
+
+		HUD_DrawCNTRMessage( message.GetChars( ), color );
+	}
+	else
+	{
+		message.Format( "You have the %s %s!", TEAM_GetName( team ), GetType( ));
+		HUD_DrawCNTRMessage( message.GetChars( ), color, 3.0f, 0.25f, true, touchingPlayer, SVCF_ONLYTHISCLIENT );
+
+		message.Format( "%s %s taken!", TEAM_GetName( team ), GetType( ));
+		HUD_DrawCNTRMessage( message.GetChars( ), color, 3.0f, 0.25f, true, touchingPlayer, SVCF_SKIPTHISCLIENT );
+	}
+
+	// [RC] Create the "held by" message for the team.
+	// [AK] Don't show this message to the player picking up the item.
+	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) || ( touchingPlayer != consoleplayer ))
+	{
+		color = static_cast<EColorRange>( TEAM_GetTextColor( players[touchingPlayer].Team ));
+		message.Format( "Held by: %s", players[touchingPlayer].userinfo.GetName( ));
+
+		// Now, print it... or if necessary, send it to clients.
+		HUD_DrawSUBSMessage( message.GetChars( ), color, 3.0f, 0.25f, true, touchingPlayer, SVCF_SKIPTHISCLIENT );
+	}
+
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		message.Format( "%s has taken the ", players[touchingPlayer].userinfo.GetName( ));
+		message += TEXTCOLOR_ESCAPE;
+		message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "%s.", TEAM_GetTextColorName( team ), TEAM_GetName( team ), GetType( ));
+
+		SERVER_Printf( PRINT_MEDIUM, "%s\n", message.GetChars( ));
+	}
 }
 
 //===========================================================================
@@ -598,61 +641,6 @@ void AFlag::AnnounceFlagPickup( AActor *pToucher )
 	name += TEAM_GetName( TEAM_GetTeamFromItem( this ));
 	name += "FlagTaken";
 	ANNOUNCER_PlayEntry( cl_announcer, name.GetChars( ));
-}
-
-//===========================================================================
-//
-// AFlag :: DisplayFlagTaken
-//
-// Display the text for picking up this flag.
-//
-//===========================================================================
-
-void AFlag::DisplayFlagTaken( AActor *toucher )
-{
-	const int touchingPlayer = static_cast<int>( toucher->player - players );
-	const unsigned int team = TEAM_GetTeamFromItem( this );
-	EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( team ));
-	FString message;
-
-	// Create the "pickup" message and print it... or if necessary, send it to clients.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		if ( touchingPlayer == consoleplayer )
-			message.Format( "You have the %s %s!", TEAM_GetName( team ), GetType( ));
-		else
-			message.Format( "%s %s taken!", TEAM_GetName( team ), GetType( ));
-
-		HUD_DrawCNTRMessage( message.GetChars( ), color );
-	}
-	else
-	{
-		message.Format( "You have the %s %s!", TEAM_GetName( team ), GetType( ));
-		HUD_DrawCNTRMessage( message.GetChars( ), color, 3.0f, 0.25f, true, touchingPlayer, SVCF_ONLYTHISCLIENT );
-
-		message.Format( "%s %s taken!", TEAM_GetName( team ), GetType( ));
-		HUD_DrawCNTRMessage( message.GetChars( ), color, 3.0f, 0.25f, true, touchingPlayer, SVCF_SKIPTHISCLIENT );
-	}
-
-	// [RC] Create the "held by" message for the team.
-	// [AK] Don't show this message to the player picking up the item.
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) || ( touchingPlayer != consoleplayer ))
-	{
-		color = static_cast<EColorRange>( TEAM_GetTextColor( players[touchingPlayer].Team ));
-		message.Format( "Held by: %s", players[touchingPlayer].userinfo.GetName( ));
-
-		// Now, print it... or if necessary, send it to clients.
-		HUD_DrawSUBSMessage( message.GetChars( ), color, 3.0f, 0.25f, true, touchingPlayer, SVCF_SKIPTHISCLIENT );
-	}
-
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		message.Format( "%s has taken the ", players[touchingPlayer].userinfo.GetName( ));
-		message += TEXTCOLOR_ESCAPE;
-		message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "%s.", TEAM_GetTextColorName( team ), TEAM_GetName( team ), GetType( ));
-
-		SERVER_Printf( PRINT_MEDIUM, "%s\n", message.GetChars( ));
-	}
 }
 
 //===========================================================================
@@ -1094,61 +1082,6 @@ void ASkull::AnnounceFlagPickup( AActor *pToucher )
 	name += TEAM_GetName( TEAM_GetTeamFromItem( this ));
 	name += "SkullTaken";
 	ANNOUNCER_PlayEntry( cl_announcer, name.GetChars( ));
-}
-
-//===========================================================================
-//
-// ASkull :: DisplayFlagTaken
-//
-// Display the text for picking up this flag.
-//
-//===========================================================================
-
-void ASkull::DisplayFlagTaken( AActor *toucher )
-{
-	const int touchingPlayer = static_cast<int>( toucher->player - players );
-	const unsigned int team = TEAM_GetTeamFromItem( this );
-	EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( team ));
-	FString message;
-
-	// Create the "pickup" message and print it... or if necessary, send it to clients.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		if ( touchingPlayer == consoleplayer )
-			message.Format( "You have the %s %s!", TEAM_GetName( team ), GetType( ));
-		else
-			message.Format( "%s %s taken!", TEAM_GetName( team ), GetType( ));
-
-		HUD_DrawCNTRMessage( message.GetChars( ), color );
-	}
-	else
-	{
-		message.Format( "You have the %s %s!", TEAM_GetName( team ), GetType( ));
-		HUD_DrawCNTRMessage( message.GetChars( ), color, 3.0f, 0.25f, true, touchingPlayer, SVCF_ONLYTHISCLIENT );
-
-		message.Format( "%s %s taken!", TEAM_GetName( team ), GetType( ));
-		HUD_DrawCNTRMessage( message.GetChars( ), color, 3.0f, 0.25f, true, touchingPlayer, SVCF_SKIPTHISCLIENT );
-	}
-
-	// [RC] Create the "held by" message for the team.
-	// [AK] Don't show this message to the player picking up the item.
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) || ( touchingPlayer != consoleplayer ))
-	{
-		color = static_cast<EColorRange>( TEAM_GetTextColor( players[touchingPlayer].Team ));
-		message.Format( "Held by: %s", players[touchingPlayer].userinfo.GetName( ));
-
-		// Now, print it... or if necessary, send it to clients.
-		HUD_DrawSUBSMessage( message.GetChars( ), color, 3.0f, 0.25f, true, touchingPlayer, SVCF_SKIPTHISCLIENT );
-	}
-
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		message.Format( "%s has taken the ", players[touchingPlayer].userinfo.GetName( ));
-		message += TEXTCOLOR_ESCAPE;
-		message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "%s.", TEAM_GetTextColorName( team ), TEAM_GetName( team ), GetType( ));
-
-		SERVER_Printf( PRINT_MEDIUM, "%s\n", message.GetChars( ));
-	}
 }
 
 //===========================================================================
