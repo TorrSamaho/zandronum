@@ -150,6 +150,9 @@ public:
 	void ResetReturnTicks( void );
 
 	LONG lTick;
+
+protected:
+	virtual const char *GetType( void ) { return "item"; }
 };
 
 class AFlag : public ATeamItem
@@ -163,6 +166,9 @@ public:
 	virtual void ReturnFlag( AActor *pReturner );
 	virtual void AnnounceFlagReturn( void );
 	virtual void DisplayFlagReturn( void );
+
+protected:
+	virtual const char *GetType( void ) { return "flag"; }
 };
 
 class ASkull : public ATeamItem
@@ -175,6 +181,9 @@ public:
 	virtual void ReturnFlag( AActor *pReturner );
 	virtual void AnnounceFlagReturn( void );
 	virtual void DisplayFlagReturn( void );
+
+protected:
+	virtual const char *GetType( void ) { return "skull"; }
 };
 
 class AFloatyIcon : public AActor
