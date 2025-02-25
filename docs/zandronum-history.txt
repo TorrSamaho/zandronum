@@ -291,6 +291,7 @@
 !	- Adjusted the text alignment and placement of the control point list in Domination. [Trillster]
 !	- The ammo types of weapons that have the NOLMS flag are no longer given out in LMS/TEAMLMS. [Ru5tK1ng]
 !	- Domination control points are now displayed in the order that they're defined in SECTINFO. [Trillster]
+!	- The "held by" message for the white flag is now colorized the same way as it is when picking up a team's flag or skull. [AKMDM]
 
 
 3.1

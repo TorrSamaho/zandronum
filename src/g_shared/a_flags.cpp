@@ -969,10 +969,10 @@ void AWhiteFlag::DisplayFlagTaken( AActor *toucher )
 	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) || ( touchingPlayer != consoleplayer ))
 	{
 		const EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( players[touchingPlayer].Team ));
-		FString message = players[touchingPlayer].userinfo.GetName( );
+		FString message;
 
-		V_RemoveColorCodes( message );
-		message.Insert( 0, TEXTCOLOR_GREY "Held by: " TEXTCOLOR_NORMAL );
+		// [AK] Colorize the message in the same way that it is for flags or skulls.
+		message.Format( "Held by: %s", players[touchingPlayer].userinfo.GetName( ));
 
 		// Now, print it... or if necessary, send it to clients.
 		HUD_DrawSUBSMessage( message.GetChars( ), color, 3.0f, 0.25f, true, touchingPlayer, SVCF_SKIPTHISCLIENT );
