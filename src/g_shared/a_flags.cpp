@@ -1033,13 +1033,8 @@ void AWhiteFlag::AnnounceFlagReturn( void )
 
 void AWhiteFlag::DisplayFlagReturn( void )
 {
-	char						szString[256];
-
 	// Create the "returned" message.
-	sprintf( szString, "\\cCWhite flag returned" );
-	V_ColorizeString( szString );
-
-	HUD_DrawCNTRMessage( szString, CR_UNTRANSLATED );
+	HUD_DrawCNTRMessage( "White flag returned", CR_GREY );
 }
 
 // Skulltag skull -----------------------------------------------------------
