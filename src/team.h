@@ -89,7 +89,7 @@ void		TEAM_DisplayNeedToReturnSkullMessage( player_t *pPlayer );
 WORD		TEAM_GetReturnScriptOffset( ULONG ulTeamIdx );
 void		TEAM_DoWinSequence( ULONG ulTeamIdx );
 void		TEAM_TimeExpired( void );
-bool		TEAM_SpawningTemporaryFlag( void );
+bool		TEAM_SpawningTemporaryTeamItem( void );
 
 // Access functions.
 bool		TEAM_CheckIfValid( ULONG ulTeamIdx );

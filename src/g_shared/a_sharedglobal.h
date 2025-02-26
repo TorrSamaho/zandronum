@@ -139,14 +139,14 @@ class ATeamItem : public AInventory
 public:
 	virtual bool ShouldRespawn( );
 	virtual bool TryPickup( AActor *&toucher );
-	virtual bool HandlePickup( AInventory *pItem );
-	virtual int AllowFlagPickup( AActor *toucher );
-	virtual void AnnounceFlagPickup( AActor *toucher );
-	virtual void DisplayFlagTaken( AActor *toucher );
-	virtual void ReturnFlag( AActor *returner );
-	virtual void AnnounceFlagReturn( void );
-	virtual void DisplayFlagReturn( AActor *returner );
-	void MarkFlagTaken( bool bTaken );
+	virtual bool HandlePickup( AInventory *item );
+	virtual int AllowPickup( AActor *toucher );
+	virtual void AnnouncePickup( AActor *toucher );
+	virtual void DisplayTaken( AActor *toucher );
+	virtual void Return( AActor *returner );
+	virtual void AnnounceReturn( void );
+	virtual void DisplayReturn( AActor *returner );
+	void MarkTaken( bool taken );
 	void ResetReturnTicks( void );
 
 	static void Drop( player_t *player, unsigned int team );
@@ -160,7 +160,7 @@ class AFlag : public ATeamItem
 	DECLARE_CLASS( AFlag, ATeamItem )
 public:
 	virtual bool HandlePickup( AInventory *item );
-	virtual int AllowFlagPickup( AActor *toucher );
+	virtual int AllowPickup( AActor *toucher );
 
 protected:
 	virtual const char *GetType( void ) { return "flag"; }
@@ -171,19 +171,19 @@ class AWhiteFlag : public AFlag
 	DECLARE_CLASS( AWhiteFlag, AFlag )
 public:
 	virtual bool HandlePickup( AInventory *item );
-	virtual int AllowFlagPickup( AActor *toucher );
-	virtual void AnnounceFlagPickup( AActor *toucher );
-	virtual void DisplayFlagTaken( AActor *toucher );
-	virtual void ReturnFlag( AActor *returner );
-	virtual void AnnounceFlagReturn( void );
-	virtual void DisplayFlagReturn( AActor *returner );
+	virtual int AllowPickup( AActor *toucher );
+	virtual void AnnouncePickup( AActor *toucher );
+	virtual void DisplayTaken( AActor *toucher );
+	virtual void Return( AActor *returner );
+	virtual void AnnounceReturn( void );
+	virtual void DisplayReturn( AActor *returner );
 };
 
 class ASkull : public ATeamItem
 {
 	DECLARE_CLASS( ASkull, ATeamItem )
 public:
-	virtual int AllowFlagPickup( AActor *toucher );
+	virtual int AllowPickup( AActor *toucher );
 
 protected:
 	virtual const char *GetType( void ) { return "skull"; }

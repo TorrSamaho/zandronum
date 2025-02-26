@@ -231,8 +231,8 @@ void	SERVERCOMMANDS_SetDominationPointState( ULONG ulPoint, DPOINT_s state, ULON
 // Team commands. These involve one of the teams in teamgame mode.
 void	SERVERCOMMANDS_SetTeamScore( ULONG ulTeam, ULONG ulType, bool bAnnounce, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 void	SERVERCOMMANDS_SetTeamReturnTicks( ULONG ulTeam, ULONG ulReturnTicks, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
-void	SERVERCOMMANDS_TeamFlagReturned( unsigned int player, unsigned int team, unsigned int playerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
-void	SERVERCOMMANDS_TeamFlagDropped( ULONG ulPlayer, ULONG ulTeam, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
+void	SERVERCOMMANDS_TeamItemReturned( unsigned int player, unsigned int team, unsigned int playerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
+void	SERVERCOMMANDS_TeamItemDropped( unsigned int player, unsigned int team, unsigned int playerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 
 // Missile commands. These handle missiles in some way.
 void	SERVERCOMMANDS_SpawnMissile( AActor *pMissile, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );

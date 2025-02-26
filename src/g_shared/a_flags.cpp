@@ -82,7 +82,7 @@ IMPLEMENT_CLASS( ATeamItem )
 //
 // ATeamItem :: ShouldRespawn
 //
-// A flag should never respawn, so this function should always return false.
+// A team item should never respawn, so this function should always return false.
 //
 //===========================================================================
 
@@ -130,7 +130,7 @@ bool ATeamItem::TryPickup( AActor *&toucher )
 		return ( false );
 
 	// [AK] Check if we're allowed to pickup this item.
-	const int allowPickup = AllowFlagPickup( toucher );
+	const int allowPickup = AllowPickup( toucher );
 
 	// If we're not allowed to pickup this item, return false.
 	if ( allowPickup != ALLOW_PICKUP )
@@ -151,21 +151,21 @@ bool ATeamItem::TryPickup( AActor *&toucher )
 				if ( NETWORK_InClientMode( ) == false )
 				{
 					// The player is touching his own dropped item; return it now.
-					ReturnFlag( toucher );
+					Return( toucher );
 
 					// Mark the item as no longer being taken.
-					MarkFlagTaken( false );
+					MarkTaken( false );
 				}
 
 				// Display text saying that the item has been returned.
-				DisplayFlagReturn( toucher );
+				DisplayReturn( toucher );
 			}
 
 			// Reset the return ticks for this item.
 			ResetReturnTicks( );
 
 			// Announce that the item has been returned.
-			AnnounceFlagReturn( );
+			AnnounceReturn( );
 
 			// Delete the item.
 			GoAwayAndDie( );
@@ -177,7 +177,7 @@ bool ATeamItem::TryPickup( AActor *&toucher )
 
 				// Tell clients that the item has been returned.
 				// [AK] Also tell them who returned the item.
-				SERVERCOMMANDS_TeamFlagReturned( toucher->player ? toucher->player - players : MAXPLAYERS, TEAM_GetTeamFromItem( this ));
+				SERVERCOMMANDS_TeamItemReturned( toucher->player ? toucher->player - players : MAXPLAYERS, TEAM_GetTeamFromItem( this ));
 			}
 			else
 			{
@@ -201,18 +201,18 @@ bool ATeamItem::TryPickup( AActor *&toucher )
 			GAMEMODE_HandleEvent( GAMEEVENT_TOUCHES, toucher, static_cast<int>( TEAM_GetTeamFromItem( this )));
 
 			// Also, mark the item as being taken.
-			MarkFlagTaken( true );
+			MarkTaken( true );
 		}
 
 		// Display the item taken message.
-		DisplayFlagTaken( toucher );
+		DisplayTaken( toucher );
 	}
 
 	// Reset the return ticks for this item.
 	ResetReturnTicks( );
 
 	// Announce the pickup of this item.
-	AnnounceFlagPickup( toucher );
+	AnnouncePickup( toucher );
 
 	// Also, refresh the HUD.
 	HUD_ShouldRefreshBeforeRendering( );
@@ -248,29 +248,28 @@ bool ATeamItem::TryPickup( AActor *&toucher )
 //
 //===========================================================================
 
-bool ATeamItem::HandlePickup( AInventory *pItem )
+bool ATeamItem::HandlePickup( AInventory *item )
 {
 	// Don't allow the pickup of invisibility objects when carrying a flag.
-	if (( pItem->IsKindOf( RUNTIME_CLASS( APowerInvisibility ))) ||
-		( pItem->IsKindOf( RUNTIME_CLASS( APowerTranslucency ))))
+	if (( item->IsKindOf( RUNTIME_CLASS( APowerInvisibility ))) || ( item->IsKindOf( RUNTIME_CLASS( APowerTranslucency ))))
 	{
 		ItemFlags &= ~IF_PICKUPGOOD;
 
 		return ( true );
 	}
 
-	return ( Super::HandlePickup( pItem ));
+	return ( Super::HandlePickup( item ));
 }
 
 //===========================================================================
 //
-// ATeamItem :: AllowFlagPickup
+// ATeamItem :: AllowPickup
 //
-// Determine whether or not we should be allowed to pickup this flag.
+// Determine whether or not we should be allowed to pickup this item.
 //
 //===========================================================================
 
-int ATeamItem::AllowFlagPickup( AActor *toucher )
+int ATeamItem::AllowPickup( AActor *toucher )
 {
 	// [BB] Only players on a team can pick up team items.
 	if (( toucher == nullptr ) || ( toucher->player == nullptr ) || ( toucher->player->bOnTeam == false ))
@@ -311,13 +310,13 @@ int ATeamItem::AllowFlagPickup( AActor *toucher )
 
 //===========================================================================
 //
-// ATeamItem :: AnnounceFlagPickup
+// ATeamItem :: AnnouncePickup
 //
-// Play the announcer sound for picking up this flag.
+// Play the announcer sound for picking up this item.
 //
 //===========================================================================
 
-void ATeamItem::AnnounceFlagPickup( AActor *toucher )
+void ATeamItem::AnnouncePickup( AActor *toucher )
 {
 	// Don't announce the pickup if the item is being given to someone as part of a snapshot.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) == CTS_RECEIVINGSNAPSHOT ))
@@ -334,13 +333,13 @@ void ATeamItem::AnnounceFlagPickup( AActor *toucher )
 
 //===========================================================================
 //
-// ATeamItem :: DisplayFlagTaken
+// ATeamItem :: DisplayTaken
 //
-// Display the text for picking up this flag.
+// Display the text for picking up this item.
 //
 //===========================================================================
 
-void ATeamItem::DisplayFlagTaken( AActor *toucher )
+void ATeamItem::DisplayTaken( AActor *toucher )
 {
 	const int touchingPlayer = static_cast<int>( toucher->player - players );
 	const unsigned int team = TEAM_GetTeamFromItem( this );
@@ -378,13 +377,13 @@ void ATeamItem::DisplayFlagTaken( AActor *toucher )
 
 //===========================================================================
 //
-// ATeamItem :: ReturnFlag
+// ATeamItem :: Return
 //
-// Spawn a new flag at its original location.
+// Spawn a new team item at its original location.
 //
 //===========================================================================
 
-void ATeamItem::ReturnFlag( AActor *returner )
+void ATeamItem::Return( AActor *returner )
 {
 	const unsigned int returningPlayer = ( returner && returner->player ) ? static_cast<unsigned>( returner->player - players ) : MAXPLAYERS;
 	const unsigned int team = TEAM_GetTeamFromItem( this );
@@ -430,13 +429,13 @@ void ATeamItem::ReturnFlag( AActor *returner )
 
 //===========================================================================
 //
-// ATeamItem :: AnnounceFlagReturn
+// ATeamItem :: AnnounceReturn
 //
-// Play the announcer sound for this flag being returned.
+// Play the announcer sound for this item being returned.
 //
 //===========================================================================
 
-void ATeamItem::AnnounceFlagReturn( void )
+void ATeamItem::AnnounceReturn( void )
 {
 	// Build the message. Whatever the team's name is, is the first part of
 	// the message, followed by the item's current type. This way we don't have
@@ -449,13 +448,13 @@ void ATeamItem::AnnounceFlagReturn( void )
 
 //===========================================================================
 //
-// ATeamItem :: DisplayFlagReturn
+// ATeamItem :: DisplayReturn
 //
-// Display the text for this flag being returned.
+// Display the text for this item being returned.
 //
 //===========================================================================
 
-void ATeamItem::DisplayFlagReturn( AActor *returner )
+void ATeamItem::DisplayReturn( AActor *returner )
 {
 	const unsigned int returningPlayer = ( returner && returner->player ) ? static_cast<unsigned>( returner->player - players ) : MAXPLAYERS;
 	const unsigned int team = TEAM_GetTeamFromItem( this );
@@ -532,7 +531,7 @@ void ATeamItem::Drop( player_t *player, unsigned int team )
 	// If we're the server, just tell clients to do this.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		SERVERCOMMANDS_TeamFlagDropped( static_cast<unsigned>( player - players ), team );
+		SERVERCOMMANDS_TeamItemDropped( static_cast<unsigned>( player - players ), team );
 		return;
 	}
 
@@ -555,23 +554,23 @@ void ATeamItem::Drop( player_t *player, unsigned int team )
 
 //===========================================================================
 //
-// ATeamItem :: MarkFlagTaken
+// ATeamItem :: MarkTaken
 //
-// Signal to the team module whether or not this flag has been taken.
+// Signal to the team module whether or not this item has been taken.
 //
 //===========================================================================
 
-void ATeamItem::MarkFlagTaken( bool bTaken )
+void ATeamItem::MarkTaken( bool taken )
 {
 	// [AK] For the white flag, TEAM_GetTeamFromItem should return teams.size( ).
-	TEAM_SetItemTaken( TEAM_GetTeamFromItem( this ), bTaken );
+	TEAM_SetItemTaken( TEAM_GetTeamFromItem( this ), taken );
 }
 
 //===========================================================================
 //
 // ATeamItem :: ResetReturnTicks
 //
-// Reset the return ticks for the team associated with this flag.
+// Reset the return ticks for the team associated with this item.
 //
 //===========================================================================
 
@@ -614,7 +613,7 @@ bool AFlag::HandlePickup( AInventory *item )
 			return ( Super::HandlePickup( item ));
 
 		// Don't award a point if we're touching a dropped version of our flag.
-		if ( static_cast<AFlag *>( item )->AllowFlagPickup( Owner ) == RETURN_FLAG )
+		if ( static_cast<AFlag *>( item )->AllowPickup( Owner ) == RETURN_FLAG )
 			return ( Super::HandlePickup( item ));
 
 		if (( TEAM_GetSimpleCTFSTMode( )) && ( NETWORK_InClientMode( ) == false ))
@@ -626,7 +625,7 @@ bool AFlag::HandlePickup( AInventory *item )
 			// Award the scorer with a "Capture!" medal.
 			MEDAL_GiveMedal( player, "Capture" );
 
-			this->ReturnFlag( nullptr );
+			this->Return( nullptr );
 
 			// Create the "captured" message.
 			message.Format( "%s team scores!", TEAM_GetName( team ));
@@ -703,19 +702,19 @@ bool AFlag::HandlePickup( AInventory *item )
 
 //===========================================================================
 //
-// AFlag :: AllowFlagPickup
+// AFlag :: AllowPickup
 //
 // Determine whether or not we should be allowed to pickup this flag.
 //
 //===========================================================================
 
-int AFlag::AllowFlagPickup( AActor *toucher )
+int AFlag::AllowPickup( AActor *toucher )
 {
 	// Don't allow the pickup of flags in One Flag CTF.
 	if ( oneflagctf )
 		return ( DENY_PICKUP );
 
-	return Super::AllowFlagPickup( toucher );
+	return Super::AllowPickup( toucher );
 }
 
 // White flag ---------------------------------------------------------------
@@ -786,7 +785,7 @@ bool AWhiteFlag::HandlePickup( AInventory *item )
  			Owner->RemoveInventory( inventory );
 		}
 
-		this->ReturnFlag( nullptr );
+		this->Return( nullptr );
 
 		// Also, refresh the HUD.
 		HUD_ShouldRefreshBeforeRendering( );
@@ -799,13 +798,13 @@ bool AWhiteFlag::HandlePickup( AInventory *item )
 
 //===========================================================================
 //
-// AWhiteFlag :: AllowFlagPickup
+// AWhiteFlag :: AllowPickup
 //
-// Determine whether or not we should be allowed to pickup this flag.
+// Determine whether or not we should be allowed to pickup the white flag.
 //
 //===========================================================================
 
-int AWhiteFlag::AllowFlagPickup( AActor *toucher )
+int AWhiteFlag::AllowPickup( AActor *toucher )
 {
 	// [BB] Carrying more than one WhiteFlag is not allowed.
 	if (( toucher == nullptr ) || ( toucher->FindInventory( PClass::FindClass( "WhiteFlag" ), true ) == nullptr ))
@@ -816,13 +815,13 @@ int AWhiteFlag::AllowFlagPickup( AActor *toucher )
 
 //===========================================================================
 //
-// AWhiteFlag :: AnnounceFlagPickup
+// AWhiteFlag :: AnnouncePickup
 //
-// Play the announcer sound for picking up this flag.
+// Play the announcer sound for picking up the white flag.
 //
 //===========================================================================
 
-void AWhiteFlag::AnnounceFlagPickup( AActor *toucher )
+void AWhiteFlag::AnnouncePickup( AActor *toucher )
 {
 	// Don't announce the pickup if the flag is being given to someone as part of a snapshot.
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_GetConnectionState( ) == CTS_RECEIVINGSNAPSHOT ))
@@ -844,13 +843,13 @@ void AWhiteFlag::AnnounceFlagPickup( AActor *toucher )
 
 //===========================================================================
 //
-// AWhiteFlag :: DisplayFlagTaken
+// AWhiteFlag :: DisplayTaken
 //
-// Display the text for picking up this flag.
+// Display the text for picking up the white flag.
 //
 //===========================================================================
 
-void AWhiteFlag::DisplayFlagTaken( AActor *toucher )
+void AWhiteFlag::DisplayTaken( AActor *toucher )
 {
 	const int touchingPlayer = static_cast<int>( toucher->player - players );
 
@@ -880,13 +879,13 @@ void AWhiteFlag::DisplayFlagTaken( AActor *toucher )
 
 //===========================================================================
 //
-// AWhiteFlag :: ReturnFlag
+// AWhiteFlag :: Return
 //
-// Spawn a new flag at its original location.
+// Spawn a new white flag at its original location.
 //
 //===========================================================================
 
-void AWhiteFlag::ReturnFlag( AActor *returner )
+void AWhiteFlag::Return( AActor *returner )
 {
 	// Respawn the white flag.
 	const POS_t origin = TEAM_GetItemOrigin( teams.Size( ));
@@ -911,26 +910,26 @@ void AWhiteFlag::ReturnFlag( AActor *returner )
 
 //===========================================================================
 //
-// AWhiteFlag :: AnnounceFlagReturn
+// AWhiteFlag :: AnnounceReturn
 //
-// Play the announcer sound for this flag being returned.
+// Play the announcer sound for the white flag being returned.
 //
 //===========================================================================
 
-void AWhiteFlag::AnnounceFlagReturn( void )
+void AWhiteFlag::AnnounceReturn( void )
 {
 	ANNOUNCER_PlayEntry( cl_announcer, "WhiteFlagReturned" );
 }
 
 //===========================================================================
 //
-// AWhiteFlag :: DisplayFlagReturn
+// AWhiteFlag :: DisplayReturn
 //
-// Display the text for this flag being returned.
+// Display the text for the white flag being returned.
 //
 //===========================================================================
 
-void AWhiteFlag::DisplayFlagReturn( AActor *returner )
+void AWhiteFlag::DisplayReturn( AActor *returner )
 {
 	// Create the "returned" message.
 	HUD_DrawCNTRMessage( "White flag returned", CR_GREY );
@@ -943,13 +942,13 @@ IMPLEMENT_CLASS( ASkull )
 
 //===========================================================================
 //
-// ASkull :: AllowFlagPickup
+// ASkull :: AllowPickup
 //
-// Determine whether or not we should be allowed to pickup this flag.
+// Determine whether or not we should be allowed to pickup this skull.
 //
 //===========================================================================
 
-int ASkull::AllowFlagPickup( AActor *toucher )
+int ASkull::AllowPickup( AActor *toucher )
 {
-	return Super::AllowFlagPickup( toucher );
+	return Super::AllowPickup( toucher );
 }

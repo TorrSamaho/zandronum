@@ -5084,7 +5084,7 @@ AActor *AActor::StaticSpawn (const PClass *type, fixed_t ix, fixed_t iy, fixed_t
 	actor->FixedColormap = NOFIXEDCOLORMAP;
 
 	// Check if the flag or skull has spawned in an instant return zone.
-	if (( TEAM_SpawningTemporaryFlag( ) == false ) &&
+	if (( TEAM_SpawningTemporaryTeamItem( ) == false ) &&
 		( actor->Sector->MoreFlags & SECF_RETURNZONE ) &&
 		( NETWORK_InClientMode() == false ))
 	{

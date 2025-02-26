@@ -239,8 +239,8 @@ static	void	client_DoGameModeWinSequence( BYTESTREAM_s *pByteStream );
 // Team commands.
 static	void	client_SetTeamScore( BYTESTREAM_s *pByteStream );
 static	void	client_SetTeamReturnTicks( BYTESTREAM_s *pByteStream );
-static	void	client_TeamFlagReturned( BYTESTREAM_s *pByteStream );
-static	void	client_TeamFlagDropped( BYTESTREAM_s *pByteStream );
+static	void	client_TeamItemReturned( BYTESTREAM_s *byteStream );
+static	void	client_TeamItemDropped( BYTESTREAM_s *byteStream );
 
 // Vote commands.
 static	void	client_CallVote( BYTESTREAM_s *pByteStream );
@@ -1688,13 +1688,13 @@ void CLIENT_ProcessCommand( LONG lCommand, BYTESTREAM_s *pByteStream )
 
 		client_SetTeamReturnTicks( pByteStream );
 		break;
-	case SVC_TEAMFLAGRETURNED:
+	case SVC_TEAMITEMRETURNED:
 
-		client_TeamFlagReturned( pByteStream );
+		client_TeamItemReturned( pByteStream );
 		break;
-	case SVC_TEAMFLAGDROPPED:
+	case SVC_TEAMITEMDROPPED:
 
-		client_TeamFlagDropped( pByteStream );
+		client_TeamItemDropped( pByteStream );
 		break;
 	case SVC_CALLVOTE:
 
@@ -6395,12 +6395,12 @@ static void client_SetTeamReturnTicks( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_TeamFlagReturned( BYTESTREAM_s *pByteStream )
+static void client_TeamItemReturned( BYTESTREAM_s *byteStream )
 {
-	// Read in the team that the flag has been returned for.
+	// Read in the team that the item has been returned for.
 	// [AK] Read in the player that returned the item first.
-	const unsigned int player = pByteStream->ReadByte( );
-	const unsigned int team = pByteStream->ReadByte( );
+	const unsigned int player = byteStream->ReadByte( );
+	const unsigned int team = byteStream->ReadByte( );
 
 	// Finally, just call this function that does all the dirty work.
 	TEAM_ExecuteReturnRoutine( team, PLAYER_IsValidPlayer( player ) ? players[player].mo : nullptr );
@@ -6408,11 +6408,11 @@ static void client_TeamFlagReturned( BYTESTREAM_s *pByteStream )
 
 //*****************************************************************************
 //
-static void client_TeamFlagDropped( BYTESTREAM_s *pByteStream )
+static void client_TeamItemDropped( BYTESTREAM_s *byteStream )
 {
-	// Read in the player that dropped a flag.
-	const unsigned int player = pByteStream->ReadByte( );
-	const unsigned int team = pByteStream->ReadByte( );
+	// Read in the player that dropped the item.
+	const unsigned int player = byteStream->ReadByte( );
+	const unsigned int team = byteStream->ReadByte( );
 
 	// Finally, just call this function that does all the dirty work.
 	ATeamItem::Drop( &players[player], team );

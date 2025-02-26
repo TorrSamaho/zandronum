@@ -2784,7 +2784,7 @@ void SERVERCOMMANDS_SetTeamReturnTicks( ULONG ulTeam, ULONG ulReturnTicks, ULONG
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_TeamFlagReturned( unsigned int player, unsigned int team, unsigned int playerExtra, ServerCommandFlags flags )
+void SERVERCOMMANDS_TeamItemReturned( unsigned int player, unsigned int team, unsigned int playerExtra, ServerCommandFlags flags )
 {
 	if (( player != MAXPLAYERS ) && ( PLAYER_IsValidPlayer( player ) == false ))
 		return;
@@ -2793,7 +2793,7 @@ void SERVERCOMMANDS_TeamFlagReturned( unsigned int player, unsigned int team, un
 	if (( TEAM_CheckIfValid ( team ) == false ) && ( team != teams.Size() ))
 		return;
 
-	NetCommand command( SVC_TEAMFLAGRETURNED );
+	NetCommand command( SVC_TEAMITEMRETURNED );
 	command.addByte( player );
 	command.addByte( team );
 	command.sendCommandToClients( playerExtra, flags );
@@ -2801,15 +2801,15 @@ void SERVERCOMMANDS_TeamFlagReturned( unsigned int player, unsigned int team, un
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_TeamFlagDropped( ULONG ulPlayer, ULONG ulTeam, ULONG ulPlayerExtra, ServerCommandFlags flags )
+void SERVERCOMMANDS_TeamItemDropped( unsigned int player, unsigned int team, unsigned int playerExtra, ServerCommandFlags flags )
 {
-	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
+	if ( PLAYER_IsValidPlayer( player ) == false )
 		return;
 
-	NetCommand command( SVC_TEAMFLAGDROPPED );
-	command.addByte( ulPlayer );
-	command.addByte( ulTeam );
-	command.sendCommandToClients( ulPlayerExtra, flags );
+	NetCommand command( SVC_TEAMITEMDROPPED );
+	command.addByte( player );
+	command.addByte( team );
+	command.sendCommandToClients( playerExtra, flags );
 }
 
 //*****************************************************************************

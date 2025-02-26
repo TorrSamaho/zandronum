@@ -93,8 +93,8 @@ static	bool	g_bWhiteFlagTaken;
 static	POS_t	g_WhiteFlagOrigin;
 static	ULONG	g_ulWhiteFlagReturnTicks;
 
-// Are we spawning a temporary flag? If so, ignore return zones.
-static	bool	g_bSpawningTemporaryFlag = false;
+// Are we spawning a temporary team item? If so, ignore return zones.
+static	bool	g_SpawningTemporaryTeamItem = false;
 
 static FRandom	g_JoinTeamSeed( "JoinTeamSeed" );
 
@@ -262,9 +262,9 @@ void TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner )
 	else
 		pClass = TEAM_GetItem( ulTeamIdx );
 
-	g_bSpawningTemporaryFlag = true;
+	g_SpawningTemporaryTeamItem = true;
 	pTeamItem = Spawn( pClass, 0, 0, 0, ALLOW_REPLACE );
-	g_bSpawningTemporaryFlag = false;
+	g_SpawningTemporaryTeamItem = false;
 	if ( pTeamItem->IsKindOf( PClass::FindClass( "TeamItem" )) == false )
 	{
 		pTeamItem->Destroy( );
@@ -275,19 +275,19 @@ void TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner )
 	if ( TEAM_GetSimpleCTFSTMode( ))
 	{
 		if ( NETWORK_InClientMode() == false )
-			static_cast<ATeamItem *>( pTeamItem )->ReturnFlag( pReturner );
-		static_cast<ATeamItem *>( pTeamItem )->DisplayFlagReturn( pReturner );
+			static_cast<ATeamItem *>( pTeamItem )->Return( pReturner );
+		static_cast<ATeamItem *>( pTeamItem )->DisplayReturn( pReturner );
 	}
 
 	static_cast<ATeamItem *>( pTeamItem )->ResetReturnTicks( );
-	static_cast<ATeamItem *>( pTeamItem )->AnnounceFlagReturn( );
+	static_cast<ATeamItem *>( pTeamItem )->AnnounceReturn( );
 
-	// Destroy the temporarily created flag.
+	// Destroy the temporarily created team item.
 	pTeamItem->Destroy( );
 	pTeamItem = NULL;
 
-	// Destroy any sitting flags that being returned from the return ticks running out,
-	// or whatever reason.
+	// Destroy any sitting team items that being returned from the return ticks
+	// running out, or whatever reason.
 	if ( NETWORK_InClientMode() == false )
 	{
 		while (( pTeamItem = Iterator.Next( )))
@@ -295,7 +295,7 @@ void TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner )
 			if (( pTeamItem->IsKindOf( pClass ) == false ) || (( pTeamItem->flags & MF_DROPPED ) == false ))
 				continue;
 
-			// If we're the server, tell clients to destroy the flag.
+			// If we're the server, tell clients to destroy the item.
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_DestroyThing( pTeamItem );
 
@@ -303,9 +303,9 @@ void TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner )
 		}
 	}
 
-	// Tell clients that the flag has been returned.
+	// Tell clients that the item has been returned.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_TeamFlagReturned(( pReturner && pReturner->player ) ? pReturner->player - players : MAXPLAYERS, ulTeamIdx );
+		SERVERCOMMANDS_TeamItemReturned(( pReturner && pReturner->player ) ? pReturner->player - players : MAXPLAYERS, ulTeamIdx );
 	else
 		HUD_ShouldRefreshBeforeRendering( );
 }
@@ -759,9 +759,9 @@ void TEAM_TimeExpired( void )
 
 //*****************************************************************************
 //
-bool TEAM_SpawningTemporaryFlag( void )
+bool TEAM_SpawningTemporaryTeamItem( void )
 {
-	return ( g_bSpawningTemporaryFlag );
+	return ( g_SpawningTemporaryTeamItem );
 }
 
 //*****************************************************************************
