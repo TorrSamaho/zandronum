@@ -2,7 +2,8 @@
 //
 // Skulltag Source
 // Copyright (C) 2002-2006 Brad Carney
-// Copyright (C) 2007-2012 Skulltag Development Team
+// Copyright (C) 2025 Adam Kaminski
+// Copyright (C) 2007-2025 Skulltag/Zandronum Development Team
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without

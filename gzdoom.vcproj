@@ -2341,10 +2341,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\g_shared\a_flags.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\g_shared\a_flashfader.cpp"
 				>
 			</File>
@@ -2458,6 +2454,10 @@
 			</File>
 			<File
 				RelativePath=".\src\g_shared\a_springpad.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\g_shared\a_teamitems.cpp"
 				>
 			</File>
 			<File
