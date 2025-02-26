@@ -149,6 +149,8 @@ public:
 	void MarkFlagTaken( bool bTaken );
 	void ResetReturnTicks( void );
 
+	static void Drop( player_t *player, unsigned int team );
+
 protected:
 	virtual const char *GetType( void ) { return "item"; }
 };

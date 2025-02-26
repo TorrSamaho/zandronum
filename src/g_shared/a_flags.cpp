@@ -492,6 +492,52 @@ void ATeamItem::DisplayFlagReturn( AActor *returner )
 
 //===========================================================================
 //
+// [AK] ATeamItem :: Drop
+//
+// Display the text and play the announcer sound for this item being dropped.
+//
+//===========================================================================
+
+void ATeamItem::Drop( player_t *player, unsigned int team )
+{
+	// [AK] We're assuming that the team's item is either a flag or skull.
+	const FString itemName = skulltag ? "skull" : "flag";
+	const EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( team ));
+	FString message;
+
+	// [AK] Make sure that the player is valid.
+	if (( player == nullptr ) || ( player - players >= MAXPLAYERS ) || ( player - players < 0 ))
+		return;
+
+	// [AK] Also make sure that they're on a valid team.
+	if (( player->bOnTeam == false ) || ( TEAM_CheckIfValid( player->Team ) == false ))
+		return;
+
+	// [AK] Print a message in the console that the player has dropped the item.
+	message.Format( "%s lost the ", player->userinfo.GetName( ));
+	message += TEXTCOLOR_ESCAPE;
+	message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "%s.", TEAM_GetTextColorName( team ), TEAM_GetName( team ), itemName.GetChars( ));
+
+	Printf( PRINT_MEDIUM, "%s\n", message.GetChars( ));
+
+	// If we're the server, just tell clients to do this.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		SERVERCOMMANDS_TeamFlagDropped( static_cast<unsigned>( player - players ), team );
+		return;
+	}
+
+	// [AK] Build the dropped HUD message, then print it in the middle of the screen.
+	message.Format( "%s %s dropped!", TEAM_GetName( team ), itemName.GetChars( ));
+	HUD_DrawCNTRMessage( message.GetChars( ), color );
+
+	// Finally, play the announcer entry associated with this event.
+	message.Format( "%s%sDropped", TEAM_GetName( team ), itemName.GetChars( ));
+	ANNOUNCER_PlayEntry( cl_announcer, message.GetChars( ));
+}
+
+//===========================================================================
+//
 // ATeamItem :: MarkFlagTaken
 //
 // Signal to the team module whether or not this flag has been taken.

@@ -2157,7 +2157,7 @@ void APlayerPawn::DropImportantItems( bool bLeavingGame, AActor *pSource )
 							TEAM_SetReturnTicks( i, sv_flagreturntime * TICRATE );
 
 							// Print flag dropped message and do announcer stuff.
-							TEAM_FlagDropped( player, i );
+							ATeamItem::Drop( player, i );
 
 							// If we're the server, spawn the item to clients.
 							if ( NETWORK_GetState( ) == NETSTATE_SERVER )

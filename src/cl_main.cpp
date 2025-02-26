@@ -6410,15 +6410,12 @@ static void client_TeamFlagReturned( BYTESTREAM_s *pByteStream )
 //
 static void client_TeamFlagDropped( BYTESTREAM_s *pByteStream )
 {
-	ULONG	ulPlayer;
-	ULONG	ulTeamIdx;
-
 	// Read in the player that dropped a flag.
-	ulPlayer = pByteStream->ReadByte();
-	ulTeamIdx = pByteStream->ReadByte();
+	const unsigned int player = pByteStream->ReadByte( );
+	const unsigned int team = pByteStream->ReadByte( );
 
 	// Finally, just call this function that does all the dirty work.
-	TEAM_FlagDropped( &players[ulPlayer], ulTeamIdx );
+	ATeamItem::Drop( &players[player], team );
 }
 
 //*****************************************************************************
