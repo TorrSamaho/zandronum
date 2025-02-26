@@ -669,52 +669,42 @@ void TEAM_DisplayNeedToReturnSkullMessage( player_t *pPlayer )
 
 //*****************************************************************************
 //
-void TEAM_FlagDropped( player_t *pPlayer, ULONG ulTeamIdx )
+void TEAM_FlagDropped( player_t *player, unsigned int team )
 {
-	DHUDMessageFadeOut	*pMsg;
-	char				szString[64];
+	// [AK] We're assuming that the team's item is either a flag or skull.
+	const FString itemName = skulltag ? "skull" : "flag";
+	const EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( team ));
+	FString message;
 
-	// First, make sure the player is valid, and on a valid team.
-	if (( pPlayer == NULL ) ||
-		(( pPlayer - players ) >= MAXPLAYERS ) ||
-		(( pPlayer - players ) < 0 ) ||
-		( pPlayer->bOnTeam == false ) ||
-		( TEAM_CheckIfValid( pPlayer->Team ) == false ))
-	{
+	// [AK] Make sure that the player is valid.
+	if (( player == nullptr ) || ( player - players >= MAXPLAYERS ) || ( player - players < 0 ))
 		return;
-	}
+
+	// [AK] Also make sure that they're on a valid team.
+	if (( player->bOnTeam == false ) || ( TEAM_CheckIfValid( player->Team ) == false ))
+		return;
+
+	// [AK] Print a message in the console that the player has dropped the item.
+	message.Format( "%s lost the ", player->userinfo.GetName( ));
+	message += TEXTCOLOR_ESCAPE;
+	message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "%s.", TEAM_GetTextColorName( team ), TEAM_GetName( team ), itemName.GetChars( ));
+
+	Printf( PRINT_MEDIUM, "%s\n", message.GetChars( ));
 
 	// If we're the server, just tell clients to do this.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		SERVERCOMMANDS_TeamFlagDropped( ULONG( pPlayer - players ), ulTeamIdx );
-		SERVER_Printf( PRINT_MEDIUM, "%s lost the \034%s%s " TEXTCOLOR_NORMAL "%s.\n", pPlayer->userinfo.GetName(), TEAM_GetTextColorName( ulTeamIdx), TEAM_GetName( ulTeamIdx), ( skulltag ) ? "skull" : "flag" );
+		SERVERCOMMANDS_TeamFlagDropped( static_cast<unsigned>( player - players ), team );
 		return;
 	}
 
-	// Add the console message.
-	Printf( "%s %s dropped!\n", TEAM_GetName( ulTeamIdx ), ( skulltag ) ? "skull" : "flag" );
-
-	// Next, build the dropped message.
-	sprintf( szString, "\\c%s%s %s dropped!", TEAM_GetTextColorName( ulTeamIdx ), TEAM_GetName( ulTeamIdx ), ( skulltag ) ? "skull" : "flag" );
-
-	// Colorize it.
-	V_ColorizeString( szString );
-
-	// Now, print it.
-	pMsg = new DHUDMessageFadeOut( BigFont, szString,
-		1.5f,
-		TEAM_MESSAGE_Y_AXIS,
-		0,
-		0,
-		CR_WHITE,
-		3.0f,
-		0.25f );
-	StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
+	// [AK] Build the dropped HUD message, then print it in the middle of the screen.
+	message.Format( "%s %s dropped!", TEAM_GetName( team ), itemName.GetChars( ));
+	HUD_DrawCNTRMessage( message.GetChars( ), color );
 
 	// Finally, play the announcer entry associated with this event.
-	sprintf( szString, "%s%sDropped", TEAM_GetName( ulTeamIdx ), ( skulltag ) ? "skull" : "flag" );
-	ANNOUNCER_PlayEntry( cl_announcer, szString );
+	message.Format( "%s%sDropped", TEAM_GetName( team ), itemName.GetChars( ));
+	ANNOUNCER_PlayEntry( cl_announcer, message.GetChars( ));
 }
 
 //*****************************************************************************
