@@ -503,6 +503,7 @@ void ATeamItem::Drop( player_t *player, unsigned int team )
 	// [AK] We're assuming that the team's item is either a flag or skull.
 	const FString itemName = skulltag ? "skull" : "flag";
 	const EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( team ));
+	const bool isWhiteFlag = ( team == teams.Size( ));
 	FString message;
 
 	// [AK] Make sure that the player is valid.
@@ -515,8 +516,16 @@ void ATeamItem::Drop( player_t *player, unsigned int team )
 
 	// [AK] Print a message in the console that the player has dropped the item.
 	message.Format( "%s lost the ", player->userinfo.GetName( ));
-	message += TEXTCOLOR_ESCAPE;
-	message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "%s.", TEAM_GetTextColorName( team ), TEAM_GetName( team ), itemName.GetChars( ));
+
+	if ( isWhiteFlag )
+	{
+		message.AppendFormat( TEXTCOLOR_GREY "White " TEXTCOLOR_NORMAL "flag." );
+	}
+	else
+	{
+		message += TEXTCOLOR_ESCAPE;
+		message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "%s.", TEAM_GetTextColorName( team ), TEAM_GetName( team ), itemName.GetChars( ));
+	}
 
 	Printf( PRINT_MEDIUM, "%s\n", message.GetChars( ));
 
@@ -527,13 +536,21 @@ void ATeamItem::Drop( player_t *player, unsigned int team )
 		return;
 	}
 
-	// [AK] Build the dropped HUD message, then print it in the middle of the screen.
-	message.Format( "%s %s dropped!", TEAM_GetName( team ), itemName.GetChars( ));
-	HUD_DrawCNTRMessage( message.GetChars( ), color );
+	// [AK] Build the dropped HUD message and print it in the middle of the
+	// screen, then play the announcer entry associated with this event.
+	if ( isWhiteFlag )
+	{
+		HUD_DrawCNTRMessage( "White flag dropped!", color );
+		ANNOUNCER_PlayEntry( cl_announcer, "WhiteFlagDropped" );
+	}
+	else
+	{
+		message.Format( "%s %s dropped!", TEAM_GetName( team ), itemName.GetChars( ));
+		HUD_DrawCNTRMessage( message.GetChars( ), color );
 
-	// Finally, play the announcer entry associated with this event.
-	message.Format( "%s%sDropped", TEAM_GetName( team ), itemName.GetChars( ));
-	ANNOUNCER_PlayEntry( cl_announcer, message.GetChars( ));
+		message.Format( "%s%sDropped", TEAM_GetName( team ), itemName.GetChars( ));
+		ANNOUNCER_PlayEntry( cl_announcer, message.GetChars( ));
+	}
 }
 
 //===========================================================================

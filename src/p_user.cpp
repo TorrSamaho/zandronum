@@ -2207,6 +2207,9 @@ void APlayerPawn::DropImportantItems( bool bLeavingGame, AActor *pSource )
 					{
 						TEAM_SetReturnTicks( teams.Size( ), sv_flagreturntime * TICRATE );
 
+						// [AK] Print the dropped message and do announcer stuff.
+						ATeamItem::Drop( player, teams.Size( ));
+
 						// If we're the server, spawn the item to clients.
 						if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 							SERVERCOMMANDS_SpawnThing( pTeamItem );
