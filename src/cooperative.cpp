@@ -163,7 +163,7 @@ bool COOP_PlayersVoodooDollsNeedToBeSpawned ( const ULONG ulPlayer )
 void COOP_SpawnVoodooDollsForPlayerIfNecessary ( const ULONG ulPlayer, const bool bSpawnEvenIfPlayerIsNotIngame )
 {
 	// [BB] Only the server spawns voodoo dolls.
-	if ( NETWORK_GetState() != NETSTATE_SERVER )
+	if ( NETWORK_GetState() != NETSTATE_SERVER && NETWORK_GetState() != NETSTATE_SINGLE_MULTIPLAYER )
 		return;
 
 	// [BB] The current game mode doesn't need voodoo dolls.

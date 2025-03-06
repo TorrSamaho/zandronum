@@ -2588,6 +2588,11 @@ void P_CheckPlayerSprite(AActor *actor, int &spritenum, fixed_t &scalex, fixed_t
 	if ( actor->IsKindOf( RUNTIME_CLASS( APlayerChunk )))
 		return;
 
+	// [SB] In multiplayer emulation, voodoo dolls exist on the client and will therefore be rendered,
+	// but if sv_coopunassignedvoodoodolls is enabled they belong to the dummy player which never has an individual associated mobj.
+	if ( player->mo == nullptr )
+		return;
+
 	// [BC] Because of cl_skins, we might not necessarily use the player's desired skin.
 	const int overrideSkin = PLAYER_GetOverrideSkin( player ); // [AK]
 	int skin = player->userinfo.GetSkin();
