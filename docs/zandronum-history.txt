@@ -284,6 +284,7 @@
 !	- NetIDs are now unsigned, doubling the maximum NetID possible from 32767 to 65535. [AKMDM, Sean]
 !	- Custom properties in skins are no longer ignored and can now be used with "GetSkinProperty". [Trillster]
 !	- Adjusted the text alignment and placement of the control point list in Domination. [Trillster]
+!	- The ammo types of weapons that have the NOLMS flag are no longer given out in LMS/TEAMLMS. [Ru5tK1ng]
 
 
 3.1

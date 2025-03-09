@@ -1004,11 +1004,19 @@ AInventory *AActor::FindInventory (FName type)
 AInventory *AActor::GiveInventoryType (const PClass *type)
 {
 	AInventory *item = NULL;
+	AWeapon *weapon = NULL; // [RK]
 
 	if (type != NULL)
 	{
 		item = static_cast<AInventory *>(Spawn (type, 0,0,0, NO_REPLACE));
-		if (!item->CallTryPickup (this))
+
+		// [RK] In LMS or TLMS we'll cast the item to check for the NOLMS flag.
+		if ( item->IsKindOf( RUNTIME_CLASS( AWeapon )) && ( lastmanstanding || teamlms ))
+			weapon = static_cast<AWeapon*>(item);
+
+		// [RK] If the NOLMS flag is found on the weapon, skip any further pickup checks.
+		// Otherwise CallTryPickup will proceed as normal and run checks on the item.
+		if (( weapon && ( weapon->WeaponFlags & WIF_NOLMS )) || !item->CallTryPickup (this))
 		{
 			item->Destroy ();
 			return NULL;

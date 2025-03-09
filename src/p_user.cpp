@@ -1776,12 +1776,6 @@ void APlayerPawn::GiveDefaultInventory ()
 
 					if ( pWeapon != NULL )
 					{
-						if ( pWeapon->WeaponFlags & WIF_NOLMS )
-						{
-							player->mo->RemoveInventory( pWeapon );
-							continue;
-						}
-
 						if (( pPendingWeapon == NULL ) || 
 							( pWeapon->SelectionOrder < pPendingWeapon->SelectionOrder ))
 						{
