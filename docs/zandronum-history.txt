@@ -286,6 +286,7 @@
 !	- Custom properties in skins are no longer ignored and can now be used with "GetSkinProperty". [Trillster]
 !	- Adjusted the text alignment and placement of the control point list in Domination. [Trillster]
 !	- The ammo types of weapons that have the NOLMS flag are no longer given out in LMS/TEAMLMS. [Ru5tK1ng]
+!	- Domination control points are now displayed in the order that they're defined in SECTINFO. [Trillster]
 
 
 3.1
