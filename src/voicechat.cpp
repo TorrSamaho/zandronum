@@ -656,9 +656,10 @@ void VOIPController::Tick( void )
 	{
 		isRecordButtonPressed = true;
 
-		if ( players[consoleplayer].userinfo.GetVoiceEnable( ) == VOICEMODE_PUSHTOTALK )
+		// [AK] There's no need to do anything if the local player muted themselves.
+		if (( players[consoleplayer].userinfo.GetVoiceEnable( ) == VOICEMODE_PUSHTOTALK ) && ( voice_muteself == false ))
 		{
-			if (( IsVoiceChatAllowed( )) || ( voice_muteself ))
+			if ( IsVoiceChatAllowed( ))
 			{
 				if ( isNotIgnored )
 					StartTransmission( TRANSMISSIONTYPE_BUTTON, true );
