@@ -2559,11 +2559,6 @@ void SERVER_SendFullUpdate( ULONG ulClient )
 			if ( pInventory->IsKindOf( RUNTIME_CLASS( APowerup )))
 			{
 				SERVERCOMMANDS_GivePowerup( ulIdx, static_cast<APowerup *>( pInventory ), ulClient, SVCF_ONLYTHISCLIENT );
-				if (( pInventory->IsKindOf( RUNTIME_CLASS( APowerInvulnerable ))) &&
-					(( pPlayer->mo->effects & FX_VISIBILITYFLICKER ) || ( pPlayer->mo->effects & FX_RESPAWNINVUL )))
-				{
-					SERVERCOMMANDS_PlayerRespawnInvulnerability( ulIdx );
-				}
 
 				// [BB] If it's a rune, we need to explicitly set its icon since it was set by the RuneGiver.
 				if ( pInventory == pInventory->Owner->Rune )
@@ -4195,11 +4190,6 @@ void SERVER_ResetInventory( ULONG ulClient, const bool bChangeClientWeapon, bool
 				SERVERCOMMANDS_GivePowerup( ulClient, static_cast<APowerup *>( pInventory ) );
 			else
 				SERVERCOMMANDS_GivePowerup( ulClient, static_cast<APowerup *>( pInventory ), ulClient, SVCF_ONLYTHISCLIENT );
-			if (( pInventory->IsKindOf( RUNTIME_CLASS( APowerInvulnerable ))) &&
-				(( players[ulClient].mo->effects & FX_VISIBILITYFLICKER ) || ( players[ulClient].mo->effects & FX_RESPAWNINVUL )))
-			{
-				SERVERCOMMANDS_PlayerRespawnInvulnerability( ulClient );
-			}
 
 			// [BB] If it's a rune, we need to explicitly set its icon since it was set by the RuneGiver.
 			if ( pInventory == pInventory->Owner->Rune )

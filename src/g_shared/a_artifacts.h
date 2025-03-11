@@ -292,6 +292,15 @@ protected:
 	virtual void ModifyDamage( int damage, FName damageType, int &newdamage, bool passive );
 };
 
+class APowerRespawnInvulnerable : public APowerInvulnerable
+{
+	DECLARE_CLASS( APowerRespawnInvulnerable, APowerInvulnerable )
+protected:
+	virtual void InitEffect ();
+	virtual void DoEffect ();
+	virtual void EndEffect ();
+};
+
 class APowerTranslucency : public APowerInvisibility
 {
 	DECLARE_CLASS (APowerTranslucency, APowerInvisibility)

@@ -138,7 +138,6 @@ void	SERVERCOMMANDS_PlayerSay( ULONG ulPlayer, const char *pszString, ULONG ulMo
 void	SERVERCOMMANDS_PrivateSay( ULONG ulSender, ULONG ulReceiver, const char *pszString, bool bForbidChatToPlayers, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 void	SERVERCOMMANDS_PlayerVoIPAudioPacket( ULONG player, unsigned int frame, unsigned char *data, unsigned int length, ULONG playerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 void	SERVERCOMMANDS_PlayerTaunt( ULONG ulPlayer, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
-void	SERVERCOMMANDS_PlayerRespawnInvulnerability( ULONG ulPlayer, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 void	SERVERCOMMANDS_PlayerUseInventory( ULONG ulPlayer, AInventory *pItem, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 void	SERVERCOMMANDS_PlayerDropInventory( ULONG ulPlayer, AInventory *pItem, ULONG ulPlayerExtra = MAXPLAYERS, ServerCommandFlags flags = 0 );
 void	SERVERCOMMANDS_PotentiallySendPlayerCommRule( const unsigned int player );

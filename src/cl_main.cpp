@@ -4833,36 +4833,6 @@ void ServerCommands::PlayerTaunt::Execute()
 
 //*****************************************************************************
 //
-void ServerCommands::PlayerRespawnInvulnerability::Execute()
-{
-	// Don't taunt if we're not in a level!
-	if ( gamestate != GS_LEVEL )
-		return;
-
-	// First, we need to adjust the blend color, so the player's screen doesn't go white.
-	APowerInvulnerable *invulnerability = player->mo->FindInventory<APowerInvulnerable>();
-
-	if ( invulnerability == NULL )
-		return;
-
-	invulnerability->BlendColor = 0;
-
-	// Apply respawn invulnerability effect.
-	switch ( cl_respawninvuleffect )
-	{
-	case 1:
-		player->mo->RenderStyle = STYLE_Translucent;
-		player->mo->effects |= FX_VISIBILITYFLICKER;
-		break;
-
-	case 2:
-		player->mo->effects |= FX_RESPAWNINVUL;
-		break;
-	}
-}
-
-//*****************************************************************************
-//
 void ServerCommands::PlayerUseInventory::Execute()
 {
 	// Try to find this object within the player's personal inventory.

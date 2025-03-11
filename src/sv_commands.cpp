@@ -1372,18 +1372,6 @@ void SERVERCOMMANDS_PlayerTaunt( ULONG ulPlayer, ULONG ulPlayerExtra, ServerComm
 
 //*****************************************************************************
 //
-void SERVERCOMMANDS_PlayerRespawnInvulnerability( ULONG ulPlayer, ULONG ulPlayerExtra, ServerCommandFlags flags )
-{
-	if ( PLAYER_IsValidPlayer( ulPlayer ) == false )
-		return;
-
-	ServerCommands::PlayerRespawnInvulnerability command;
-	command.SetPlayer( &players[ulPlayer] );
-	command.sendCommandToClients( ulPlayerExtra, flags );
-}
-
-//*****************************************************************************
-//
 void SERVERCOMMANDS_PlayerUseInventory( ULONG ulPlayer, AInventory *pItem, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if (( PLAYER_IsValidPlayer( ulPlayer ) == false ) ||

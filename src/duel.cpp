@@ -69,8 +69,6 @@
 // [RK] New include
 #include "d_netinf.h"
 
-EXTERN_CVAR( Int,  cl_respawninvuleffect )
-
 //*****************************************************************************
 //	VARIABLES
 

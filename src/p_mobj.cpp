@@ -4144,18 +4144,8 @@ void AActor::Tick ()
 			}
 		}
 
-		// [BC] Flicker this objects visibility... ala starman in SMB.
-		if ( effects & FX_VISIBILITYFLICKER )
-		{
-			switch ( M_Random( ) % 3 )
-			{
-			case 0:		alpha = TRANSLUC25;	break;
-			case 1:		alpha = TRANSLUC50;	break;
-			case 2:		alpha = TRANSLUC75;	break;
-			}
-		}
 		// [RH] Pulse in and out of visibility
-		else if (effects & FX_VISIBILITYPULSE)
+		if (effects & FX_VISIBILITYPULSE)
 		{
 			if (visdir > 0)
 			{
@@ -5422,7 +5412,6 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 	angle_t spawn_angle;
 	// [BC]
 	LONG		lSkin;
-	AInventory	*pInventory;
 
 	// not playing?
 	if ((unsigned)playernum >= (unsigned)MAXPLAYERS || !playeringame[playernum])
@@ -5744,29 +5733,18 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 		( deathmatch || teamgame || alwaysapplydmflags ) &&
 		( p->bSpectating == false ))
 	{
-		APowerup *invul = static_cast<APowerup*>(p->mo->GiveInventoryType (RUNTIME_CLASS(APowerInvulnerable)));
-		// [BB] It's possible that giving the powerup fails, e.g. in Cutman's Level Master.
-		if ( invul != NULL )
-		{
-			invul->EffectTics = 3*TICRATE;
-			invul->BlendColor = 0;			// don't mess with the view
-			invul->ItemFlags |= IF_UNDROPPABLE;	// Don't drop this
-			// [BB] The clients are informed about the powerup and these adjustments later.
+		// [AK] Use APowerRespawnInvulnerable instead.
+		APowerup *invul = static_cast<APowerup*>(p->mo->GiveInventoryType (RUNTIME_CLASS(APowerRespawnInvulnerable)));
+		/* [AK] Zandronum handles this in APowerRespawnInvulnerable::InitEffect.
+		invul->EffectTics = 3*TICRATE;
+		invul->BlendColor = 0;			// don't mess with the view
+		invul->ItemFlags |= IF_UNDROPPABLE;	// Don't drop this
+		p->mo->effects |= FX_RESPAWNINVUL;	// [RH] special effect
+		*/
 
-			// Apply respawn invulnerability effect.
-			switch ( cl_respawninvuleffect )
-			{
-			case 1:
-
-				p->mo->RenderStyle = STYLE_Translucent;
-				p->mo->effects |= FX_VISIBILITYFLICKER;
-				break;
-			case 2:
-
-				p->mo->effects |= FX_RESPAWNINVUL;	// [RH] special effect
-				break;
-			}
-		}
+		// [AK] Tell clients about the respawning powerup.
+		if (NETWORK_GetState() == NETSTATE_SERVER)
+			SERVERCOMMANDS_GivePowerup (playernum, invul);
 	}
 
 	if (StatusBar != NULL && (playernum == consoleplayer || StatusBar->GetPlayer() == playernum))
@@ -5802,19 +5780,10 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 
 	// [BB] Moved the exec.wad MAP01 "fix" up.
 
-	// Tell clients about the respawning player.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		// [BB] The clients start their reactiontime later on their end. Try to adjust for this.
-		SERVER_AdjustPlayersReactiontime ( playernum );
+	// [BB] The clients start their reactiontime later on their end. Try to adjust for this.
+	if (NETWORK_GetState() == NETSTATE_SERVER)
+		SERVER_AdjustPlayersReactiontime (playernum);
 
-		pInventory = mobj->FindInventory( RUNTIME_CLASS( APowerInvulnerable ));
-		if (( pInventory ) && ( p->bSpectating == false ))
-		{
-			SERVERCOMMANDS_GivePowerup( playernum, static_cast<APowerup *>( pInventory ));
-			SERVERCOMMANDS_PlayerRespawnInvulnerability( playernum );
-		}
-	}
 	// [BC] Do script stuff
 	if (!(flags & SPF_TEMPPLAYER))
 	{

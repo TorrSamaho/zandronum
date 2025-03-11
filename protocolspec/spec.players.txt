@@ -301,10 +301,6 @@ Command PlayerTaunt
 	Player player with MoTest
 EndCommand
 
-Command PlayerRespawnInvulnerability
-	Player player with MoTest
-EndCommand
-
 Command PlayerUseInventory
 	Player player with MoTest
 	Class<AInventory> itemType

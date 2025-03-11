@@ -229,6 +229,7 @@
 -	- Fixed: the server didn't destroy actors that were clientsided only and spawned from serversided ACS scripts, and clients didn't mark actors spawned from clientsided ACS scripts as clientsided only. [AKMDM]
 -	- Fixed: unmorphing a player before they disconnected, joined spectators, or respawned didn't always succeed, and could sometimes cause clients to spawn a player that no longer existed. Also prevented exit flashes from spawning when players unmorphed in these special cases. [AKMDM]
 -	- Fixed: voodoo dolls didn't work in multiplayer emulation (addresses 2510). [Sean]
+-	- Fixed: A_Raise sometimes failed to remove respawn invulnerability from a player if cl_respawninvuleffect was 0, and could remove an invulnerability powerup that a player had in their inventory instead of the actual respawn invulnerability. [AKMDM]
 !	- The result value of GAMEEVENT_MEDALS event scripts can now be used to determine whether or not the player receives the medal. [AKMDM]
 !	- GAMEMODE flags are now validated after all GAMEMODE lumps have been parsed instead of after each one. The internal game mode name (e.g. "TeamLMS") is now printed with the error message instead of the actual name. [AKMDM]
 !	- Added an extra check to ensure that game modes have a (short) name. [AKMDM]

@@ -283,3 +283,13 @@ ACTOR RandomPowerup : Inventory 5039 native
 		Loop
 	}
 }
+
+//=================================================================================================
+//
+// [AK] PowerRespawnInvulnerable - Handles the respawn protection and its effects.
+//
+//=================================================================================================
+
+ACTOR PowerRespawnInvulnerable : PowerInvulnerable native
+{
+}

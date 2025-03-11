@@ -392,7 +392,9 @@ IMPLEMENT_CLASS (APowerInvulnerable)
 void APowerInvulnerable::InitEffect ()
 {
 	Super::InitEffect();
-	Owner->effects &= ~FX_RESPAWNINVUL;
+	// [AK] Only clear FX_RESPAWNINVUL if the owner has no respawn protection.
+	if (Owner->FindInventory(RUNTIME_CLASS(APowerRespawnInvulnerable)) == nullptr)
+		Owner->effects &= ~FX_RESPAWNINVUL;
 	Owner->flags2 |= MF2_INVULNERABLE;
 	if (Mode == NAME_None)
 	{
@@ -475,22 +477,6 @@ void APowerInvulnerable::EndEffect ()
 
 	Owner->flags2 &= ~MF2_INVULNERABLE;
 	Owner->effects &= ~FX_RESPAWNINVUL;
-	if ( Owner->effects & FX_VISIBILITYFLICKER )
-	{
-		Owner->effects &= ~FX_VISIBILITYFLICKER;
-		// [BC] If the owner is a spectating player, don't make him visible!
-		if (( Owner->player == NULL ) || ( Owner->player->bSpectating == false ))
-		{
-			// [BB] Restore the default alpha value and set RenderStyle accordingly.
-			Owner->alpha = Owner->GetDefault()->alpha;
-			if ( Owner->alpha == OPAQUE )
-				Owner->RenderStyle = STYLE_Normal;
-			else
-				Owner->RenderStyle = STYLE_Translucent;
-		}
-		else
-			Owner->RenderStyle = STYLE_None;
-	}
 	if (Mode == NAME_Ghost)
 	{
 		Owner->flags2 &= ~MF2_NONSHOOTABLE;
@@ -2164,6 +2150,116 @@ void APowerTerminatorArtifact::ModifyDamage( int damage, FName damageType, int &
 	// Go onto the next item.
 	if ( Inventory != NULL )
 		Inventory->ModifyDamage( damage, damageType, newdamage, passive );
+}
+
+// [AK] Respawn Invulnerability artifact powerup ----------------------------
+
+// [AK] Moved this definition out of p_effect.cpp.
+CVAR (Int, cl_respawninvuleffect, 1, CVAR_ARCHIVE);
+
+IMPLEMENT_CLASS (APowerRespawnInvulnerable)
+
+//===========================================================================
+//
+// APowerRespawnInvulnerable :: InitEffect
+//
+//===========================================================================
+
+void APowerRespawnInvulnerable::InitEffect ()
+{
+	Super::InitEffect();
+
+	EffectTics = 3 * TICRATE;
+	BlendColor = 0;					// Don't mess with the view.
+	ItemFlags |= IF_UNDROPPABLE;	// Don't drop this.
+
+	// [AK] Make sure the owner is valid.
+	if (Owner == nullptr)
+		return;
+
+	// Apply respawn invulnerability effect.
+	switch (cl_respawninvuleffect)
+	{
+		case 1:
+			Owner->RenderStyle = STYLE_Translucent;
+			Owner->effects |= FX_VISIBILITYFLICKER;
+			break;
+
+		case 2:
+			Owner->effects |= FX_RESPAWNINVUL;	// [RH] special effect
+			break;
+	}
+}
+
+//===========================================================================
+//
+// APowerRespawnInvulnerable :: DoEffect
+//
+//===========================================================================
+
+void APowerRespawnInvulnerable::DoEffect ()
+{
+	Super::DoEffect();
+
+	// [BC] Flicker this objects visibility... ala starman in SMB.
+	if ((Owner != nullptr) && (Owner->effects & FX_VISIBILITYFLICKER))
+	{
+		switch (M_Random() % 3)
+		{
+			case 0:
+				Owner->alpha = TRANSLUC25;
+				break;
+
+			case 1:
+				Owner->alpha = TRANSLUC50;
+				break;
+
+			case 2:
+				Owner->alpha = TRANSLUC75;
+				break;
+		}
+	}
+}
+
+//===========================================================================
+//
+// APowerRespawnInvulnerable :: EndEffect
+//
+//===========================================================================
+
+void APowerRespawnInvulnerable::EndEffect ()
+{
+	Super::EndEffect();
+
+	if (Owner != nullptr)
+	{
+		AInventory *otherInvul = Owner->FindInventory(RUNTIME_CLASS(APowerInvulnerable), true);
+
+		// [AK] Don't cancel out invulnerability from other similar powerups.
+		if ((otherInvul != nullptr) && (otherInvul != this))
+			Owner->flags2 |= MF2_INVULNERABLE;
+
+		if (Owner->effects & FX_VISIBILITYFLICKER)
+		{
+			Owner->effects &= ~FX_VISIBILITYFLICKER;
+
+			// [BC] If the owner is a spectating player, don't make him visible!
+			if ((Owner->player == nullptr) || (Owner->player->bSpectating == false))
+			{
+				// [BB] Restore the default alpha value and set RenderStyle accordingly.
+				Owner->alpha = Owner->GetDefault()->alpha;
+
+				if (Owner->alpha == OPAQUE)
+					Owner->RenderStyle = STYLE_Normal;
+				else
+					Owner->RenderStyle = STYLE_Translucent;
+			}
+			else
+			{
+				Owner->RenderStyle = STYLE_None;
+			}
+		}
+	}
 }
 
 // Translucency Powerup (Skulltag's version of invisibility) ----------------

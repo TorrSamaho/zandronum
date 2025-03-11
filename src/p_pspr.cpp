@@ -1157,22 +1157,17 @@ DEFINE_ACTION_FUNCTION(AInventory, A_Raise)
 
 	// [BC] If this player has respawn invulnerability, disable it if they're done raising
 	// a weapon that isn't the pistol or their fist.
-	if (( player->mo ) &&
-		( NETWORK_InClientMode() == false ))
+	if ((player->mo) && (NETWORK_InClientMode() == false))
 	{
-		APowerInvulnerable	*pInvulnerability;
+		APowerRespawnInvulnerable *invul = static_cast<APowerRespawnInvulnerable *>(player->mo->FindInventory (RUNTIME_CLASS(APowerRespawnInvulnerable)));
 
-		pInvulnerability = static_cast<APowerInvulnerable *>( player->mo->FindInventory( RUNTIME_CLASS( APowerInvulnerable )));
-		if (( pInvulnerability ) &&
-			( player->ReadyWeapon ) &&
-			(( player->ReadyWeapon->WeaponFlags & WIF_ALLOW_WITH_RESPAWN_INVUL ) == false ) &&
-			(( player->mo->effects & FX_VISIBILITYFLICKER ) || ( player->mo->effects & FX_RESPAWNINVUL )))
+		if ((invul) && (player->ReadyWeapon) && ((player->ReadyWeapon->WeaponFlags & WIF_ALLOW_WITH_RESPAWN_INVUL) == false))
 		{
-			pInvulnerability->Destroy( );
+			invul->Destroy();
 
 			// If we're the server, tell clients to take this player's powerup away.
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-				SERVERCOMMANDS_TakeInventory( ULONG( player - players ), RUNTIME_CLASS( APowerInvulnerable ), 0 );
+			if (NETWORK_GetState() == NETSTATE_SERVER)
+				SERVERCOMMANDS_TakeInventory (static_cast<unsigned>(player - players), RUNTIME_CLASS(APowerRespawnInvulnerable), 0);
 		}
 	}
 }

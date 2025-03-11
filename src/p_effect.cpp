@@ -63,7 +63,6 @@ static void MakeFountain (fixed_t x, fixed_t y, fixed_t z, fixed_t radius, fixed
 
 CVAR (Int, cl_rockettrails, 1, CVAR_ARCHIVE);
 CVAR (Int, cl_grenadetrails, 1, CVAR_ARCHIVE);
-CVAR (Int, cl_respawninvuleffect, 1, CVAR_ARCHIVE);
 CVAR (Bool, cl_showspawns, false, CVAR_ARCHIVE); // [CK] Particle fountains at spawns
 CVAR (Bool, r_rail_smartspiral, 0, CVAR_ARCHIVE);
 CVAR (Int, r_rail_spiralsparsity, 1, CVAR_ARCHIVE);

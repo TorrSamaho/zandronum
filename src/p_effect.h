@@ -33,7 +33,6 @@
 
 #include "vectors.h"
 #include "tables.h"
-#include "c_cvars.h"	// [BC] #include this so that we can't extern cl_respawninvuleffect.
 
 #define FX_ROCKET				0x00000001
 #define FX_GRENADE				0x00000002
@@ -94,6 +93,3 @@ void P_DrawRailTrail (AActor *source, const FVector3 &start, const FVector3 &end
 void P_DrawSplash (int count, fixed_t x, fixed_t y, fixed_t z, angle_t angle, int kind);
 void P_DrawSplash2 (int count, fixed_t x, fixed_t y, fixed_t z, angle_t angle, int updown, int kind);
 void P_DisconnectEffect (AActor *actor);
-
-// [BC] Extern this here so we don't have to do it everywhere else.
-EXTERN_CVAR (Int, cl_respawninvuleffect)
