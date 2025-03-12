@@ -1952,8 +1952,14 @@ void P_SpawnThings (int position)
 		// [BB] When we are using unassigned voodoo dolls, we have to enforce the spawning
 		// of all dolls for all players (even those who are not in the game) now.
 		COOP_SpawnVoodooDollsForPlayerIfNecessary ( i, sv_coopunassignedvoodoodolls );
-		if (playeringame[i] && players[i].mo != NULL)
-			P_PlayerStartStomp(players[i].mo);
+
+		// [SB] If we are in online or multiplayer emulation, at this point we will be spawning voodoo dolls,
+		// but the actual player mobjs will be spawned later. As such, handling spawn telefragging now will
+		// only result in telefragging the voodoo dolls, which can cause havoc on maps like Plutonia MAP06.
+		// Since the multiplayer spawning code also handles telefragging, skip it here.
+		if ( NETWORK_GetState() == NETSTATE_SINGLE )
+			if (playeringame[i] && players[i].mo != NULL)
+				P_PlayerStartStomp(players[i].mo);
 	}
 	// [BB] When initially spawning the voodoo dolls, we also need to clear the stored pickups
 	// of the unassigned dolls.
