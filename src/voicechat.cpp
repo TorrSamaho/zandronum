@@ -953,6 +953,13 @@ void VOIPController::StartRecording( void )
 	if ( IsRecording( ))
 		return;
 
+	// [AK] Don't start recording audio while using ALSA.
+	if ( IsUsingALSA( ))
+	{
+		Printf( TEXTCOLOR_ORANGE "Can't start VoIP recording with ALSA. Try using PulseAudio instead.\n" );
+		return;
+	}
+
 	int numRecordDrivers = 0;
 	FMOD_RESULT fmodErrorCode = system->getRecordNumDrivers( &numRecordDrivers );
 
@@ -1046,6 +1053,13 @@ void VOIPController::StartTransmission( const TRANSMISSIONTYPE_e type, const boo
 {
 	if (( isInitialized == false ) || ( isActive == false ) || ( transmissionType != TRANSMISSIONTYPE_OFF ))
 		return;
+
+	// [AK] Don't start transmitting audio while using ALSA.
+	if ( IsUsingALSA( ))
+	{
+		Printf( TEXTCOLOR_ORANGE "Can't start transmission with ALSA. Try using PulseAudio instead.\n" );
+		return;
+	}
 
 	if ( getRecordPosition )
 	{
@@ -1288,6 +1302,13 @@ void VOIPController::SetMicrophoneTest( const bool enable )
 
 	if ( enable )
 	{
+		// [AK] Don't start a microphone test while using ALSA.
+		if ( IsUsingALSA( ))
+		{
+			Printf( TEXTCOLOR_ORANGE "Can't start microphone test with ALSA. Try using PulseAudio instead.\n" );
+			return;
+		}
+
 		// [AK] If we're not already recording, then start doing so.
 		if ( isRecording == false )
 			StartRecording( );
@@ -1332,7 +1353,8 @@ void VOIPController::RetrieveRecordDrivers( TArray<FString> &list ) const
 
 	list.Clear( );
 
-	if (( system != nullptr ) && ( system->getRecordNumDrivers( &numDrivers ) == FMOD_OK ))
+	// [AK] Don't retrieve any record drivers while using ALSA.
+	if (( system != nullptr ) && ( system->getRecordNumDrivers( &numDrivers ) == FMOD_OK ) && ( IsUsingALSA( ) == false ))
 	{
 		for ( int i = 0; i < numDrivers; i++ )
 		{
@@ -1544,6 +1566,28 @@ int VOIPController::EncodeOpusFrame( const float *inBuffer, const unsigned int i
 	}
 
 	return numBytesEncoded;
+}
+
+//*****************************************************************************
+//
+// [AK] VOIPController::IsUsingALSA
+//
+// Checks if ALSA is being used for the output (Linux only). It seems that ALSA
+// can't retrieve any of the input devices a user has or record audio from any
+// of them, especially when they're used by another process. As a compromise,
+// prevent them from recording or transmitting audio while using it. PulseAudio
+// is a suitable alternative that's widely used nowadays.
+//
+//*****************************************************************************
+
+bool VOIPController::IsUsingALSA( void ) const
+{
+	FMOD_OUTPUTTYPE outputType = FMOD_OUTPUTTYPE_UNKNOWN;
+
+	if (( system != nullptr ) && ( system->getOutput( &outputType ) == FMOD_OK ) && ( outputType == FMOD_OUTPUTTYPE_ALSA ))
+		return true;
+
+	return false;
 }
 
 //*****************************************************************************

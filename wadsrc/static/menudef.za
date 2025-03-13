@@ -210,6 +210,15 @@ OptionMenu "ZA_VoiceChatOptions"
 	Option		"Listen filter",		"voice_listenfilter",		"ZA_VoiceChatFilter",		"voice_enable"
 	Option		"Transmit filter",		"voice_transmitfilter",		"ZA_VoiceChatFilter",		"voice_enable"
 	StaticText	" "
+
+	// [AK] Tip message for Linux users if no input devices are listed.
+	IfOption( Unix )
+	{
+	StaticText	"If none of your input devices are listed,", 1
+	StaticText	"try switching the output to PulseAudio.", 1
+	StaticText	" "
+	}
+
 	Option		"Input device",			"voice_recorddriver",		"ZA_RecordDrivers"
 	Slider		"Input volume",			"voice_recordvolume",		0.0, 2.0, 0.05, 2
 	Slider		"Output volume",		"voice_outputvolume",		0.0, 1.0, 0.05, 2
