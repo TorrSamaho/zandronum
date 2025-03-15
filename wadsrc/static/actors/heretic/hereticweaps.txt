@@ -14,6 +14,7 @@ ACTOR Staff : HereticWeapon
 	+THRUGHOST
 	+WIMPY_WEAPON
 	+MELEEWEAPON
+	+ALLOW_WITH_RESPAWN_INVUL // [AK]
 	Weapon.sisterweapon "StaffPowered"
 	Obituary "$OB_MPSTAFF"
 	Tag "$TAG_STAFF"
@@ -47,6 +48,7 @@ ACTOR StaffPowered : Staff
 	+WEAPON.POWERED_UP
 	+WEAPON.READYSNDHALF
 	+WEAPON.STAFF2_KICKBACK
+	-WEAPON.ALLOW_WITH_RESPAWN_INVUL // [AK] Don't allow respawn protection with the powered version.
 	Obituary "$OB_MPPSTAFF"
 	Tag "$TAG_STAFFP"
 	States
@@ -114,6 +116,7 @@ ACTOR GoldWand : HereticWeapon
 {
 	Game Heretic
 	+BLOODSPLATTER
+	+WEAPON.ALLOW_WITH_RESPAWN_INVUL // [AK]
 	Weapon.SelectionOrder 2000
 	Weapon.AmmoGive 25
 	Weapon.AmmoUse 1
@@ -149,6 +152,7 @@ ACTOR GoldWandPowered : GoldWand
 {
 	Game Heretic
 	+WEAPON.POWERED_UP
+	-WEAPON.ALLOW_WITH_RESPAWN_INVUL // [AK] Don't allow respawn protection with the powered version.
 	Weapon.AmmoGive 0
 	Weapon.SisterWeapon "GoldWand"
 	Obituary "$OB_MPPGOLDWAND"
@@ -404,6 +408,7 @@ ACTOR Gauntlets : Weapon 2005
 	Weapon.SelectionOrder 2300
 	+WEAPON.WIMPY_WEAPON
 	+WEAPON.MELEEWEAPON
+	+WEAPON.ALLOW_WITH_RESPAWN_INVUL // [AK]
 	Weapon.Kickback 0
 	Weapon.YAdjust 15
 	Weapon.UpSound "weapons/gauntletsactivate"
@@ -444,6 +449,7 @@ ACTOR GauntletsPowered : Gauntlets
 {
 	Game Heretic
 	+POWERED_UP
+	-ALLOW_WITH_RESPAWN_INVUL // [AK] Don't allow respawn protection with the powered version.
 	Tag "$TAG_GAUNTLETSP"
 	Obituary "$OB_MPPGAUNTLETS"
 	Weapon.SisterWeapon "Gauntlets"

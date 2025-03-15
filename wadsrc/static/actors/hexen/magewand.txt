@@ -8,6 +8,7 @@ ACTOR MWeapWand : MageWeapon
 	Weapon.KickBack 0
 	Weapon.YAdjust 9
 	Tag "$TAG_MWEAPWAND"
+	+WEAPON.ALLOW_WITH_RESPAWN_INVUL // [AK]
 
 	States
 	{

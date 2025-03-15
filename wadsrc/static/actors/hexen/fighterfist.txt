@@ -7,6 +7,7 @@ ACTOR FWeapFist : FighterWeapon
 	+BLOODSPLATTER
 	Weapon.SelectionOrder 3400
 	+WEAPON.MELEEWEAPON
+	+WEAPON.ALLOW_WITH_RESPAWN_INVUL // [AK]
 	Weapon.KickBack 150
 	Obituary "$OB_MPFWEAPFIST"
 	Tag "$TAG_FWEAPFIST"

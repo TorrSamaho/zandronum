@@ -8,6 +8,7 @@ ACTOR CWeapMace : ClericWeapon
 	Weapon.KickBack 150
 	Weapon.YAdjust -8
 	+BLOODSPLATTER
+	+WEAPON.ALLOW_WITH_RESPAWN_INVUL // [AK]
 	Obituary "$OB_MPCWEAPMACE"
 	Tag "$TAG_CWEAPMACE"
 

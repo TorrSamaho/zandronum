@@ -48,6 +48,7 @@ ACTOR PunchDagger : StrifeWeapon
 	Game Strife
 	Weapon.SelectionOrder 3900
 	+WEAPON.NOALERT
+	+WEAPON.ALLOW_WITH_RESPAWN_INVUL // [AK]
 	Obituary "$OB_MPPUNCHDAGGER"
 	Tag "$TAG_PUNCHDAGGER"
 	
