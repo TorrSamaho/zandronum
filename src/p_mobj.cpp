@@ -5724,14 +5724,14 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 	  // it above, but the other modes don't.
 		oldactor->DestroyAllInventory();
 	}
-
-	// [BC] Apply temporary invulnerability when respawned.
-	if (( NETWORK_InClientMode() == false ) &&
-		// [BB] Added PST_REBORNNOINVENTORY, PST_ENTERNOINVENTORY.
-		(state == PST_REBORN || state == PST_ENTER || state == PST_REBORNNOINVENTORY || state == PST_ENTERNOINVENTORY) &&
-		(( dmflags2 & DF2_NO_RESPAWN_INVUL ) == false ) &&
-		( deathmatch || teamgame || alwaysapplydmflags ) &&
-		( p->bSpectating == false ))
+	// [BC] Handle temporary invulnerability when respawned
+	// [BB] Added PST_REBORNNOINVENTORY, PST_ENTERNOINVENTORY.
+	// [AK] multiplayer -> deathmatch || teamgame, and added NETWORK_InClientMode and spectator checks.
+	if ((state == PST_REBORN || state == PST_ENTER || state == PST_REBORNNOINVENTORY || state == PST_ENTERNOINVENTORY) &&
+		((dmflags2 & DF2_NO_RESPAWN_INVUL) == false) &&
+		(deathmatch || teamgame || alwaysapplydmflags) &&
+		(NETWORK_InClientMode() == false) &&
+		(p->bSpectating == false))
 	{
 		// [AK] Use APowerRespawnInvulnerable instead.
 		APowerup *invul = static_cast<APowerup*>(p->mo->GiveInventoryType (RUNTIME_CLASS(APowerRespawnInvulnerable)));
