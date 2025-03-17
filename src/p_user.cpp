@@ -103,18 +103,10 @@ CUSTOM_CVAR (Float, cl_spectatormove, 1.0, CVAR_ARCHIVE|CVAR_GLOBALCONFIG) {
 		self = -100.0;
 }
 
-// [AK] Enums for the different options used by cl_spectatormode.
-enum
-{
-	// With physical restrictions (can't pass through walls, floors, or ceilings).
-	SPECMODE_WITH_RESTRICTIONS,
-	// No physical restrictions (can pass through everything freely).
-	SPECMODE_NO_RESTRICTIONS
-};
-
 // [AK] Determines which mode to use while spectating.
 CUSTOM_CVAR (Int, cl_spectatormode, SPECMODE_NO_RESTRICTIONS, CVAR_ARCHIVE|CVAR_GLOBALCONFIG)
 {
+	player_t *const player = CLIENTDEMO_IsPlaying() ? CLIENTDEMO_GetFreeSpectatorPlayer() : &players[consoleplayer];
 	const int clampedValue = clamp<int>(self, SPECMODE_WITH_RESTRICTIONS, SPECMODE_NO_RESTRICTIONS);
 
 	if (self != clampedValue)
@@ -123,13 +115,16 @@ CUSTOM_CVAR (Int, cl_spectatormode, SPECMODE_NO_RESTRICTIONS, CVAR_ARCHIVE|CVAR_
 		return;
 	}
 
-	if (players[consoleplayer].bSpectating)
+	if ((player->bSpectating) && (player->mo != nullptr))
 	{
 		if (self == SPECMODE_NO_RESTRICTIONS)
-			players[consoleplayer].mo->flags5 |= MF5_NOINTERACTION;
+			player->mo->flags5 |= MF5_NOINTERACTION;
 		else
-			players[consoleplayer].mo->flags5 &= ~MF5_NOINTERACTION;
+			player->mo->flags5 &= ~MF5_NOINTERACTION;
 	}
+
+	if ((NETWORK_GetState() == NETSTATE_CLIENT) && (CLIENTDEMO_IsRecording()) && (self != self.GetPastValue()))
+		CLIENTDEMO_WriteConsolePlayerUnrestricted(self == SPECMODE_NO_RESTRICTIONS);
 }
 
 // [GRB] Custom player classes
@@ -4603,11 +4598,27 @@ bool P_IsPlayerTotallyFrozen(const player_t *player)
 // [AK] Checks if the local player is physically unrestricted while spectating.
 bool P_IsSpectatorUnrestricted(const AActor *viewActor)
 {
+	player_t *player = &players[consoleplayer];
+
 	// [AK] The server doesn't handle spectator movement.
-	if ((NETWORK_GetState() == NETSTATE_SERVER) || (cl_spectatormode != SPECMODE_NO_RESTRICTIONS) || (viewActor == nullptr))
+	if ((NETWORK_GetState() == NETSTATE_SERVER) || (viewActor == nullptr))
 		return false;
 
-	return ((players[consoleplayer].bSpectating) && (viewActor == players[consoleplayer].mo));
+	// [AK] While playing a demo, check if the local player was using the
+	// unrestricted spectator mode during recording instead. If free spectate
+	// mode is being used, use the free spectator's body instead.
+	if (CLIENTDEMO_IsPlaying())
+	{
+		if (viewActor == players[consoleplayer].mo)
+			return (players[consoleplayer].bSpectating && CLIENTDEMO_IsConsolePlayerUnrestricted());
+
+		player = CLIENTDEMO_GetFreeSpectatorPlayer();
+	}
+
+	if (cl_spectatormode != SPECMODE_NO_RESTRICTIONS)
+		return false;
+
+	return ((player->bSpectating) && (viewActor == player->mo));
 }
 
 // [AK] Resets the player's pitch limits anytime they need to be changed.

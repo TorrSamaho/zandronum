@@ -870,7 +870,7 @@ void R_SetupFrame (AActor *actor)
 
 	// Keep the view within the sector's floor and ceiling
 	// [AK] Allow spectators without physical restrictions to pass through floors/ceilings.
-	if (P_IsSpectatorUnrestricted(actor) == false)
+	if (P_IsSpectatorUnrestricted(camera) == false)
 	{
 		fixed_t theZ = viewsector->ceilingplane.ZatPoint (viewx, viewy) - 4*FRACUNIT;
 		if (viewz > theZ)

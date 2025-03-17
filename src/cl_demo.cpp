@@ -115,6 +115,9 @@ static	bool				g_bDemoPaused = false;
 // [BB] Do we want to skip to the next map in the demo we are playing at the moment?
 static	bool				g_bSkipToNextMap = false;
 
+// [AK] Did the player who recorded the demo use the unrestricted spectator mode?
+static	bool				g_ConsolePlayerUnrestricted = false;
+
 // [BB] How many tics are we still supposed to skip in the demo we are playing at the moment?
 static	ULONG				g_ulTicsToSkip = 0;
 
@@ -226,6 +229,10 @@ void CLIENTDEMO_BeginRecording( const char *pszDemoName )
 	g_ByteStream.WriteByte( CLD_BODYSTART );
 
 	CLIENT_SetServerLagging( false );
+
+	// [AK] When recording begins, mark if whether the local player is using the
+	// unrestricted spectator mode or not.
+	CLIENTDEMO_WriteConsolePlayerUnrestricted( cl_spectatormode == SPECMODE_NO_RESTRICTIONS );
 }
 
 //*****************************************************************************
@@ -593,6 +600,20 @@ void CLIENTDEMO_ReadPacket( void )
 						players[consoleplayer].mo->angle = angle;
 				}
 				break;
+			case CLD_LCMD_CONSOLEPLAYERUNRESTRICTED:
+
+				{
+					g_ConsolePlayerUnrestricted = !!g_ByteStream.ReadByte( );
+
+					if (( players[consoleplayer].bSpectating ) && ( players[consoleplayer].mo != nullptr ))
+					{
+						if ( g_ConsolePlayerUnrestricted )
+							players[consoleplayer].mo->flags5 |= MF5_NOINTERACTION;
+						else
+							players[consoleplayer].mo->flags5 &= ~MF5_NOINTERACTION;
+					}
+				}
+				break;
 			}
 			break;
 		case CLD_DEMOEND:
@@ -811,6 +832,16 @@ void CLIENTDEMO_WriteFreeChasecam( const bool enable, const fixed_t angle )
 
 //*****************************************************************************
 //
+void CLIENTDEMO_WriteConsolePlayerUnrestricted( const bool enable )
+{
+	clientdemo_CheckDemoBuffer( 3 );
+	g_ByteStream.WriteByte( CLD_LOCALCOMMAND );
+	g_ByteStream.WriteByte( CLD_LCMD_CONSOLEPLAYERUNRESTRICTED );
+	g_ByteStream.WriteByte( enable );
+}
+
+//*****************************************************************************
+//
 bool CLIENTDEMO_IsRecording( void )
 {
 	return ( g_bDemoRecording );
@@ -879,6 +910,13 @@ bool CLIENTDEMO_IsInFreeSpectateMode( void )
 {
 	const AActor *pCamera = players[consoleplayer].camera;
 	return ( pCamera && ( pCamera == g_demoCameraPlayer.mo ) );
+}
+
+//*****************************************************************************
+//
+bool CLIENTDEMO_IsConsolePlayerUnrestricted( void )
+{
+	return g_ConsolePlayerUnrestricted;
 }
 
 //*****************************************************************************
