@@ -3,6 +3,7 @@
 
 #include "info.h"
 #include "actor.h"
+// [AK] New #includes.
 #include "a_pickups.h"
 
 class FDecalTemplate;
@@ -132,81 +133,6 @@ protected:
 	DFlashFader ();
 };
 
-// [BC]
-class ATeamItem : public AInventory
-{
-	DECLARE_CLASS( ATeamItem, AInventory )
-public:
-	virtual bool ShouldRespawn( );
-	virtual bool TryPickup( AActor *&toucher );
-	virtual bool HandlePickup( AInventory *item );
-	virtual int AllowPickup( AActor *toucher );
-	virtual void AnnouncePickup( AActor *toucher );
-	virtual void DisplayTaken( AActor *toucher );
-	virtual void Return( AActor *returner );
-	virtual void AnnounceReturn( void );
-	virtual void DisplayReturn( AActor *returner );
-	void MarkTaken( bool taken );
-	void ResetReturnTicks( void );
-
-	static void Drop( player_t *player, unsigned int team );
-
-protected:
-	virtual const char *GetType( void ) { return "item"; }
-};
-
-class AFlag : public ATeamItem
-{
-	DECLARE_CLASS( AFlag, ATeamItem )
-public:
-	virtual bool HandlePickup( AInventory *item );
-	virtual int AllowPickup( AActor *toucher );
-
-protected:
-	virtual const char *GetType( void ) { return "flag"; }
-};
-
-class AWhiteFlag : public AFlag
-{
-	DECLARE_CLASS( AWhiteFlag, AFlag )
-public:
-	virtual bool HandlePickup( AInventory *item );
-	virtual int AllowPickup( AActor *toucher );
-	virtual void AnnouncePickup( AActor *toucher );
-	virtual void DisplayTaken( AActor *toucher );
-	virtual void Return( AActor *returner );
-	virtual void AnnounceReturn( void );
-	virtual void DisplayReturn( AActor *returner );
-};
-
-class ASkull : public ATeamItem
-{
-	DECLARE_CLASS( ASkull, ATeamItem )
-public:
-	virtual int AllowPickup( AActor *toucher );
-
-protected:
-	virtual const char *GetType( void ) { return "skull"; }
-};
-
-class AFloatyIcon : public AActor
-{
-	DECLARE_CLASS( AFloatyIcon, AActor )
-public:
-	void Serialize( FArchive &arc );
-	void BeginPlay( );
-	void Tick( );
-
-	void SetTracer( AActor *pTracer );
-
-	LONG lTick;
-	bool bTeamItemFloatyIcon;
-	unsigned int currentSprite;
-
-protected:
-	void CopyTracerTranslucency( );
-};
-
 class DEarthquake : public DThinker
 {
 	DECLARE_CLASS (DEarthquake, DThinker)
@@ -271,6 +197,81 @@ class AFastProjectile : public AActor
 public:
 	void Tick ();
 	virtual void Effect();
+};
+
+// [BC/AK] Start of Skulltag/Zandronum actor classes.
+class ATeamItem : public AInventory
+{
+	DECLARE_CLASS (ATeamItem, AInventory)
+public:
+	virtual bool ShouldRespawn ();
+	virtual bool TryPickup (AActor *&toucher);
+	virtual bool HandlePickup (AInventory *item);
+	virtual int AllowPickup (AActor *toucher);
+	virtual void AnnouncePickup (AActor *toucher);
+	virtual void DisplayTaken (AActor *toucher);
+	virtual void Return (AActor *returner);
+	virtual void AnnounceReturn ();
+	virtual void DisplayReturn (AActor *returner);
+	void MarkTaken (bool taken);
+	void ResetReturnTicks ();
+
+	static void Drop (player_t *player, unsigned int team);
+
+protected:
+	virtual const char *GetType () { return "item"; }
+};
+
+class AFlag : public ATeamItem
+{
+	DECLARE_CLASS (AFlag, ATeamItem)
+public:
+	virtual bool HandlePickup (AInventory *item);
+	virtual int AllowPickup (AActor *toucher);
+
+protected:
+	virtual const char *GetType () { return "flag"; }
+};
+
+class AWhiteFlag : public AFlag
+{
+	DECLARE_CLASS (AWhiteFlag, AFlag)
+public:
+	virtual bool HandlePickup (AInventory *item);
+	virtual int AllowPickup (AActor *toucher);
+	virtual void AnnouncePickup (AActor *toucher);
+	virtual void DisplayTaken (AActor *toucher);
+	virtual void Return (AActor *returner);
+	virtual void AnnounceReturn ();
+	virtual void DisplayReturn (AActor *returner);
+};
+
+class ASkull : public ATeamItem
+{
+	DECLARE_CLASS (ASkull, ATeamItem)
+public:
+	virtual int AllowPickup (AActor *toucher);
+
+protected:
+	virtual const char *GetType () { return "skull"; }
+};
+
+class AFloatyIcon : public AActor
+{
+	DECLARE_CLASS (AFloatyIcon, AActor)
+public:
+	virtual void Serialize (FArchive &arc);
+	virtual void BeginPlay ();
+	virtual void Tick ();
+
+	void SetTracer (AActor *pTracer);
+
+	LONG lTick;
+	bool bTeamItemFloatyIcon;
+	unsigned int currentSprite;
+
+protected:
+	void CopyTracerTranslucency ();
 };
 
 
