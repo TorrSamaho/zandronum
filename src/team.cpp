@@ -440,127 +440,13 @@ ULONG TEAM_ChooseBestTeamForPlayer( const bool bIgnoreTeamStartsAvailability )
 //
 void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPillar )
 {
-	char				szString[256];
 	POS_t				SkullOrigin;
-	DHUDMessageFadeOut	*pMsg;
 	AActor				*pActor;
 	AInventory			*pInventory = NULL;
-	bool				bAssisted;
-	bool				bSelfAssisted = false;
 	ULONG				ulTeamIdx = 0;
 	int playerAssistNumber = GAMEEVENT_CAPTURE_NOASSIST; // [AK] Need this for game event.
 
-	// Determine who assisted.
-	bAssisted = ( TEAM_GetAssistPlayer( pPlayer->Team ) != MAXPLAYERS );
-
-	if ( bAssisted )
-	{
-		// Self assist?
-		bSelfAssisted = false;
-		for( ULONG i = 0; i < MAXPLAYERS; i++ )
-		{
-			if( (&players[i] == pPlayer) && (TEAM_GetAssistPlayer( pPlayer->Team ) == i) )
-			{
-				bSelfAssisted = true;
-				break;
-			}
-		}
-	}
-
-	// Create the console message.
-	if( ( bAssisted ) && ( ! bSelfAssisted ) )
-		sprintf(szString, "%s and %s scored for the \034%s%s " TEXTCOLOR_NORMAL "team!\n", pPlayer->userinfo.GetName(), players[TEAM_GetAssistPlayer( pPlayer->Team )].userinfo.GetName(), TEAM_GetTextColorName( pPlayer->Team ), TEAM_GetName( pPlayer->Team ));
-	else
-		sprintf(szString, "%s scored for the \034%s%s " TEXTCOLOR_NORMAL "team!\n", pPlayer->userinfo.GetName(), TEAM_GetTextColorName( pPlayer->Team ), TEAM_GetName( pPlayer->Team ));
-
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_Print( szString, PRINT_HIGH );
-
-	// Create the fullscreen message.
-	FString coloredTeamName = TEAM_GetTextColorName( pPlayer->Team );
-	coloredTeamName += " ";
-	coloredTeamName += TEAM_GetName( pPlayer->Team );
-	switch ( ulNumPoints )
-	{
-	case 0:
-
-		return;
-	case 1:
-
-		sprintf( szString, "\\c%s team scores!", coloredTeamName.GetChars() );
-		break;
-	case 2:
-
-		sprintf( szString, "\\c%s scores two points!", coloredTeamName.GetChars() );
-		break;
-	case 3:
-
-		sprintf( szString, "\\c%s scores three points!", coloredTeamName.GetChars() );
-		break;
-	case 4:
-
-		sprintf( szString, "\\c%s scores four points!", coloredTeamName.GetChars() );
-		break;
-	case 5:
-
-		sprintf( szString, "\\c%s scores five points!", coloredTeamName.GetChars() );
-		break;
-	default:
-
-		sprintf( szString, "\\c%s scores %d points!", coloredTeamName.GetChars(), static_cast<unsigned int> (ulNumPoints) );
-		break;
-	}
-
-	V_ColorizeString( szString );
-
-	// Now, print it.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		pMsg = new DHUDMessageFadeOut( BigFont, szString,
-			1.5,
-			TEAM_MESSAGE_Y_AXIS,
-			0,
-			0,
-			CR_BLUE,
-			3.0f,
-			0.5f );
-		StatusBar->AttachMessage( pMsg, MAKE_ID('C','N','T','R') );
-	}
-	// If necessary, send it to clients.
-	else
-	{
-		SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_BLUE, 3.0f, 0.0f, 0.5f, "BigFont", MAKE_ID( 'C', 'N', 'T', 'R' ) );
-	}
-
-	// Create the "scored by / assisted by" message.
-	sprintf( szString, "\\c%sScored by: %s", TEAM_GetTextColorName( pPlayer->Team ), pPlayer->userinfo.GetName());
-
-	if ( bAssisted )
-	{
-		if ( bSelfAssisted )
-			sprintf( szString + strlen ( szString ), "\n\\c%s( Self-Assisted )", TEAM_GetTextColorName( pPlayer->Team ) );
-		else
-			sprintf( szString + strlen ( szString ), "\n\\c%sAssisted by: %s", TEAM_GetTextColorName( pPlayer->Team ), players[TEAM_GetAssistPlayer( pPlayer->Team )].userinfo.GetName());
-	}
-	
-	V_ColorizeString( szString );
-
-	// Now, print it.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-	{
-		pMsg = new DHUDMessageFadeOut( SmallFont, szString,
-			1.5f,
-			TEAM_MESSAGE_Y_AXIS_SUB,
-			0,
-			0,
-			(EColorRange)(TEAM_GetTextColor (pPlayer->Team)),
-			3.0f,
-			0.5f );
-		StatusBar->AttachMessage( pMsg, MAKE_ID('S','U','B','S') );
-	}
-	// If necessary, send it to clients.
-	else
-		SERVERCOMMANDS_PrintHUDMessage( szString, 1.5f, TEAM_MESSAGE_Y_AXIS_SUB, 0, 0, HUDMESSAGETYPE_FADEOUT, CR_BLUE, 3.0f, 0.0f, 0.5f, "SmallFont", MAKE_ID( 'S', 'U', 'B', 'S' ) );
+	TEAM_PrintScoresMessage( pPlayer->Team, static_cast<unsigned>( pPlayer - players ), ulNumPoints );
 
 	// Give his team a point.
 	TEAM_SetPointCount( pPlayer->Team, TEAM_GetPointCount( pPlayer->Team ) + ulNumPoints, true );
@@ -630,6 +516,85 @@ void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPil
 		SERVERCOMMANDS_SetThingFrame( pPillar, SkulltagScoreState );
 
 	pPillar->SetState( SkulltagScoreState );
+}
+
+//*****************************************************************************
+//
+void TEAM_PrintScoresMessage( unsigned int team, unsigned int scorer, unsigned int numPoints )
+{
+	if (( TEAM_CheckIfValid( team ) == false ) || ( PLAYER_IsValidPlayer( scorer ) == false ) || ( numPoints == 0 ))
+		return;
+
+	const unsigned int assister = TEAM_GetAssistPlayer( team );
+	const bool selfAssisted = ( assister == scorer );
+	const EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( team ));
+	FString message;
+
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	{
+		// Create the "captured" message.
+		message.Format( "%s ", TEAM_GetName( team ));
+
+		switch ( numPoints )
+		{
+			case 1:
+				message += "team scores";
+				break;
+
+			case 2:
+				message += "scores two points";
+				break;
+
+			case 3:
+				message += "scores three points";
+				break;
+
+			case 4:
+				message += "scores four points";
+				break;
+
+			case 5:
+				message += "scores five points";
+				break;
+
+			default:
+				message.AppendFormat( "scores %u points", numPoints );
+				break;
+		}
+
+		message += '!';
+		HUD_DrawCNTRMessage( message.GetChars( ), color, 3.0f, 0.5f );
+
+		// [RC] Create the "scored by" and "assisted by" message.
+		message.Format( "Scored by: %s", players[scorer].userinfo.GetName( ));
+
+		if ( PLAYER_IsValidPlayer( assister ))
+		{
+			message += '\n';
+
+			if ( selfAssisted )
+				message += "[ Self-Assisted ]";
+ 			else
+				message.AppendFormat( "Assisted by: %s", players[assister].userinfo.GetName( ));
+		}
+
+		HUD_DrawSUBSMessage( message.GetChars( ), color, 3.0f, 0.5f );
+	}
+	else
+	{
+		SERVERCOMMANDS_PrintTeamScoresMessage( team, scorer, assister, numPoints );
+	}
+
+	message = players[scorer].userinfo.GetName( );
+
+	// [AK] Include the assisting player's name in the message if they're not the one who's capturing.
+	if (( PLAYER_IsValidPlayer( assister )) && ( selfAssisted == false ))
+		message.AppendFormat( " and %s", players[assister].userinfo.GetName( ));
+
+	message += " scored for the ";
+	message += TEXTCOLOR_ESCAPE;
+	message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "team!", TEAM_GetTextColorName( team ), TEAM_GetName( team ));
+	Printf( "%s\n", message.GetChars( ));
 }
 
 //*****************************************************************************

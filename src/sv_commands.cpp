@@ -2498,6 +2498,21 @@ void SERVERCOMMANDS_PrintACSHUDMessage( DLevelScript *pScript, const char *pszSt
 }
 
 //*****************************************************************************
+//
+void SERVERCOMMANDS_PrintTeamScoresMessage( unsigned int team, unsigned int scorer, unsigned int assister, unsigned int numPoints, unsigned int playerExtra, ServerCommandFlags flags )
+{
+	if (( TEAM_CheckIfValid( team ) == false ) || ( PLAYER_IsValidPlayer( scorer ) == false ) || ( numPoints == 0 ))
+		return;
+
+	ServerCommands::PrintTeamScoresMessage command;
+	command.SetTeam( team );
+	command.SetScorer( scorer );
+	command.SetAssister( assister );
+	command.SetNumPoints( numPoints );
+	command.sendCommandToClients( playerExtra, flags );
+}
+
+//*****************************************************************************
 //*****************************************************************************
 //
 void SERVERCOMMANDS_SetGameMode( ULONG ulPlayerExtra, ServerCommandFlags flags )

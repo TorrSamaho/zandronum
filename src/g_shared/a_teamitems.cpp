@@ -598,8 +598,6 @@ bool AFlag::HandlePickup( AInventory *item )
 {
 	const unsigned int player = static_cast<unsigned>( Owner->player - players );
 	const unsigned int team = players[player].Team;
-	EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( team ));
-	FString message;
 
 	// If this object being given isn't a flag, then we don't really care.
 	if ( item->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AFlag )) == false )
@@ -619,6 +617,8 @@ bool AFlag::HandlePickup( AInventory *item )
 
 		if (( TEAM_GetSimpleCTFSTMode( )) && ( NETWORK_InClientMode( ) == false ))
 		{
+			const unsigned int assistPlayer = TEAM_GetAssistPlayer( team );
+
 			// Give his team a point.
 			TEAM_SetPointCount( team, TEAM_GetPointCount( team ) + 1, true );
 			PLAYER_SetPoints( Owner->player, Owner->player->lPointCount + 1 );
@@ -627,39 +627,7 @@ bool AFlag::HandlePickup( AInventory *item )
 			MEDAL_GiveMedal( player, "Capture" );
 
 			this->Return( nullptr );
-
-			// Create the "captured" message.
-			message.Format( "%s team scores!", TEAM_GetName( team ));
-			HUD_DrawCNTRMessage( message.GetChars( ), color, 3.0f, 0.5f, true );
-
-			const unsigned int assistPlayer = TEAM_GetAssistPlayer( team );
-			const bool selfAssisted = ( assistPlayer == player );
-
-			// [RC] Create the "scored by" and "assisted by" message.
-			message.Format( "Scored by: %s", players[player].userinfo.GetName( ));
-
-			if ( assistPlayer != MAXPLAYERS )
-			{
-				message += '\n';
-
-				if ( selfAssisted )
-					message += "[ Self-Assisted ]";
- 				else
-					message.AppendFormat( "Assisted by: %s", players[assistPlayer].userinfo.GetName( ));
-			}
-
-			HUD_DrawSUBSMessage( message.GetChars( ), color, 3.0f, 0.5f, true );
-
-			message = players[player].userinfo.GetName( );
-
-			// [AK] Include the assisting player's name in the message if they're not the one who's capturing.
-			if (( assistPlayer != MAXPLAYERS ) && ( selfAssisted == false ))
-				message.AppendFormat( " and %s", players[assistPlayer].userinfo.GetName( ));
-
-			message += " scored for the ";
-			message += TEXTCOLOR_ESCAPE;
-			message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "team!", TEAM_GetTextColorName( team ), TEAM_GetName( team ));
-			NETWORK_Printf( "%s\n", message.GetChars( ));
+			TEAM_PrintScoresMessage( team, player, 1 );
 
 			// If someone just recently returned the flag, award him with an "Assist!" medal.
 			// [CK] Trigger an event script (activator is the capturer, assister is the second arg),
@@ -732,8 +700,6 @@ bool AWhiteFlag::HandlePickup( AInventory *item )
 {
 	const unsigned int player = static_cast<unsigned>( Owner->player - players );
 	const unsigned int team = players[player].Team;
-	EColorRange color = static_cast<EColorRange>( TEAM_GetTextColor( team ));
-	FString message;
 
 	// If this object being given isn't a flag, then we don't really care.
 	if ( item->GetClass( )->IsDescendantOf( RUNTIME_CLASS( AFlag )) == false )
@@ -761,18 +727,7 @@ bool AWhiteFlag::HandlePickup( AInventory *item )
 		// Award the scorer with a "Capture!" medal.
 		MEDAL_GiveMedal( player, "Capture" );
 
-		// Create the "captured" message.
-		message.Format( "%s team scores!", TEAM_GetName( team ));
-		HUD_DrawCNTRMessage( message.GetChars( ), color, 3.0f, 0.5f, true );
-
-		// [BC] Rivecoder's "scored by" message.
-		message.Format( "Scored by: %s", players[player].userinfo.GetName( ));
-		HUD_DrawSUBSMessage( message.GetChars( ), color, 3.0f, 0.5f, true );
-
-		message.Format( "%s scored for the ", players[player].userinfo.GetName( ));
-		message += TEXTCOLOR_ESCAPE;
-		message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "team!", TEAM_GetTextColorName( team ), TEAM_GetName( team ));
-		NETWORK_Printf( "%s\n", message.GetChars( ));
+		TEAM_PrintScoresMessage( team, player, 1 );
 
 		// [AK] Trigger an event script when the white flag is captured.
 		GAMEMODE_HandleEvent( GAMEEVENT_CAPTURES, Owner, GAMEEVENT_CAPTURE_NOASSIST, 1 );

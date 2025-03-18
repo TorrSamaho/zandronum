@@ -5929,6 +5929,22 @@ void ServerCommands::PrintHUDMessage::Execute()
 
 //*****************************************************************************
 //
+void ServerCommands::PrintTeamScoresMessage::Execute( )
+{
+	if ( TEAM_CheckIfValid( team ) == false )
+		return;
+
+	// [AK] The assist player of a team isn't synced with the clients, so just
+	// temporarily set it to the assister that was passed with this command.
+	const unsigned int oldAssister = TEAM_GetAssistPlayer( team );
+	TEAM_SetAssistPlayer( team, assister );
+
+	TEAM_PrintScoresMessage( team, scorer, numPoints );
+	TEAM_SetAssistPlayer( team, oldAssister );
+}
+
+//*****************************************************************************
+//
 static void client_SetGameMode( BYTESTREAM_s *pByteStream )
 {
 	UCVarValue	Value;

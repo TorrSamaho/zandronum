@@ -85,6 +85,7 @@ ULONG		TEAM_TeamsWithPlayersOn( void );
 void		TEAM_ExecuteReturnRoutine( ULONG ulTeamIdx, AActor *pReturner );
 ULONG		TEAM_ChooseBestTeamForPlayer( const bool bIgnoreTeamStartsAvailability = false );
 void		TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPillar );
+void		TEAM_PrintScoresMessage( unsigned int team, unsigned int scorer, unsigned int numPoints );
 void		TEAM_DisplayNeedToReturnSkullMessage( player_t *pPlayer );
 WORD		TEAM_GetReturnScriptOffset( ULONG ulTeamIdx );
 void		TEAM_DoWinSequence( ULONG ulTeamIdx );

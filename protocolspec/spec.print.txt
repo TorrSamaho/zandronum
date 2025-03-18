@@ -62,3 +62,11 @@ Command PrintHUDMessage
 		Fixed alpha
 	EndIf
 EndCommand
+
+Command PrintTeamScoresMessage
+	ExtendedCommand
+	Byte team
+	Byte scorer
+	Byte assister
+	Byte numPoints
+EndCommand
