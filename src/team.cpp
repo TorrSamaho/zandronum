@@ -438,84 +438,86 @@ ULONG TEAM_ChooseBestTeamForPlayer( const bool bIgnoreTeamStartsAvailability )
 
 //*****************************************************************************
 //
-void TEAM_ScoreSkulltagPoint( player_t *pPlayer, ULONG ulNumPoints, AActor *pPillar )
+void TEAM_ScoreSkulltagPoint( player_t *player, unsigned int numPoints, AActor *pillar )
 {
-	POS_t				SkullOrigin;
-	AActor				*pActor;
-	AInventory			*pInventory = NULL;
-	ULONG				ulTeamIdx = 0;
+	// [AK] Make sure that the scorer and score pillar are valid.
+	if (( player == nullptr ) || ( pillar == nullptr ))
+		return;
+
+	const unsigned int playerIndex = static_cast<unsigned>( player - players );
+	unsigned int team = teams.Size( );
 	int playerAssistNumber = GAMEEVENT_CAPTURE_NOASSIST; // [AK] Need this for game event.
 
-	TEAM_PrintScoresMessage( pPlayer->Team, static_cast<unsigned>( pPlayer - players ), ulNumPoints );
+	TEAM_PrintScoresMessage( player->Team, playerIndex, numPoints );
 
-	// Give his team a point.
-	TEAM_SetPointCount( pPlayer->Team, TEAM_GetPointCount( pPlayer->Team ) + ulNumPoints, true );
-	PLAYER_SetPoints ( pPlayer, pPlayer->lPointCount + ulNumPoints );
+	// Give their team a point.
+	TEAM_SetPointCount( player->Team, TEAM_GetPointCount( player->Team ) + numPoints, true );
+	PLAYER_SetPoints( player, player->lPointCount + numPoints );
 
 	// Take the skull away.
-	for ( ULONG i = 0; i < teams.Size( ); i++ )
+	for ( unsigned int i = 0; i < teams.Size( ); i++ )
 	{
-		pInventory = pPlayer->mo->FindInventory( TEAM_GetItem( i ));
+		AInventory *inventory = player->mo->FindInventory( TEAM_GetItem( i ));
 
-		if ( pInventory )
+		if ( inventory != nullptr )
 		{
-			ulTeamIdx = i;
+			player->mo->RemoveInventory( inventory );
+			team = i;
 			break;
 		}
 	}
 
-	if ( pInventory )
-		pPlayer->mo->RemoveInventory( pInventory );
-
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_TakeInventory( ULONG( pPlayer - players ), TEAM_GetItem( ulTeamIdx ), 0 );
+		SERVERCOMMANDS_TakeInventory( playerIndex, TEAM_GetItem( team ), 0 );
 	else
 		HUD_ShouldRefreshBeforeRendering( );
 
 	// Respawn the skull.
-	SkullOrigin = TEAM_GetItemOrigin( ulTeamIdx );
+	const POS_t origin = TEAM_GetItemOrigin( team );
+	AActor *actor = Spawn( TEAM_GetItem( team ), origin.x, origin.y, origin.z, NO_REPLACE );
 
-	pActor = Spawn( TEAM_GetItem( ulTeamIdx ), SkullOrigin.x, SkullOrigin.y, SkullOrigin.z, NO_REPLACE );
+	if ( actor != nullptr )
+	{
+		// Since all inventory spawns with the MF_DROPPED flag, we need to unset it.
+		actor->flags &= ~MF_DROPPED;
 
-	// Since all inventory spawns with the MF_DROPPED flag, we need to unset it.
-	if ( pActor )
-		pActor->flags &= ~MF_DROPPED;
-
-	// If we're the server, tell clients to spawn the new skull.
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( pActor ))
-		SERVERCOMMANDS_SpawnThing( pActor );
+		// If we're the server, tell clients to spawn the new skull.
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SpawnThing( actor );
+	}
 
 	// Mark the skull as no longer being taken.
-	TEAM_SetItemTaken( ulTeamIdx, false );
+	TEAM_SetItemTaken( team, false );
 
 	// Award the scorer with a "Tag!" medal.
-	MEDAL_GiveMedal( ULONG( pPlayer - players ), "Tag" );
+	MEDAL_GiveMedal( playerIndex, "Tag" );
 
-	// If someone just recently returned the skull, award him with an "Assist!" medal.
-	if ( TEAM_GetAssistPlayer( pPlayer->Team ) != MAXPLAYERS )
+	// If someone just recently returned the skull, award them with an "Assist!" medal.
+	if ( TEAM_GetAssistPlayer( player->Team ) != MAXPLAYERS )
 	{
 		// [AK] Mark the assisting player.
-		playerAssistNumber = TEAM_GetAssistPlayer( pPlayer->Team );
+		playerAssistNumber = TEAM_GetAssistPlayer( player->Team );
 
 		MEDAL_GiveMedal( playerAssistNumber, "Assist" );
-		TEAM_SetAssistPlayer( pPlayer->Team, MAXPLAYERS );
+		TEAM_SetAssistPlayer( player->Team, MAXPLAYERS );
 	}
 
 	// [AK] Trigger an event script (activator is the capturer, assister is the first arg, and points earned is second arg).
-	GAMEMODE_HandleEvent( GAMEEVENT_CAPTURES, pPlayer->mo, playerAssistNumber, ulNumPoints );
+	GAMEMODE_HandleEvent( GAMEEVENT_CAPTURES, player->mo, playerAssistNumber, numPoints );
 
-	FString Name;
-	
-	Name = "Tag";
-	Name += TEAM_GetName( ulTeamIdx );
-	Name += "Skull";
+	FString stateName = "Tag";
+	stateName.AppendFormat( "%sSkull", TEAM_GetName( team ));
 
-	FState *SkulltagScoreState = pPillar->FindState( (FName)Name.GetChars( ));
+	FState *skulltagScoreState = pillar->FindState( FName( stateName.GetChars( )));
 
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-		SERVERCOMMANDS_SetThingFrame( pPillar, SkulltagScoreState );
+	// [AK] Make sure the state is valid.
+	if ( skulltagScoreState != nullptr )
+	{
+		if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+			SERVERCOMMANDS_SetThingFrame( pillar, skulltagScoreState );
 
-	pPillar->SetState( SkulltagScoreState );
+		pillar->SetState( skulltagScoreState );
+	}
 }
 
 //*****************************************************************************
