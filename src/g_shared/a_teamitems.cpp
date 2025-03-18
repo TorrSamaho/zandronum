@@ -351,7 +351,7 @@ void ATeamItem::DisplayTaken( AActor *toucher )
 	message += TEXTCOLOR_ESCAPE;
 	message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "%s.", TEAM_GetTextColorName( team ), TEAM_GetName( team ), GetType( ));
 
-	Printf( PRINT_MEDIUM, "%s\n", message.GetChars( ));
+	Printf( "%s\n", message.GetChars( ));
 
 	// [AK] The server doesn't need to do anything past this point.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -470,7 +470,7 @@ void ATeamItem::DisplayReturn( AActor *returner )
 	else
 		message.Format( "%s returned.", itemName.GetChars( ));
 
-	Printf( PRINT_MEDIUM, "%s\n", message.GetChars( ));
+	Printf( "%s\n", message.GetChars( ));
 
 	// [AK] The server doesn't need to do anything past this point.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -527,7 +527,7 @@ void ATeamItem::Drop( player_t *player, unsigned int team )
 		message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "%s.", TEAM_GetTextColorName( team ), TEAM_GetName( team ), itemName.GetChars( ));
 	}
 
-	Printf( PRINT_MEDIUM, "%s\n", message.GetChars( ));
+	Printf( "%s\n", message.GetChars( ));
 
 	// If we're the server, just tell clients to do this.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -650,19 +650,16 @@ bool AFlag::HandlePickup( AInventory *item )
 
 			HUD_DrawSUBSMessage( message.GetChars( ), color, 3.0f, 0.5f, true );
 
-			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-			{
-				message = players[player].userinfo.GetName( );
+			message = players[player].userinfo.GetName( );
 
-				// [AK] Include the assisting player's name in the message if they're not the one who's capturing.
-				if (( assistPlayer != MAXPLAYERS ) && ( selfAssisted == false ))
-					message.AppendFormat( " and %s", players[assistPlayer].userinfo.GetName( ));
+			// [AK] Include the assisting player's name in the message if they're not the one who's capturing.
+			if (( assistPlayer != MAXPLAYERS ) && ( selfAssisted == false ))
+				message.AppendFormat( " and %s", players[assistPlayer].userinfo.GetName( ));
 
-				message += " scored for the ";
-				message += TEXTCOLOR_ESCAPE;
-				message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "team!", TEAM_GetTextColorName( team ), TEAM_GetName( team ));
-				SERVER_Printf( "%s\n", message.GetChars( ));
-			}
+			message += " scored for the ";
+			message += TEXTCOLOR_ESCAPE;
+			message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "team!", TEAM_GetTextColorName( team ), TEAM_GetName( team ));
+			NETWORK_Printf( "%s\n", message.GetChars( ));
 
 			// If someone just recently returned the flag, award him with an "Assist!" medal.
 			// [CK] Trigger an event script (activator is the capturer, assister is the second arg),
@@ -772,6 +769,11 @@ bool AWhiteFlag::HandlePickup( AInventory *item )
 		message.Format( "Scored by: %s", players[player].userinfo.GetName( ));
 		HUD_DrawSUBSMessage( message.GetChars( ), color, 3.0f, 0.5f, true );
 
+		message.Format( "%s scored for the ", players[player].userinfo.GetName( ));
+		message += TEXTCOLOR_ESCAPE;
+		message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "team!", TEAM_GetTextColorName( team ), TEAM_GetName( team ));
+		NETWORK_Printf( "%s\n", message.GetChars( ));
+
 		// [AK] Trigger an event script when the white flag is captured.
 		GAMEMODE_HandleEvent( GAMEEVENT_CAPTURES, Owner, GAMEEVENT_CAPTURE_NOASSIST, 1 );
 
@@ -854,7 +856,7 @@ void AWhiteFlag::DisplayTaken( AActor *toucher )
 {
 	const int touchingPlayer = static_cast<int>( toucher->player - players );
 
-	Printf( PRINT_MEDIUM, "%s has taken the " TEXTCOLOR_GREY "White " TEXTCOLOR_NORMAL "flag.\n", players[touchingPlayer].userinfo.GetName( ));
+	Printf( "%s has taken the " TEXTCOLOR_GREY "White " TEXTCOLOR_NORMAL "flag.\n", players[touchingPlayer].userinfo.GetName( ));
 
 	// [AK] The server doesn't need to do anything here.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
@@ -934,7 +936,7 @@ void AWhiteFlag::DisplayReturn( AActor *returner )
 {
 	// Create the "returned" message.
 	HUD_DrawCNTRMessage( "White flag returned", CR_GREY );
-	Printf( PRINT_MEDIUM, TEXTCOLOR_GREY "White " TEXTCOLOR_NORMAL "flag returned.\n" );
+	Printf( TEXTCOLOR_GREY "White " TEXTCOLOR_NORMAL "flag returned.\n" );
 }
 
 // Skulltag skull -----------------------------------------------------------
