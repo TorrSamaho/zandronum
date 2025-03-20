@@ -768,9 +768,22 @@ int AWhiteFlag::AllowPickup( AActor *toucher )
 {
 	// [BB] Carrying more than one WhiteFlag is not allowed.
 	if (( toucher == nullptr ) || ( toucher->FindInventory( PClass::FindClass( "WhiteFlag" ), true ) == nullptr ))
+	{
+		// [AK] Don't allow the white flag to be picked up without an opposing team.
+		if (( toucher != nullptr ) && ( toucher->player != nullptr ) && ( TEAM_TeamsWithPlayersOn( ) < 2 ))
+		{
+			const unsigned int player = static_cast<unsigned>( toucher->player - players );
+			HUD_DrawSUBSMessage( "You can't pick up the white flag\nwithout an opposing team!", CR_UNTRANSLATED, 3.0f, 0.25f, true, player, SVCF_ONLYTHISCLIENT );
+
+			return ( DENY_PICKUP );
+		}
+
 		return ( ALLOW_PICKUP );
+	}
 	else
+	{
 		return ( DENY_PICKUP );
+	}
 }
 
 //===========================================================================
