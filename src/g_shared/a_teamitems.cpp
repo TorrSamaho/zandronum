@@ -371,7 +371,7 @@ void ATeamItem::DisplayTaken( AActor *toucher )
 		color = static_cast<EColorRange>( TEAM_GetTextColor( players[touchingPlayer].Team ));
 		message.Format( "Held by: %s", players[touchingPlayer].userinfo.GetName( ));
 
-		// Now, print it... or if necessary, send it to clients.
+		// Now, print it.
 		HUD_DrawSUBSMessage( message.GetChars( ), color );
 	}
 	else
@@ -851,7 +851,7 @@ void AWhiteFlag::DisplayTaken( AActor *toucher )
 		// [AK] Colorize the message in the same way that it is for flags or skulls.
 		message.Format( "Held by: %s", players[touchingPlayer].userinfo.GetName( ));
 
-		// Now, print it... or if necessary, send it to clients.
+		// Now, print it.
 		HUD_DrawSUBSMessage( message.GetChars( ), color );
 	}
 	else
