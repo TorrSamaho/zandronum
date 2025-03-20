@@ -493,7 +493,8 @@ void APowerInvulnerable::EndEffect ()
 		Owner->flags2 &= ~MF2_REFLECTIVE;
 	}
 
-	if (Owner->player != NULL)
+	// [AK] Don't clear any colormaps when removing respawn protection.
+	if (Owner->player != NULL && GetClass() != RUNTIME_CLASS(APowerRespawnInvulnerable))
 	{
 		Owner->player->fixedcolormap = NOFIXEDCOLORMAP;
 		// [BB] Additionally clear FixedColormap.
