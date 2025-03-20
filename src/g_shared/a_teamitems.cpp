@@ -485,7 +485,7 @@ void ATeamItem::DisplayReturn( AActor *returner )
 		message.Format( "Returned by: %s", players[returningPlayer].userinfo.GetName( ));
 	// [RC] Create the "returned automatically" message for this team.
 	else
-		message = "Returned automatically.";
+		message = "Returned automatically";
 
 	HUD_DrawSUBSMessage( message.GetChars( ), color );
 }
@@ -907,6 +907,9 @@ void AWhiteFlag::DisplayReturn( AActor *returner )
 	// Create the "returned" message.
 	HUD_DrawCNTRMessage( "White flag returned", CR_GREY );
 	Printf( TEXTCOLOR_GREY "White " TEXTCOLOR_NORMAL "flag returned.\n" );
+
+	// [AK] Create the "returned automatically" message.
+	HUD_DrawSUBSMessage( "Returned automatically", CR_GREY );
 }
 
 // Skulltag skull -----------------------------------------------------------
