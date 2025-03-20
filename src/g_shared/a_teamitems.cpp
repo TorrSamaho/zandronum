@@ -653,7 +653,8 @@ bool AFlag::HandlePickup( AInventory *item )
 				if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 					SERVERCOMMANDS_TakeInventory( player, inventory->GetClass( ), 0 );
 
-				Owner->RemoveInventory( inventory );
+				inventory->Destroy( );
+				inventory = nullptr;
 			}
 
 			// Also, refresh the HUD.
@@ -740,7 +741,8 @@ bool AWhiteFlag::HandlePickup( AInventory *item )
 			if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 				SERVERCOMMANDS_TakeInventory( player, inventory->GetClass( ), 0 );
 
- 			Owner->RemoveInventory( inventory );
+			inventory->Destroy( );
+			inventory = nullptr;
 		}
 
 		this->Return( nullptr );

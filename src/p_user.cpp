@@ -2131,13 +2131,14 @@ void APlayerPawn::DropImportantItems( bool bLeavingGame, AActor *pSource )
 
 			if ( pInventory )
 			{
-				this->RemoveInventory( pInventory );
-
 				// Tell the clients that this player no longer possesses a flag.
 				if (( bLeavingGame == false ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
 					SERVERCOMMANDS_TakeInventory( player - players, TEAM_GetItem( i ), 0 );
 				if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 					HUD_ShouldRefreshBeforeRendering( );
+
+				pInventory->Destroy( );
+				pInventory = nullptr;
 
 				// Spawn a new flag.
 				pTeamItem = Spawn( TEAM_GetItem( i ), x, y, z, NO_REPLACE );
@@ -2180,13 +2181,14 @@ void APlayerPawn::DropImportantItems( bool bLeavingGame, AActor *pSource )
 		pInventory = this->FindInventory( PClass::FindClass( "WhiteFlag" ), true );
 		if (( oneflagctf ) && ( pInventory ))
 		{
-			this->RemoveInventory( pInventory );
-
 			// Tell the clients that this player no longer possesses a flag.
 			if (( bLeavingGame == false ) && ( NETWORK_GetState( ) == NETSTATE_SERVER ))
 				SERVERCOMMANDS_TakeInventory( player - players, pInventory->GetClass( ), 0 );
 			if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 				HUD_ShouldRefreshBeforeRendering( );
+
+			pInventory->Destroy( );
+			pInventory = nullptr;
 
 			// Spawn a new flag.
 			pTeamItem = Spawn( PClass::FindClass( "WhiteFlag" ), x, y, z, ALLOW_REPLACE );
