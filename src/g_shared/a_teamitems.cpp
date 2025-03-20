@@ -374,6 +374,10 @@ void ATeamItem::DisplayTaken( AActor *toucher )
 		// Now, print it... or if necessary, send it to clients.
 		HUD_DrawSUBSMessage( message.GetChars( ), color );
 	}
+	else
+	{
+		StatusBar->DetachMessage( MAKE_ID( 'S', 'U', 'B', 'S' ));
+	}
 }
 
 //===========================================================================
@@ -551,6 +555,8 @@ void ATeamItem::Drop( player_t *player, unsigned int team )
 		message.Format( "%s%sDropped", TEAM_GetName( team ), itemName.GetChars( ));
 		ANNOUNCER_PlayEntry( cl_announcer, message.GetChars( ));
 	}
+
+	StatusBar->DetachMessage( MAKE_ID( 'S', 'U', 'B', 'S' ));
 }
 
 //===========================================================================
@@ -847,6 +853,10 @@ void AWhiteFlag::DisplayTaken( AActor *toucher )
 
 		// Now, print it... or if necessary, send it to clients.
 		HUD_DrawSUBSMessage( message.GetChars( ), color );
+	}
+	else
+	{
+		StatusBar->DetachMessage( MAKE_ID( 'S', 'U', 'B', 'S' ));
 	}
 }
 
