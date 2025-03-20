@@ -468,7 +468,7 @@ void ATeamItem::DisplayReturn( AActor *returner )
 	if ( returningPlayer != MAXPLAYERS )
 		message.Format( "%s returned the %s.", players[returningPlayer].userinfo.GetName( ), itemName.GetChars( ));
 	else
-		message.Format( "%s returned.", itemName.GetChars( ));
+		message.Format( "%s returned automatically.", itemName.GetChars( ));
 
 	Printf( "%s\n", message.GetChars( ));
 
@@ -906,7 +906,7 @@ void AWhiteFlag::DisplayReturn( AActor *returner )
 {
 	// Create the "returned" message.
 	HUD_DrawCNTRMessage( "White flag returned", CR_GREY );
-	Printf( TEXTCOLOR_GREY "White " TEXTCOLOR_NORMAL "flag returned.\n" );
+	Printf( TEXTCOLOR_GREY "White " TEXTCOLOR_NORMAL "flag returned automatically.\n" );
 
 	// [AK] Create the "returned automatically" message.
 	HUD_DrawSUBSMessage( "Returned automatically", CR_GREY );
