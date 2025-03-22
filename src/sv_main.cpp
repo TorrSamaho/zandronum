@@ -3171,6 +3171,12 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo, L
 	if ( players[ulClient].morphTics )
 		P_UndoPlayerMorphWithoutFlash( &players[ulClient], &players[ulClient], MORPH_UNDOBYTIMEOUT, true );
 
+	// If they're disconnecting while carrying an important item like a flag, etc.,
+	// make sure they drop it before leaving.
+	// [AK] This must be executed before telling the clients the player left.
+	if ( players[ulClient].mo != nullptr )
+		players[ulClient].mo->DropImportantItems( true );
+
 	// Inform the other clients that this player has been disconnected.
 	SERVERCOMMANDS_DisconnectPlayer( ulClient );
 
@@ -3214,9 +3220,6 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo, L
 		// [BB] Stop all scripts of the player that are still running.
 		if ( !( zacompatflags & ZACOMPATF_DONT_STOP_PLAYER_SCRIPTS_ON_DISCONNECT ) )
 			FBehavior::StaticStopMyScripts ( players[ulClient].mo );
-		// If he's disconnecting while carrying an important item like a flag, etc., make sure he, 
-		// drops it before he leaves.
-		players[ulClient].mo->DropImportantItems( true );
 
 		players[ulClient].mo->Destroy( );
 		players[ulClient].mo = NULL;

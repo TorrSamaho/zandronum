@@ -609,14 +609,15 @@ void BOTS_RemoveBot( ULONG ulPlayerIdx, bool bExitMsg )
 	// [RK] Stop the runing scripts for the bot.
 	FBehavior::StaticStopMyScripts (players[ulPlayerIdx].mo);
 
+	// If they're disconnecting while carrying an important item like a flag, etc.,
+	// make sure they drop it before leaving.
+	// [AK] This must be executed before telling the clients the player left.
+	if ( players[ulPlayerIdx].mo )
+		players[ulPlayerIdx].mo->DropImportantItems( true );
+
 	// Remove the bot from the game.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_DisconnectPlayer( ulPlayerIdx, ulPlayerIdx, SVCF_SKIPTHISCLIENT );
-
-	// If he's carrying an important item like a flag, etc., make sure he, 
-	// drops it before he leaves.
-	if ( players[ulPlayerIdx].mo )
-		players[ulPlayerIdx].mo->DropImportantItems( true );
 
 	// If this bot was eligible to get an assist, cancel that.
 	TEAM_CancelAssistsOfPlayer ( ulPlayerIdx );
