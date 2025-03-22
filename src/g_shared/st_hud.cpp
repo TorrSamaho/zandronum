@@ -941,9 +941,15 @@ static void HUD_RenderHolders( void )
 			patchName = "STFLA3";
 
 			if ( g_pArtifactCarrier )
+			{
+				// [AK] Use the carrier's team color instead.
+				color = TEAM_GetTextColor( g_pArtifactCarrier->Team );
 				text.AppendFormat( "%s" TEXTCOLOR_NORMAL ": ", g_pArtifactCarrier->userinfo.GetName( ));
+			}
 			else
+			{
 				text.AppendFormat( "%s: ", TEAM_GetReturnTicks( teams.Size( )) ? "?" : "-" );
+			}
 		}
 		else
 		{
