@@ -3135,25 +3135,6 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo, L
 {
 	const CLIENTSTATE_e OldState = g_aClients[ulClient].State;
 
-	if ( bBroadcast )
-	{
-		// [BB] Only broadcast disconnects if we already announced the connect
-		// (which we do when the player is spawned in SERVER_ConnectNewPlayer)
-		if ( players[ulClient].userinfo.GetName() && ( SERVER_GetClient( ulClient )->State >= CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION ) )
-		{
-			FString message;
-
-			if ( ( gametic - g_aClients[ulClient].ulLastCommandTic ) == ( CLIENT_TIMEOUT * 35 ) )
-				message.Format( "%s{ip} timed out.\n", players[ulClient].userinfo.GetName() );
-			else
-				message.Format( "client %s{ip} disconnected.\n", players[ulClient].userinfo.GetName() );
-
-			server_PrintWithIP( message, g_aClients[ulClient].Address );
-		}
-		else
-			Printf( "%s disconnected.\n", g_aClients[ulClient].Address.ToString() );
-	}
-
 	// [RK] Disconnectd players need their vote removed/cancelled.
 	CALLVOTE_DisconnectedVoter( ulClient );
 
@@ -3173,6 +3154,25 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo, L
 	// [AK] This must be executed before telling the clients the player left.
 	if ( players[ulClient].mo != nullptr )
 		players[ulClient].mo->DropImportantItems( true );
+
+	if ( bBroadcast )
+	{
+		// [BB] Only broadcast disconnects if we already announced the connect
+		// (which we do when the player is spawned in SERVER_ConnectNewPlayer)
+		if ( players[ulClient].userinfo.GetName() && ( SERVER_GetClient( ulClient )->State >= CLS_SPAWNED_BUT_NEEDS_AUTHENTICATION ) )
+		{
+			FString message;
+
+			if ( ( gametic - g_aClients[ulClient].ulLastCommandTic ) == ( CLIENT_TIMEOUT * 35 ) )
+				message.Format( "%s{ip} timed out.\n", players[ulClient].userinfo.GetName() );
+			else
+				message.Format( "client %s{ip} disconnected.\n", players[ulClient].userinfo.GetName() );
+
+			server_PrintWithIP( message, g_aClients[ulClient].Address );
+		}
+		else
+			Printf( "%s disconnected.\n", g_aClients[ulClient].Address.ToString() );
+	}
 
 	// Inform the other clients that this player has been disconnected.
 	SERVERCOMMANDS_DisconnectPlayer( ulClient );

@@ -587,14 +587,6 @@ void BOTS_RemoveBot( ULONG ulPlayerIdx, bool bExitMsg )
 		return;
 	}
 
-	if ( bExitMsg )
-	{
-		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-			Printf( PRINT_HIGH, "%s left the game.\n", players[ulPlayerIdx].userinfo.GetName() );
-		else
-			SERVER_Printf( "%s left the game.\n", players[ulPlayerIdx].userinfo.GetName() );
-	}
-
 	// [AK] Clear all the saved chat messages this bot said.
 	CHAT_ClearChatMessages( ulPlayerIdx );
 
@@ -614,6 +606,14 @@ void BOTS_RemoveBot( ULONG ulPlayerIdx, bool bExitMsg )
 	// [AK] This must be executed before telling the clients the player left.
 	if ( players[ulPlayerIdx].mo )
 		players[ulPlayerIdx].mo->DropImportantItems( true );
+
+	if ( bExitMsg )
+	{
+		if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+			Printf( PRINT_HIGH, "%s left the game.\n", players[ulPlayerIdx].userinfo.GetName( ));
+		else
+			SERVER_Printf( "%s left the game.\n", players[ulPlayerIdx].userinfo.GetName( ));
+	}
 
 	// Remove the bot from the game.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
