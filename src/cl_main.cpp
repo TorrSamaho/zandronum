@@ -3151,6 +3151,9 @@ void PLAYER_ResetPlayerData( player_t *pPlayer )
 		CLIENT_PREDICT_Construct();
 	}
 	memset( pPlayer->psprites, 0, sizeof( pPlayer->psprites ));
+
+	// [AK] Clear the player's medals.
+	MEDAL_ResetPlayerMedals( static_cast<ULONG>( pPlayer - players ), true );
 }
 
 //*****************************************************************************
