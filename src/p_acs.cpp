@@ -7571,10 +7571,6 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 
 				player_t *player = &players[ulPlayer];
 
-				// [AK] Don't bother changing the player's class if they're actually spectating.
-				if ( PLAYER_IsTrueSpectator( player ) )
-					return 0;
-
 				if ( stricmp( classname, "random" ) == 0 )
 				{
 					// [AK] Stop if choosing random player classes is forbidden.
