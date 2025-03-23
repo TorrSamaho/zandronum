@@ -2112,7 +2112,8 @@ void APlayerPawn::DropImportantItems( bool bLeavingGame, AActor *pSource )
 	AActor		*pTeamItem;
 	AInventory	*pInventory;
 
-	if ( player == NULL )
+	// [AK] Don't let clients execute this themselves.
+	if (( NETWORK_InClientMode( )) || ( player == nullptr ))
 		return;
 
 	// If we're in a teamgame, don't allow him to "take" flags or skulls with him. If
