@@ -64,6 +64,7 @@
 #include "v_text.h"
 #include "v_video.h"
 #include "gamemode.h"
+#include "c_console.h"
 
 //*****************************************************************************
 //	DEFINES
@@ -531,6 +532,8 @@ void ATeamItem::Drop( player_t *player, unsigned int team )
 		message.AppendFormat( "%s%s " TEXTCOLOR_NORMAL "%s.", TEAM_GetTextColorName( team ), TEAM_GetName( team ), itemName.GetChars( ));
 	}
 
+	// [AK] Don't print the same message twice for the current RCON client.
+	CONSOLE_ShouldPrintToRCONPlayer( false );
 	Printf( "%s\n", message.GetChars( ));
 
 	// If we're the server, just tell clients to do this.
