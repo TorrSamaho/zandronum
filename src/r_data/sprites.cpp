@@ -838,9 +838,7 @@ void R_InitSkins (void)
 			{
 				skins[i].range0start = transtype->Meta.GetMetaInt (APMETA_ColorRange) & 0xff;
 				skins[i].range0end = transtype->Meta.GetMetaInt (APMETA_ColorRange) >> 8;
-				// [TRSR] Store class associated to skin.
-				skins[i].classType = transtype;
-			
+
 				remove = true;
 				for (j = 0; j < (int)PlayerClasses.Size (); j++)
 				{
@@ -852,6 +850,9 @@ void R_InitSkins (void)
 					{
 						PlayerClasses[j].Skins.Push ((int)i);
 						remove = false;
+
+						// [TRSR] Store class associated to skin.
+						skins[i].classType = type;
 					}
 				}
 			}
@@ -1067,6 +1068,7 @@ static void R_CreateSkin()
 	skin.bRevealed = true;
 	skin.bRevealedByDefault = true;
 	skin.game = GAME_Doom; // [TRSR]
+	skin.classType = nullptr; // [AK]
 
 	skins.Push(skin);
 }
@@ -1116,11 +1118,14 @@ static void R_InitSkinPropertyMap (FPlayerSkin &skin)
 	}
 	skin.propertyList["game"].Push( val );
 
-	val.SetValue<const char*>( skin.classType->Meta.GetMetaString( APMETA_DisplayName ) );
-	skin.propertyList["class"].Push( val );
+	if ( skin.classType != nullptr )
+	{
+		val.SetValue<const char*>( skin.classType->Meta.GetMetaString( APMETA_DisplayName ) );
+		skin.propertyList["class"].Push( val );
 
-	val.SetValue<const char*>( skin.classType->TypeName );
-	skin.propertyList["classactor"].Push( val );
+		val.SetValue<const char*>( skin.classType->TypeName );
+		skin.propertyList["classactor"].Push( val );
+	}
 
 	val.SetValue<bool>( skin.bRevealed );
 	skin.propertyList["revealed"].Push( val );
