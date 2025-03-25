@@ -1,4 +1,5 @@
-cmake_minimum_required( VERSION 2.4 )
+# [SB] Removed for CMake 4.0 compatibility.
+#cmake_minimum_required( VERSION 2.4 )
 add_library( output_sdl MODULE output_sdl.c )
 include_directories( ${FMOD_INCLUDE_DIR} ${SDL_INCLUDE_DIR} )
 

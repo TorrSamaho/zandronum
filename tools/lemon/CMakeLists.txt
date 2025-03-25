@@ -1,5 +1,3 @@
-cmake_minimum_required( VERSION 2.4 )
-
 if( NOT CMAKE_CROSSCOMPILING )
 	set( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG" )
 

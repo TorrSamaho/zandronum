@@ -1,5 +1,3 @@
-cmake_minimum_required( VERSION 2.4 )
-
 # [BB/EP] Download SQLite archive and extract the sources if necessary.
 set( ZAN_SQLITE_VERSION 3360000 ) # SQL version 3.36.0
 set( ZAN_SQLITE_YEAR 2021 )

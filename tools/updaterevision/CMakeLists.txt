@@ -1,4 +1,5 @@
-cmake_minimum_required( VERSION 2.4 )
+# [SB] Removed for CMake 4.0 compatibility.
+#cmake_minimum_required( VERSION 2.4 )
 
 if( WIN32 )
 	if( "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
