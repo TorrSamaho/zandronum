@@ -3831,7 +3831,9 @@ void SERVER_KickPlayer( ULONG ulPlayer, const char *pszReason )
 	V_RemoveColorCodes( playerName );
 
 	// Build the full kick string.
+	// [AK] Don't print this for the current RCON client, though.
 	kickString.Format( TEXTCOLOR_ORANGE "%s was kicked from the server! Reason: %s\n", playerName.GetChars(), pszReason );
+	CONSOLE_ShouldPrintToRCONPlayer( false );
 	Printf( "%s", kickString.GetChars() );
 
 	// Rebuild the string that will be displayed to clients. This time, color codes are allowed.
@@ -7790,8 +7792,10 @@ static bool server_InfoCheat( BYTESTREAM_s *pByteStream )
 static void server_PrintWithIP( FString message, const NETADDRESS_s &address )
 {
 	// [TP] First print locally a version of this message with the IP address shown.
+	// [AK] Don't print it for the current RCON client, though.
 	FString localmessage = message;
 	localmessage.Substitute( "{ip}", FString( " (" ) + address.ToString() + ")" );
+	CONSOLE_ShouldPrintToRCONPlayer( false );
 	Printf( "%s", localmessage.GetChars() );
 
 	// [TP] Then print a version of the message without the IP address to clients.
