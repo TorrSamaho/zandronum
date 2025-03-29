@@ -1723,6 +1723,9 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 		if ( teamgame )
 			SERVERCOMMANDS_SetPlayerPoints( g_lCurrentClient );
 
+		// [AK] Also restore their death count.
+		PLAYER_SetDeaths( &players[g_lCurrentClient], pSavedInfo->deathCount );
+
 		// [RC] Also restore his playing time. This should agree with 'restore frags' as a whole, clean slate option.
 		players[g_lCurrentClient].ulTime = pSavedInfo->ulTime;
 	}
@@ -3187,6 +3190,7 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo, L
 		Info.lFragCount		= players[ulClient].fragcount;
 		Info.lPointCount	= players[ulClient].lPointCount;
 		Info.lWinCount		= players[ulClient].ulWins;
+		Info.deathCount		= players[ulClient].ulDeathCount;
 		Info.ulTime			= players[ulClient].ulTime; // [RC] Save time
 		Info.Name			= players[ulClient].userinfo.GetName();
 
@@ -3204,6 +3208,7 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo, L
 			pInfo->lFragCount = 0;
 			pInfo->lPointCount = 0;
 			pInfo->lWinCount = 0;
+			pInfo->deathCount = 0;
 			pInfo->Name = "";
 		}
 	}

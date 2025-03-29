@@ -109,6 +109,7 @@ void SERVER_SAVE_ClearList( void )
 		g_SavedPlayerInfo[ulIdx].lFragCount = 0;
 		g_SavedPlayerInfo[ulIdx].lPointCount = 0;
 		g_SavedPlayerInfo[ulIdx].lWinCount = 0;
+		g_SavedPlayerInfo[ulIdx].deathCount = 0;
 		g_SavedPlayerInfo[ulIdx].Name = "";
 		g_SavedPlayerInfo[ulIdx].ulTime = 0;
 	}
@@ -156,6 +157,7 @@ void server_save_UpdateSlotWithInfo( ULONG ulSlot, PLAYERSAVEDINFO_t *pInfo )
 	g_SavedPlayerInfo[ulSlot].lFragCount		= pInfo->lFragCount;
 	g_SavedPlayerInfo[ulSlot].lPointCount		= pInfo->lPointCount;
 	g_SavedPlayerInfo[ulSlot].lWinCount			= pInfo->lWinCount;
+	g_SavedPlayerInfo[ulSlot].deathCount		= pInfo->deathCount;
 	g_SavedPlayerInfo[ulSlot].ulTime			= pInfo->ulTime;
 	g_SavedPlayerInfo[ulSlot].Name				= pInfo->Name;
 

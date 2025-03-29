@@ -76,6 +76,9 @@ struct PLAYERSAVEDINFO_t
 	// Points?
 	LONG			lPointCount;
 
+	// [AK] How many deaths the player had.
+	unsigned int	deathCount;
+
 	// [RC] Time in game.
 	ULONG			ulTime;
 
