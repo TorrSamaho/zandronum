@@ -1,4 +1,5 @@
-cmake_minimum_required( VERSION 2.4 )
+# [AK] Removed for CMake 4.0 compatibility.
+#cmake_minimum_required( VERSION 2.4 )
 
 if( NOT CMAKE_CROSSCOMPILING )
 	add_executable( fixrtext fixrtext.c )
