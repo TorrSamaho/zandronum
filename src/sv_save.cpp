@@ -48,7 +48,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "network.h"
 #include "sv_save.h"
 #include "v_text.h"
 
@@ -56,12 +55,12 @@
 //	VARIABLES
 
 // Global list of saved information.
-static	PLAYERSAVEDINFO_t	g_SavedPlayerInfo[MAXPLAYERS];
+static	SavedPlayerInfo		g_SavedPlayerInfo[MAXPLAYERS];
 
 //*****************************************************************************
 //	PROTOTYPES
 
-void	server_save_UpdateSlotWithInfo( ULONG ulSlot, PLAYERSAVEDINFO_t *pInfo );
+void	server_save_UpdateSlotWithInfo( unsigned int slot, SavedPlayerInfo &info );
 
 //*****************************************************************************
 //	FUNCTIONS
@@ -74,72 +73,67 @@ void SERVER_SAVE_Construct( void )
 
 //*****************************************************************************
 //
-PLAYERSAVEDINFO_t *SERVER_SAVE_GetSavedInfo( const char *pszPlayerName, NETADDRESS_s Address )
+SavedPlayerInfo *SERVER_SAVE_GetSavedInfo( const char *playerName, NETADDRESS_s address )
 {
-	ULONG	ulIdx;
-	FString name = pszPlayerName;
-
+	FString name = playerName;
 	V_RemoveColorCodes( name );
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	for ( unsigned int i = 0; i < MAXPLAYERS; i++ )
 	{
-		if ( g_SavedPlayerInfo[ulIdx].bInitialized == false )
+		if ( g_SavedPlayerInfo[i].isInitialized == false )
 			continue;
 
-		if (( g_SavedPlayerInfo[ulIdx].Name.CompareNoCase( name ) == 0 ) &&
-			Address.Compare( g_SavedPlayerInfo[ulIdx].Address ))
-		{
-			return ( &g_SavedPlayerInfo[ulIdx] );
-		}
+		if (( g_SavedPlayerInfo[i].name.CompareNoCase( name ) == 0 ) && ( address.Compare( g_SavedPlayerInfo[i].address )))
+			return ( &g_SavedPlayerInfo[i] );
 	}
 
-	return ( NULL );
+	return ( nullptr );
+}
+
+//*****************************************************************************
+//
+void SERVER_SAVE_ClearInfo( SavedPlayerInfo &info )
+{
+	info.address.Clear( );
+	info.isInitialized = false;
+	info.fragCount = 0;
+	info.pointCount = 0;
+	info.winCount = 0;
+	info.deathCount = 0;
+	info.name = "";
+	info.time = 0;
 }
 
 //*****************************************************************************
 //
 void SERVER_SAVE_ClearList( void )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
-	{
-		g_SavedPlayerInfo[ulIdx].Address.Clear();
-		g_SavedPlayerInfo[ulIdx].bInitialized = false;
-		g_SavedPlayerInfo[ulIdx].lFragCount = 0;
-		g_SavedPlayerInfo[ulIdx].lPointCount = 0;
-		g_SavedPlayerInfo[ulIdx].lWinCount = 0;
-		g_SavedPlayerInfo[ulIdx].deathCount = 0;
-		g_SavedPlayerInfo[ulIdx].Name = "";
-		g_SavedPlayerInfo[ulIdx].ulTime = 0;
-	}
+	for ( unsigned int i = 0; i < MAXPLAYERS; i++ )
+		SERVER_SAVE_ClearInfo( g_SavedPlayerInfo[i] );
 }
 
 //*****************************************************************************
 //
-void SERVER_SAVE_SaveInfo( PLAYERSAVEDINFO_t *pInfo )
+void SERVER_SAVE_SaveInfo( SavedPlayerInfo &info )
 {
-	ULONG	ulIdx;
-	FString name = pInfo->Name;
-
+	FString name = info.name;
 	V_RemoveColorCodes( name );
 
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	for ( unsigned int i = 0; i < MAXPLAYERS; i++ )
 	{
-		if ( g_SavedPlayerInfo[ulIdx].bInitialized )
+		if ( g_SavedPlayerInfo[i].isInitialized )
 		{
 			// If this slot matches the player we're trying to save, just update it.
-			if (( g_SavedPlayerInfo[ulIdx].Name.CompareNoCase( name ) == 0 ) &&
-				pInfo->Address.Compare( g_SavedPlayerInfo[ulIdx].Address ))
+			if (( g_SavedPlayerInfo[i].name.CompareNoCase( name ) == 0 ) && ( info.address.Compare( g_SavedPlayerInfo[i].address )))
 			{
-				server_save_UpdateSlotWithInfo( ulIdx, pInfo );
+				server_save_UpdateSlotWithInfo( i, info );
 				return;
 			}
 
 			continue;
 		}
 
-		server_save_UpdateSlotWithInfo( ulIdx, pInfo );
+		server_save_UpdateSlotWithInfo( i, info );
 		return;
 	}
 }
@@ -147,19 +141,19 @@ void SERVER_SAVE_SaveInfo( PLAYERSAVEDINFO_t *pInfo )
 //*****************************************************************************
 //*****************************************************************************
 //
-void server_save_UpdateSlotWithInfo( ULONG ulSlot, PLAYERSAVEDINFO_t *pInfo )
+void server_save_UpdateSlotWithInfo( unsigned int slot, SavedPlayerInfo &info )
 {
-	if ( ulSlot >= MAXPLAYERS )
+	if ( slot >= MAXPLAYERS )
 		return;
 
-	g_SavedPlayerInfo[ulSlot].bInitialized		= true;
-	g_SavedPlayerInfo[ulSlot].Address			= pInfo->Address;
-	g_SavedPlayerInfo[ulSlot].lFragCount		= pInfo->lFragCount;
-	g_SavedPlayerInfo[ulSlot].lPointCount		= pInfo->lPointCount;
-	g_SavedPlayerInfo[ulSlot].lWinCount			= pInfo->lWinCount;
-	g_SavedPlayerInfo[ulSlot].deathCount		= pInfo->deathCount;
-	g_SavedPlayerInfo[ulSlot].ulTime			= pInfo->ulTime;
-	g_SavedPlayerInfo[ulSlot].Name				= pInfo->Name;
+	g_SavedPlayerInfo[slot].isInitialized = true;
+	g_SavedPlayerInfo[slot].address = info.address;
+	g_SavedPlayerInfo[slot].fragCount = info.fragCount;
+	g_SavedPlayerInfo[slot].pointCount = info.pointCount;
+	g_SavedPlayerInfo[slot].winCount = info.winCount;
+	g_SavedPlayerInfo[slot].deathCount = info.deathCount;
+	g_SavedPlayerInfo[slot].time = info.time;
+	g_SavedPlayerInfo[slot].name = info.name;
 
-	V_RemoveColorCodes( g_SavedPlayerInfo[ulSlot].Name );
+	V_RemoveColorCodes( g_SavedPlayerInfo[slot].name );
 }

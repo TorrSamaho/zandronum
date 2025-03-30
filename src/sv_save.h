@@ -56,43 +56,40 @@
 //*****************************************************************************
 //	STRUCTURES
 
-struct PLAYERSAVEDINFO_t
+struct SavedPlayerInfo
 {
 	// Name of the player.
-	FString			Name;
+	FString			name;
 
 	// Address of the player whose information is being saved.
-	NETADDRESS_s	Address;
+	NETADDRESS_s	address;
 
 	// Is this slot initialized?
-	bool			bInitialized;
+	bool			isInitialized;
 
 	// How many frags did this player have?
-	LONG			lFragCount;
+	int				fragCount;
 
 	// How many wins?
-	LONG			lWinCount;
+	unsigned int	winCount;
 
 	// Points?
-	LONG			lPointCount;
+	int				pointCount;
 
 	// [AK] How many deaths the player had.
 	unsigned int	deathCount;
 
 	// [RC] Time in game.
-	ULONG			ulTime;
-
+	unsigned int	time;
 };
 
 //*****************************************************************************
 //	PROTOTYPES
 
 void				SERVER_SAVE_Construct( void );
-PLAYERSAVEDINFO_t	*SERVER_SAVE_GetSavedInfo( const char *pszPlayerName, NETADDRESS_s Address );
+SavedPlayerInfo		*SERVER_SAVE_GetSavedInfo( const char *playerName, NETADDRESS_s address );
+void				SERVER_SAVE_ClearInfo( SavedPlayerInfo &info );
 void				SERVER_SAVE_ClearList( void );
-void				SERVER_SAVE_SaveInfo( PLAYERSAVEDINFO_t *pInfo );
-
-//*****************************************************************************
-//	EXTERNAL CONSOLE VARIABLES
+void				SERVER_SAVE_SaveInfo( SavedPlayerInfo &info );
 
 #endif	// __SV_SAVE_H__

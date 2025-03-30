@@ -1422,7 +1422,6 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 {
 	LONG								lCommand;
 	ULONG								ulIdx;
-	PLAYERSAVEDINFO_t					*pSavedInfo;
 	ULONG								ulState;
 	ULONG								ulCountdownTicks;
 	AInventory							*pInventory;
@@ -1713,21 +1712,22 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 	}
 
 	// Check and see if this is a disconnected player. If so, restore his fragcount.
-	pSavedInfo = SERVER_SAVE_GetSavedInfo( players[g_lCurrentClient].userinfo.GetName(), g_aClients[g_lCurrentClient].Address );
-	if (( pSavedInfo ) && ( g_aClients[g_lCurrentClient].bWantNoRestoreFrags == false ))
+	SavedPlayerInfo *savedInfo = SERVER_SAVE_GetSavedInfo( players[g_lCurrentClient].userinfo.GetName( ), g_aClients[g_lCurrentClient].Address );
+
+	if (( savedInfo != nullptr ) && ( g_aClients[g_lCurrentClient].bWantNoRestoreFrags == false ))
 	{
-		PLAYER_SetFragcount( &players[g_lCurrentClient], pSavedInfo->lFragCount, false, false );
-		PLAYER_SetWins( &players[g_lCurrentClient], pSavedInfo->lWinCount );
-		players[g_lCurrentClient].lPointCount = pSavedInfo->lPointCount;
+		PLAYER_SetFragcount( &players[g_lCurrentClient], savedInfo->fragCount, false, false );
+		PLAYER_SetWins( &players[g_lCurrentClient], savedInfo->winCount );
+		players[g_lCurrentClient].lPointCount = savedInfo->pointCount;
 
 		if ( teamgame )
 			SERVERCOMMANDS_SetPlayerPoints( g_lCurrentClient );
 
 		// [AK] Also restore their death count.
-		PLAYER_SetDeaths( &players[g_lCurrentClient], pSavedInfo->deathCount );
+		PLAYER_SetDeaths( &players[g_lCurrentClient], savedInfo->deathCount );
 
 		// [RC] Also restore his playing time. This should agree with 'restore frags' as a whole, clean slate option.
-		players[g_lCurrentClient].ulTime = pSavedInfo->ulTime;
+		players[g_lCurrentClient].ulTime = savedInfo->time;
 	}
 
 	// If this player is on a team, tell all the other clients that a team has been selected
@@ -1790,7 +1790,7 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 
 	// [AK] Trigger an event script indicating that the client has connected to the server.
 	// Also indicate if they had previously connected to the server.
-	GAMEMODE_HandleEvent( GAMEEVENT_PLAYERCONNECT, NULL, g_lCurrentClient, !!pSavedInfo );
+	GAMEMODE_HandleEvent( GAMEEVENT_PLAYERCONNECT, NULL, g_lCurrentClient, !!savedInfo );
 }
 
 //*****************************************************************************
@@ -3184,33 +3184,23 @@ void SERVER_DisconnectClient( ULONG ulClient, bool bBroadcast, bool bSaveInfo, L
 	// lost everything.
 	if ( bSaveInfo )
 	{
-		PLAYERSAVEDINFO_t	Info;
+		SavedPlayerInfo info;
+		info.address = g_aClients[ulClient].Address;
+		info.fragCount = players[ulClient].fragcount;
+		info.pointCount = players[ulClient].lPointCount;
+		info.winCount = players[ulClient].ulWins;
+		info.deathCount = players[ulClient].ulDeathCount;
+		info.time = players[ulClient].ulTime; // [RC] Save time
+		info.name = players[ulClient].userinfo.GetName( );
 
-		Info.Address		= g_aClients[ulClient].Address;
-		Info.lFragCount		= players[ulClient].fragcount;
-		Info.lPointCount	= players[ulClient].lPointCount;
-		Info.lWinCount		= players[ulClient].ulWins;
-		Info.deathCount		= players[ulClient].ulDeathCount;
-		Info.ulTime			= players[ulClient].ulTime; // [RC] Save time
-		Info.Name			= players[ulClient].userinfo.GetName();
-
-		SERVER_SAVE_SaveInfo( &Info );
+		SERVER_SAVE_SaveInfo( info );
 	}
 	else
 	{
-		PLAYERSAVEDINFO_t	*pInfo;
+		SavedPlayerInfo *info = SERVER_SAVE_GetSavedInfo( players[ulClient].userinfo.GetName( ), g_aClients[ulClient].Address );
 
-		pInfo = SERVER_SAVE_GetSavedInfo( players[ulClient].userinfo.GetName(), g_aClients[ulClient].Address );
-		if ( pInfo )
-		{
-			pInfo->Address.Clear();
-			pInfo->bInitialized = false;
-			pInfo->lFragCount = 0;
-			pInfo->lPointCount = 0;
-			pInfo->lWinCount = 0;
-			pInfo->deathCount = 0;
-			pInfo->Name = "";
-		}
+		if ( info )
+			SERVER_SAVE_ClearInfo( *info );
 	}
 
 	// If this player was eligible to get an assist, cancel that.
