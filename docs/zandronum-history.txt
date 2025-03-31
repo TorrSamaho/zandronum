@@ -168,7 +168,7 @@
 -	- Fixed: A_SkullPop would keep the old body as the activator of the player's running scripts causing the world to become the activator when revisiting hub maps. [Ru5tK1ng]
 -	- Fixed: A_LookEx did not account for the +LOOKALLAROUND flag (addresses 3886). [Ru5tK1ng]
 -	- Fixed: Friendly monsters could still be killed by splash damage even with sv_shootthroughallies being set to true (addresses 4013). [Ru5tK1ng]
--	- Fixed: a player's time and death count didn't reset on the client's end upon resetting the map in online games. [AKMDM]
+-	- Fixed: a player's time and death count didn't reset on the client's end upon resetting the map in online games. Their death count now persists between rounds in (T)LMS, though. [AKMDM]
 -	- Fixed: Hexen effects were causing MissileExplode warnings due to not having NETFL_SERVERSIDEONLY set (partially addresses 4187). [Ru5tK1ng]
 -	- Fixed: if the wrong password was used to log into RCON through the menu, and then the correct password was sent through the console, the server setup menu suddenly popped up again despite being closed. [AKMDM]
 -	- Fixed: serverinfo CVars didn't always save into the "LocalServerInfo" subsection of a config file in offline games (e.g. when multiplayer emulation is on). [AKMDM]

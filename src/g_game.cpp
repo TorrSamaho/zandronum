@@ -3391,6 +3391,10 @@ void GAME_ResetMap( bool bRunEnterScripts )
 	{
 		players[ulIdx].itemcount = 0;
 		players[ulIdx].secretcount = 0;
+
+		// [AK] Also reset the player's death count, except in (T)LMS.
+		if (( lastmanstanding == false ) && ( teamlms == false ))
+			players[ulIdx].ulDeathCount = 0;
 	}
 
 	// [BB] Destroy all lighting effects that were not spawned by the map.

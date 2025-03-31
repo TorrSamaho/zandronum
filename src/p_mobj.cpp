@@ -5850,7 +5850,7 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 	if ( state == PST_ENTER )
 	{
 		p->ulTime = 0;
-		p->ulDeathCount = 0;
+
 		if ( GAMEMODE_GetCurrentFlags() & GMF_USEMAXLIVES )
 		{
 			PLAYER_SetLivesLeft ( p, GAMEMODE_GetMaxLives() - 1 );

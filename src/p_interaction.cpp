@@ -2218,6 +2218,10 @@ void PLAYER_ResetAllScoreCounters( player_t *pPlayer )
 
 	if ( pPlayer->ulWins > 0 )
 		PLAYER_SetWins( pPlayer, 0 );
+
+	// [AK] Reset the player's death count too.
+	if ( pPlayer->ulDeathCount > 0 )
+		PLAYER_SetDeaths( pPlayer, 0 );
 }
 
 //*****************************************************************************
