@@ -411,7 +411,7 @@ Scoreboard
 	{
 		IfEarnType( Medals ) && IfCVar( cl_medals == true ) && IfCVar( sv_nomedals == false )
 		{
-			IfSpectator( false ) || IfSpying( true )
+			IfSpectator( false ) || IfDeadSpectator( true ) || IfSpying( true )
 			{
 				IfPlayerHasMedals( true )
 				{
