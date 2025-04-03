@@ -464,8 +464,9 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 		if ( NETWORK_InClientMode( ) == false )
 			MEDAL_PlayerDied( ulPlayer, (( source ) && ( source->player )) ? static_cast<ULONG>( source->player - players ) : MAXPLAYERS );
 
-		// [AK] Increment this player's death count.
-		PLAYER_SetDeaths( &players[ulPlayer], players[ulPlayer].ulDeathCount + 1, false );
+		// [AK] Increment this player's death count, except during warm-ups.
+		if ( GAMEMODE_IsGameInCountdown( ) == false )
+			PLAYER_SetDeaths( &players[ulPlayer], players[ulPlayer].ulDeathCount + 1, false );
 	}
 
 	// [RH] Notify this actor's items.
@@ -2163,7 +2164,7 @@ void PLAYER_SetFragcount( player_t *pPlayer, LONG lFragCount, bool bAnnounce, bo
 {
 	// Don't bother with fragcount during warm-ups.
 	// [AK] Clients shouldn't need to check this.
-	if (( NETWORK_InClientMode( ) == false ) && ( duel || lastmanstanding || teamlms ) && ( GAMEMODE_IsGameInCountdown( )))
+	if (( NETWORK_InClientMode( ) == false ) && ( GAMEMODE_IsGameInCountdown( )))
 		return;
 
 	// Don't announce events related to frag changes during teamplay, LMS,
