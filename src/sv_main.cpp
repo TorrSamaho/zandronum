@@ -1240,6 +1240,10 @@ void SERVER_SendChatMessage( ULONG ulPlayer, ULONG ulMode, const char *pszString
 	if ( ( ulMode == CHATMODE_NONE ) || ( ulMode >= NUM_CHATMODES ) )
 		return;
 
+	// [AK] Verify if the player is sending a team chat message, and is allowed to.
+	if ( ( ulMode == CHATMODE_TEAM ) && ( CHAT_CanUseTeamChat( ulPlayer, true ) == false ) )
+		return;
+
 	// Potentially prevent spectators from talking to active players during LMS games.
 	const bool bForbidChatToPlayers = GAMEMODE_IsClientForbiddenToChatToPlayers( ulPlayer, false );
 	FString cleanedChatString = pszString;
