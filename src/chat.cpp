@@ -1057,10 +1057,17 @@ void CHAT_PrintChatString( ULONG ulPlayer, ULONG ulMode, const char *pszString )
 	else if ( ulMode == CHATMODE_TEAM )
 	{
 		ulChatLevel = PRINT_TEAMCHAT;
-		if ( PLAYER_IsTrueSpectator ( &players[consoleplayer] ) )
+
+		if ( PLAYER_IsTrueSpectator( &players[consoleplayer] ))
+		{
 			OutString += "<SPEC> ";
+		}
 		else
 		{
+			// [AK] Sanity check, make sure the local player is on a team.
+			if (( players[consoleplayer].bOnTeam == false ) || ( players[consoleplayer].Team == teams.Size( )))
+				return;
+
 			OutString = TEXTCOLOR_ESCAPE;
 			OutString += TEAM_GetTextColorName( players[consoleplayer].Team );
 			OutString += "<TEAM> ";
