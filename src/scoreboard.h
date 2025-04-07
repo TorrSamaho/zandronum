@@ -650,6 +650,8 @@ FString			SCOREBOARD_BuildChampionString( void );
 ScoreColumn		*SCOREBOARD_GetColumn( FName Name, const bool bMustBeUsable );
 LONG			SCOREBOARD_GetLeftToLimit( void );
 void			SCOREBOARD_SetNextLevel( const char *pszMapName );
+void			SCOREBOARD_SaveWinnerAndScore( void );
+void			SCOREBOARD_ClearWinnerAndScore( void );
 
 //*****************************************************************************
 //	EXTERNAL CONSOLE VARIABLES

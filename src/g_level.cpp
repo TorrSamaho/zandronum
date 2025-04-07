@@ -757,6 +757,10 @@ void G_ChangeLevel(const char *levelname, int position, int flags, int nextSkill
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_MapExit( position, nextlevel.GetChars(), changeflags );
 
+	// [AK] Before exiting the level, save the name and score of whoever won for
+	// the scoreboard, in case they leave the game.
+	SCOREBOARD_SaveWinnerAndScore( );
+
 	STAT_ChangeLevel(nextlevel);
 
 	if (thiscluster && (thiscluster->flags & CLUSTER_HUB))
@@ -1133,6 +1137,9 @@ void G_DoLoadLevel (int position, bool autosave)
 
 	// [AK] Reset all locked CVars to what they're supposed to be, in case they somehow changed.
 	GAMEMODE_ResetGameplaySettings( true, false );
+
+	// [AK] Clear the saved winner's name and score for the scoreboard, it's no longer valid.
+	SCOREBOARD_ClearWinnerAndScore( );
 
 	// Loop through the teams, and reset the scores.
 	for ( i = 0; i < teams.Size( ); i++ )

@@ -63,6 +63,7 @@
 #include "lastmanstanding.h"
 #include "g_game.h"
 #include "medal.h"
+#include "d_event.h"
 
 //*****************************************************************************
 //	DEFINITIONS
@@ -161,12 +162,21 @@ static const std::map<FName, std::tuple<PARAMETER_e, bool, std::set<COMMAND_e>>>
 };
 
 // [AK] The level we are entering, to be shown on the intermission screen.
-static	level_info_t *g_pNextLevel;
+static	level_info_t	*g_pNextLevel;
+
+// [AK] The name of the player that wins and their score must be saved when the
+// game ends, or during intermissions, in case they leave the game.
+static	bool			g_AlreadySavedWinner = false;
+static	FString			g_SavedWinnerName;
+static	unsigned int	g_SavedNumPlayersTied = 1;
+static	int				g_SavedWinnerScore = INT_MIN;
 
 //*****************************************************************************
 //	PROTOTYPES
 
 static	ScoreMargin::BaseCommand	*scoreboard_CreateMarginCommand( FScanner &sc, ScoreMargin *pMargin, ScoreMargin::BaseCommand *pParentCommand, const bool bOnlyFlowControl );
+
+static	void	scoreboard_FindWinnerAndScore( FString &winnerName, int &winnerScore, unsigned int &numPlayersTied );
 
 //*****************************************************************************
 //	CONSOLE VARIABLES
@@ -1297,42 +1307,25 @@ protected:
 
 						if (( gameModeFlags & ( GMF_PLAYERSEARNFRAGS | GMF_PLAYERSEARNPOINTS | GMF_PLAYERSEARNWINS )) && !( gameModeFlags & GMF_PLAYERSONTEAMS ))
 						{
-							unsigned int highestPlayer = MAXPLAYERS;
+							FString highestPlayer;
 							unsigned int numPlayersTied = 1;
 							int highestScore = INT_MIN;
 
-							// [AK] determine who is in the lead, or how many players are tied for the lead.
-							for ( unsigned int i = 0; i < MAXPLAYERS; i++ )
+							if (( GAME_GetEndLevelDelay( ) > 0 ) || ( gamestate != GS_LEVEL ) || ( gameaction == ga_completed ))
 							{
-								int playerScore = 0;
-
-								if (( playeringame[i] == false ) || ( PLAYER_IsTrueSpectator( &players[i] )))
-									continue;
-
-								if ( gameModeFlags & GMF_PLAYERSEARNFRAGS )
-									playerScore = players[i].fragcount;
-								else if ( gameModeFlags & GMF_PLAYERSEARNPOINTS )
-									playerScore = players[i].lPointCount;
-								else
-									playerScore = players[i].ulWins;
-
-								if ( playerScore > highestScore )
-								{
-									highestPlayer = i;
-									numPlayersTied = 1;
-									highestScore = playerScore;
-								}
-								else if ( playerScore == highestScore )
-								{
-									highestPlayer = MAXPLAYERS;
-									numPlayersTied++;
-								}
+								highestPlayer = g_SavedWinnerName;
+								highestScore = g_SavedWinnerScore;
+								numPlayersTied = g_SavedNumPlayersTied;
+							}
+							else
+							{
+								scoreboard_FindWinnerAndScore( highestPlayer, highestScore, numPlayersTied );
 							}
 
 							// [AK] There's a player who's taken the lead.
-							if ( highestPlayer != MAXPLAYERS )
+							if ( highestPlayer.IsNotEmpty( ))
 							{
-								specialValueText.Format( "%s %s with", players[highestPlayer].userinfo.GetName( ), gamestate == GS_LEVEL ? "leads" : "has won" );
+								specialValueText.Format( "%s %s with", highestPlayer.GetChars( ), gamestate == GS_LEVEL ? "leads" : "has won" );
 							}
 							// [AK] There are multiple players tied for the lead.
 							else if ( numPlayersTied > 1 )
@@ -3297,6 +3290,44 @@ void SCOREBOARD_SetNextLevel( const char *pszMapName )
 
 //*****************************************************************************
 //
+// [AK] SCOREBOARD_SaveWinnerAndScore
+//
+// Saves the name of the player who won the game and their score.
+//
+//*****************************************************************************
+
+void SCOREBOARD_SaveWinnerAndScore( void )
+{
+	// [AK] Don't do this again if we already saved the winner.
+	if (( NETWORK_GetState( ) != NETSTATE_SERVER ) && ( g_AlreadySavedWinner == false ))
+	{
+		SCOREBOARD_ClearWinnerAndScore( );
+		scoreboard_FindWinnerAndScore( g_SavedWinnerName, g_SavedWinnerScore, g_SavedNumPlayersTied );
+		g_AlreadySavedWinner = true;
+	}
+}
+
+//*****************************************************************************
+//
+// [AK] SCOREBOARD_ClearWinnerAndScore
+//
+// Resets all global variables that store the winner's name and score.
+//
+//*****************************************************************************
+
+void SCOREBOARD_ClearWinnerAndScore( void )
+{
+	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
+	{
+		g_SavedWinnerName = "";
+		g_SavedWinnerScore = INT_MIN;
+		g_SavedNumPlayersTied = 1;
+		g_AlreadySavedWinner = false;
+	}
+}
+
+//*****************************************************************************
+//
 // [AK] scoreboard_CreateMarginCommand
 //
 // A "factory" function that creates new margin commands.
@@ -3380,4 +3411,44 @@ static ScoreMargin::BaseCommand *scoreboard_CreateMarginCommand( FScanner &sc, S
 	pNewCommand->Parse( sc );
 
 	return pNewCommand;
+}
+
+//*****************************************************************************
+//
+// [AK] scoreboard_FindWinnerAndScore
+//
+// Determines who is in the lead, or how many players are tied for the lead.
+//
+//*****************************************************************************
+
+static void scoreboard_FindWinnerAndScore( FString &winnerName, int &highestScore, unsigned int &numPlayersTied )
+{
+	const unsigned int gameModeFlags = GAMEMODE_GetCurrentFlags( );
+
+	for ( unsigned int i = 0; i < MAXPLAYERS; i++ )
+	{
+		int playerScore = 0;
+
+		if (( playeringame[i] == false ) || ( PLAYER_IsTrueSpectator( &players[i] )))
+			continue;
+
+		if ( gameModeFlags & GMF_PLAYERSEARNFRAGS )
+			playerScore = players[i].fragcount;
+		else if ( gameModeFlags & GMF_PLAYERSEARNPOINTS )
+			playerScore = players[i].lPointCount;
+		else
+			playerScore = players[i].ulWins;
+
+		if ( playerScore > highestScore )
+		{
+			winnerName = players[i].userinfo.GetName( );
+			numPlayersTied = 1;
+			highestScore = playerScore;
+		}
+		else if ( playerScore == highestScore )
+		{
+			winnerName = "";
+			numPlayersTied++;
+		}
+	}
 }

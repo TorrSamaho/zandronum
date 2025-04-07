@@ -4402,9 +4402,19 @@ void GAME_SetEndLevelDelay( ULONG ulTicks, bool bInformClients )
 {
 	g_ulEndLevelDelay = ulTicks;
 
-	// Tell the clients about the end level delay.
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( bInformClients ))
-		SERVERCOMMANDS_SetGameEndLevelDelay( g_ulEndLevelDelay );
+	// [AK] When setting the end level delay to non-zero (i.e. suspending the
+	// game), save the name and score of whoever won for the scoreboard, in case
+	// they leave the game.
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	{
+		// Tell the clients about the end level delay.
+		if ( bInformClients )
+			SERVERCOMMANDS_SetGameEndLevelDelay( g_ulEndLevelDelay );
+	}
+	else if ( g_ulEndLevelDelay > 0 )
+	{
+		SCOREBOARD_SaveWinnerAndScore( );
+	}
 }
 
 //*****************************************************************************
