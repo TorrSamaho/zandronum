@@ -270,7 +270,8 @@ Scoreboard
 	{
 		MultiLineBlock( horizontalalign = center )
 		{
-			DrawString( value = "Rankings", font = "BigFont", textcolor = "Red", bottompadding = 6 )
+			// [AK] Don't let the "Rankings" font be changed by the user's own preferences.
+			DrawString( value = "Rankings", font = "BigFont", overridefont = false, textcolor = "Red", bottompadding = 6 )
 
 			// [AK] Draw the name of the server if we're in an online game.
 			IfOnlineGame( true )

@@ -499,11 +499,11 @@ struct Scoreboard
 	struct CustomizableFont : public CustomizableProperty<FFont *, FStringCVar>
 	{
 		CustomizableFont( const FStringCVar &cvar, CustomizeScoreboardFlag flag, FFont *initial ) :
-			CustomizableProperty( cvar, flag, initial ) { }
+			CustomizableProperty( cvar, flag, initial ), allowCVarOverride( true ) { }
 
 		operator FFont *( ) const
 		{
-			if ( sb_customizeflags & flag )
+			if (( allowCVarOverride ) && ( sb_customizeflags & flag ))
 			{
 				FFont *customFont = V_GetFont( cvar );
 
@@ -514,6 +514,19 @@ struct Scoreboard
 
 			return value;
 		}
+
+		void ParseCVarOverride( FScanner &sc )
+		{
+			if ( sc.CheckToken( TK_True ))
+				allowCVarOverride = true;
+			else if ( sc.CheckToken( TK_False ))
+				allowCVarOverride = false;
+			else
+				sc.ScriptError( "Expected 'true' or 'false'." );
+		}
+
+		// [AK] Only necessary for the "DrawString" and "DrawMedals" margin commands.
+		bool allowCVarOverride;
 	};
 
 	// [AK] Specialized template class for text color properties.

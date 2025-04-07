@@ -99,6 +99,8 @@ enum PARAMETER_e
 	PARAMETER_ALPHA,
 	// What font to use when drawing a string.
 	PARAMETER_FONT,
+	// Should the font be overridable by the user's own preferences?
+	PARAMETER_OVERRIDEFONT,
 	// What text color to use when drawing a string.
 	PARAMETER_TEXTCOLOR,
 	// How large are the gaps between each separate line.
@@ -150,6 +152,7 @@ static const std::map<FName, std::tuple<PARAMETER_e, bool, std::set<COMMAND_e>>>
 	{ "rightpadding",		{ PARAMETER_RIGHTPADDING,	false,	{ COMMAND_ALL }}},
 	{ "alpha",				{ PARAMETER_ALPHA,			false,	{ COMMAND_ALL }}},
 	{ "font",				{ PARAMETER_FONT,			false,	{ COMMAND_STRING, COMMAND_MEDALS }}},
+	{ "overridefont",		{ PARAMETER_OVERRIDEFONT,	false,	{ COMMAND_STRING, COMMAND_MEDALS }}},
 	{ "textcolor",			{ PARAMETER_TEXTCOLOR,		false,	{ COMMAND_STRING, COMMAND_MEDALS }}},
 	{ "gapsize",			{ PARAMETER_GAPSIZE,		false,	{ COMMAND_STRING }}},
 	{ "width",				{ PARAMETER_WIDTH,			true,	{ COMMAND_COLOR }}},
@@ -1163,6 +1166,10 @@ protected:
 				SCOREBOARD_ParseFont( sc, font.value );
 				break;
 
+			case PARAMETER_OVERRIDEFONT:
+				font.ParseCVarOverride( sc );
+				break;
+
 			case PARAMETER_TEXTCOLOR:
 			{
 				if ( sc.CheckToken( TK_Identifier ))
@@ -2085,6 +2092,10 @@ protected:
 		{
 			case PARAMETER_FONT:
 				SCOREBOARD_ParseFont( sc, font.value );
+				break;
+
+			case PARAMETER_OVERRIDEFONT:
+				font.ParseCVarOverride( sc );
 				break;
 
 			case PARAMETER_TEXTCOLOR:
