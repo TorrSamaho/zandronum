@@ -1247,6 +1247,7 @@ OptionMenu CustomizeScoreboardMenu
 	Option "Use team text colors",		"sb_useteamtextcolors", "YesNo"
 	TextField "Header font",		"sb_headerfont"
 	TextField "Row font",			"sb_rowfont"
+	TextField "Margin font",		"sb_marginfont"
 	Option "Header color",			"sb_headertextcolor", "TextColors"
 	Option "Row color",			"sb_rowtextcolor", "TextColors"
 	Option "Local row color",		"sb_localrowtextcolor", "TextColors"

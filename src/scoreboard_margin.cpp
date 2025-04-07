@@ -184,6 +184,9 @@ static	void	scoreboard_FindWinnerAndScore( FString &winnerName, int &winnerScore
 // [AK] If true, then show how much score (i.e. frags, points, or wins) is left to win.
 CVAR( Bool, cl_showscoreleft, true, CVAR_ARCHIVE )
 
+// [AK] Overrides the font used by all strings in the margins.
+CVAR( String, sb_marginfont, "SmallFont", CVAR_ARCHIVE | CVAR_NOSETBYACS )
+
 //*****************************************************************************
 //	CLASSES
 
@@ -813,7 +816,7 @@ class DrawString : public DrawBaseCommand
 {
 public:
 	DrawString( ScoreMargin *pMargin, BaseCommand *pParentCommand ) : DrawBaseCommand( pMargin, pParentCommand, COMMAND_STRING ),
-		pFont( SmallFont ),
+		font( sb_marginfont, CUSTOMIZE_TEXT, SmallFont ),
 		Color( CR_UNTRANSLATED ),
 		ulGapSize( 1 ),
 		bUsingTeamColor( false ) { }
@@ -879,14 +882,14 @@ public:
 			LONG lActualXPos = Pos.X;
 
 			if ( i > 0 )
-				Pos.Y += pFont->GetHeight( ) + ulGapSize;
+				Pos.Y += ( *font ).GetHeight( ) + ulGapSize;
 
 			if ( AlignmentToUse == HORIZALIGN_CENTER )
 				lActualXPos += SCOREBOARD_CenterAlign( pString->ulMaxWidth, pString->pLines[i].Width );
 			else if ( AlignmentToUse == HORIZALIGN_RIGHT )
 				lActualXPos += pString->ulMaxWidth - pString->pLines[i].Width;
 
-			SCOREBOARD_DrawString( pFont, TextColorToUse, lActualXPos, Pos.Y + lYPos, pString->pLines[i].Text.GetChars( ),
+			SCOREBOARD_DrawString( font, TextColorToUse, lActualXPos, Pos.Y + lYPos, pString->pLines[i].Text.GetChars( ),
 				DTA_ClipLeft, clipLeft,
 				DTA_ClipRight, clipLeft + clipWidth,
 				DTA_ClipTop, clipTop,
@@ -1157,7 +1160,7 @@ protected:
 			}
 
 			case PARAMETER_FONT:
-				SCOREBOARD_ParseFont( sc, pFont );
+				SCOREBOARD_ParseFont( sc, font.value );
 				break;
 
 			case PARAMETER_TEXTCOLOR:
@@ -1564,7 +1567,7 @@ protected:
 		if ( onlyContainsSpaces == false )
 		{
 			const ULONG ulMaxWidth = pParentMargin->GetWidth( ) - ( HorizontalAlignment == HORIZALIGN_CENTER ? 2 : 1 ) * abs( lXOffset );
-			String.pLines = V_BreakLines( pFont, ulMaxWidth, text.GetChars( ));
+			String.pLines = V_BreakLines( font, ulMaxWidth, text.GetChars( ));
 
 			// [AK] Determine the total height of the string.
 			for ( unsigned int i = 0; String.pLines[i].Width >= 0; i++ )
@@ -1573,7 +1576,7 @@ protected:
 					String.ulTotalHeight += ulGapSize;
 
 				String.ulMaxWidth = MAX<ULONG>( String.ulMaxWidth, String.pLines[i].Width );
-				String.ulTotalHeight += pFont->GetHeight( );
+				String.ulTotalHeight += ( *font ).GetHeight( );
 			}
 		}
 
@@ -1609,7 +1612,7 @@ protected:
 
 	TArray<StringChunk> StringChunks;
 	TArray<PreprocessedString> PreprocessedStrings;
-	FFont *pFont;
+	Scoreboard::CustomizableFont font;
 	EColorRange Color;
 	ULONG ulGapSize;
 	bool bUsingTeamColor;
@@ -1904,7 +1907,7 @@ class DrawMedals : public DrawBaseCommand
 {
 public:
 	DrawMedals( ScoreMargin *margin, BaseCommand *parentCommand ) : DrawBaseCommand( margin, parentCommand, COMMAND_MEDALS ),
-		font( SmallFont ),
+		font( sb_marginfont, CUSTOMIZE_TEXT, SmallFont ),
 		color( CR_UNTRANSLATED ),
 		numColumns( 0 ),
 		currentWidth( 0 ),
@@ -1953,7 +1956,7 @@ public:
 				// [AK] It's possible that the quantity of the medal in printed
 				// form is wider than the icon, so it must also be considered.
 				quantityText.Format( "%u", medalList[i]->awardedCount[displayPlayer] );
-				maxColumnWidth = MAX<unsigned>( maxColumnWidth, font->StringWidth( quantityText.GetChars( )));
+				maxColumnWidth = MAX<unsigned>( maxColumnWidth, ( *font ).StringWidth( quantityText.GetChars( )));
 
 				maxRowHeight = MAX<unsigned>( maxRowHeight, icon->GetScaledHeight( ));
 			}
@@ -1981,7 +1984,7 @@ public:
 
 		// [AK] Next, determine the height to use to draw all the medals.
 		const unsigned int numRows = static_cast<unsigned>( ceilf( static_cast<float>( medalList.Size( )) / numColumns ));
-		currentHeight = ( maxRowHeight + font->GetHeight( ) + textSpacing ) * numRows + rowGap + ( numRows - 1 );
+		currentHeight = ( maxRowHeight + ( *font ).GetHeight( ) + textSpacing ) * numRows + rowGap + ( numRows - 1 );
 
 		DrawBaseCommand::Refresh( displayPlayer );
 	}
@@ -2024,7 +2027,7 @@ public:
 			}
 
 			quantityText.Format( "%u", medalList[i]->awardedCount[displayPlayer] );
-			const int textX = currentPos.X + SCOREBOARD_CenterAlign( maxColumnWidth, font->StringWidth( quantityText.GetChars( )));
+			const int textX = currentPos.X + SCOREBOARD_CenterAlign( maxColumnWidth, ( *font ).StringWidth( quantityText.GetChars( )));
 			const int textY = currentPos.Y + yPos + maxRowHeight + textSpacing;
 
 			SCOREBOARD_DrawString( font, color, textX, textY, quantityText.GetChars( ), DTA_Alpha, combinedAlpha, TAG_DONE );
@@ -2049,7 +2052,7 @@ public:
 						currentPos.X += currentWidth - rowWidth;
 				}
 
-				currentPos.Y += maxRowHeight + font->GetHeight( ) + textSpacing + rowGap;
+				currentPos.Y += maxRowHeight + ( *font ).GetHeight( ) + textSpacing + rowGap;
 			}
 			else
 			{
@@ -2081,7 +2084,7 @@ protected:
 		switch ( parameter )
 		{
 			case PARAMETER_FONT:
-				SCOREBOARD_ParseFont( sc, font );
+				SCOREBOARD_ParseFont( sc, font.value );
 				break;
 
 			case PARAMETER_TEXTCOLOR:
@@ -2115,7 +2118,7 @@ protected:
 	}
 
 	TArray<MEDAL_t *> medalList;
-	FFont *font;
+	Scoreboard::CustomizableFont font;
 	EColorRange color;
 	unsigned int numColumns;
 	unsigned int currentWidth;
