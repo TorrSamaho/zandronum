@@ -634,6 +634,10 @@ void LASTMANSTANDING_SetState( LMSSTATE_e State )
 {
 	ULONG	ulIdx;
 
+	// [AK] Try clearing the winner's name and score from the scoreboard, but
+	// only after the end of a round.
+	SCOREBOARD_TryClearingWinnerAndScore( true );
+
 	g_LMSState = State;
 
 	// Tell clients about the state change.

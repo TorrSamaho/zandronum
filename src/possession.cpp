@@ -628,6 +628,10 @@ PSNSTATE_e POSSESSION_GetState( void )
 //
 void POSSESSION_SetState( PSNSTATE_e State )
 {
+	// [AK] Try clearing the winner's name and score from the scoreboard, but
+	// only after the end of a round.
+	SCOREBOARD_TryClearingWinnerAndScore( true );
+
 	g_PSNState = State;
 
 	// Tell clients about the state change.

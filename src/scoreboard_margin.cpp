@@ -3321,7 +3321,7 @@ void SCOREBOARD_SaveWinnerAndScore( void )
 	// [AK] Don't do this again if we already saved the winner.
 	if (( NETWORK_GetState( ) != NETSTATE_SERVER ) && ( g_AlreadySavedWinner == false ))
 	{
-		SCOREBOARD_ClearWinnerAndScore( );
+		SCOREBOARD_TryClearingWinnerAndScore( false );
 		scoreboard_FindWinnerAndScore( g_SavedWinnerName, g_SavedWinnerScore, g_SavedNumPlayersTied );
 		g_AlreadySavedWinner = true;
 	}
@@ -3329,16 +3329,29 @@ void SCOREBOARD_SaveWinnerAndScore( void )
 
 //*****************************************************************************
 //
-// [AK] SCOREBOARD_ClearWinnerAndScore
+// [AK] SCOREBOARD_TryClearingWinnerAndScore
 //
-// Resets all global variables that store the winner's name and score.
+// Tries resetting all global variables that store the winner's name and score.
+// If this is intended to be called at the end of a round, it must be done while
+// in a level, during the result sequence, and when the end level delay expires.
 //
 //*****************************************************************************
 
-void SCOREBOARD_ClearWinnerAndScore( void )
+void SCOREBOARD_TryClearingWinnerAndScore( bool endOfRound )
 {
 	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
 	{
+		if ( endOfRound )
+		{
+			if (( gamestate != GS_LEVEL ) || ( GAME_GetEndLevelDelay( ) > 0 ))
+				return;
+
+			// [AK] Possession's result sequence state is dependent on the end
+			// level delay being non-zero, so ignore it here.
+			if ((( possession || teampossession ) == false ) && ( GAMEMODE_IsGameInResultSequence( ) == false ))
+				return;
+		}
+
 		g_SavedWinnerName = "";
 		g_SavedWinnerScore = INT_MIN;
 		g_SavedNumPlayersTied = 1;

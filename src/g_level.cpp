@@ -1139,7 +1139,7 @@ void G_DoLoadLevel (int position, bool autosave)
 	GAMEMODE_ResetGameplaySettings( true, false );
 
 	// [AK] Clear the saved winner's name and score for the scoreboard, it's no longer valid.
-	SCOREBOARD_ClearWinnerAndScore( );
+	SCOREBOARD_TryClearingWinnerAndScore( false );
 
 	// Loop through the teams, and reset the scores.
 	for ( i = 0; i < teams.Size( ); i++ )

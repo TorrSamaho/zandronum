@@ -455,6 +455,10 @@ void DUEL_SetState( DUELSTATE_e State )
 	if ( g_DuelState == State )
 		return;
 
+	// [AK] Try clearing the winner's name and score from the scoreboard, but
+	// only after the end of a round.
+	SCOREBOARD_TryClearingWinnerAndScore( true );
+
 	g_DuelState = State;
 
 	// Tell clients about the state change.
