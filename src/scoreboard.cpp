@@ -3122,8 +3122,10 @@ void Scoreboard::Refresh( const unsigned int displayPlayer, const int minYPos )
 
 	// [AK] A negative header or row height means setting the height with respect
 	// to the height of the header or row font's respectively, if valid.
+	// In case the row font is being overridden by the user, always choose the
+	// height that's larger between the CVar and SCORINFO property.
 	headerHeightToUse = ( lHeaderHeight <= 0 ) ? ( *headerFont ).GetHeight( ) - lHeaderHeight : lHeaderHeight;
-	rowHeightToUse = ( lRowHeight <= 0 ) ? ( *rowFont ).GetHeight( ) - lRowHeight : lRowHeight;
+	rowHeightToUse = ( lRowHeight <= 0 ) ? MAX<int>(( *rowFont ).GetHeight( ), rowFont.value->GetHeight( )) - lRowHeight : lRowHeight;
 
 	// [AK] Determine the size of the screen to draw the scoreboard.
 	if ( cl_usescoreboardscale )
