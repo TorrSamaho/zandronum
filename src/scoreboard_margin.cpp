@@ -707,8 +707,8 @@ public:
 			if ( ulContentWidth == 0 )
 				continue;
 
-			const LONG lYOffset = SCOREBOARD_CenterAlign( ulHeight, CommandsToDraw[i]->GetContentHeight( ulTeam ));
-			CommandsToDraw[i]->Draw( ulDisplayPlayer, ulTeam, Pos.Y + lYOffset, fCombinedAlpha, Pos.X );
+			const LONG lNewYOffset = SCOREBOARD_CenterAlign( ulHeight - ulBottomPadding, CommandsToDraw[i]->GetContentHeight( ulTeam ));
+			CommandsToDraw[i]->Draw( ulDisplayPlayer, ulTeam, Pos.Y + lNewYOffset, fCombinedAlpha, Pos.X );
 
 			// [AK] Shift the x-offset.
 			Pos.X += ulContentWidth;
