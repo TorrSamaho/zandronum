@@ -456,17 +456,16 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 	bPossessedTerminatorArtifact = !!(( player ) && ( player->cheats2 & CF2_TERMINATORARTIFACT ));
 
 	// [AK] Some stuff to do if the actor that died is a player.
-	if ( player )
+	if (( player ) && ( NETWORK_InClientMode( ) == false ))
 	{
 		const ULONG ulPlayer = player - players;
 
 		// [BC] Check to see if any medals need to be awarded.
-		if ( NETWORK_InClientMode( ) == false )
-			MEDAL_PlayerDied( ulPlayer, (( source ) && ( source->player )) ? static_cast<ULONG>( source->player - players ) : MAXPLAYERS );
+		MEDAL_PlayerDied( ulPlayer, (( source ) && ( source->player )) ? static_cast<ULONG>( source->player - players ) : MAXPLAYERS );
 
-		// [AK] Increment this player's death count, except during warm-ups.
-		if ( GAMEMODE_IsGameInCountdown( ) == false )
-			PLAYER_SetDeaths( &players[ulPlayer], players[ulPlayer].ulDeathCount + 1, false );
+		// [AK] Increment this player's death count, except during warm-ups or spawn telefrags.
+		if (( MeansOfDeath != NAME_SpawnTelefrag ) && ( GAMEMODE_IsGameInCountdown( ) == false ))
+			PLAYER_SetDeaths( &players[ulPlayer], players[ulPlayer].ulDeathCount + 1 );
 	}
 
 	// [RH] Notify this actor's items.
@@ -2836,7 +2835,7 @@ void PLAYER_SetKills( player_t *pPlayer, ULONG ulKills )
 
 //*****************************************************************************
 //
-void PLAYER_SetDeaths( player_t *pPlayer, ULONG ulDeaths, bool bInformClients )
+void PLAYER_SetDeaths( player_t *pPlayer, ULONG ulDeaths )
 {
 	// Set the player's death count.
 	pPlayer->ulDeathCount = ulDeaths;
@@ -2845,7 +2844,7 @@ void PLAYER_SetDeaths( player_t *pPlayer, ULONG ulDeaths, bool bInformClients )
 	HUD_ShouldRefreshBeforeRendering( );
 
 	// If we're the server, notify the clients of the death count change.
-	if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( bInformClients ))
+	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		SERVERCOMMANDS_SetPlayerDeaths( pPlayer - players );
 }
 
