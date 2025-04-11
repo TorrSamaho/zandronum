@@ -1204,7 +1204,7 @@ void ScoreColumn::Update( void )
 
 	// [AK] If the header is visible on this column, then grab its width.
 	if ((( ulFlags & COLUMNFLAG_DONTSHOWHEADER ) == false ) && ( pScoreboard->headerFont != nullptr ))
-		ulHeaderWidth = ( *pScoreboard->headerFont ).StringWidth( bUseShortName ? ShortName.GetChars( ) : DisplayName.GetChars( ));
+		ulHeaderWidth = SCOREBOARD_GetStringWidth( pScoreboard->headerFont, bUseShortName ? ShortName.GetChars( ) : DisplayName.GetChars( ));
 
 	ulShortestWidth = MAX( ulShortestWidth, ulHeaderWidth );
 
@@ -1252,7 +1252,7 @@ void ScoreColumn::DrawString( const char *pszString, FFont *pFont, const ULONG u
 	if (( pszString == NULL ) || ( pFont == NULL ) || ( strlen( pszString ) == 0 ))
 		return;
 
-	LONG lXPos = GetAlignmentPosition( pFont->StringWidth( pszString ));
+	LONG lXPos = GetAlignmentPosition( SCOREBOARD_GetStringWidth( pFont, pszString ));
 
 	int clipLeft = lRelX;
 	int clipWidth = ulWidth;
@@ -1598,7 +1598,7 @@ ULONG DataScoreColumn::GetValueWidthOrHeight( const PlayerValue &Value, const bo
 				if ( pScoreboard->rowFont == nullptr )
 					return 0;
 
-				return bGetHeight ? ( *pScoreboard->rowFont ).GetHeight( ) : ( *pScoreboard->rowFont ).StringWidth( GetValueString( Value ).GetChars( ));
+				return bGetHeight ? ( *pScoreboard->rowFont ).GetHeight( ) : SCOREBOARD_GetStringWidth( pScoreboard->rowFont, GetValueString( Value ).GetChars( ));
 			}
 
 			case DATATYPE_COLOR:
@@ -4215,6 +4215,29 @@ bool SCOREBOARD_AdjustVerticalClipRect( int &clipTop, int &clipHeight )
 		clipHeight = g_Scoreboard.maxClipRectY - clipTop;
 
 	return true;
+}
+
+//*****************************************************************************
+//
+// [AK] SCOREBOARD_GetStringWidth
+//
+// Works just like FFont::StringWidth, but also takes into account fonts that
+// have negative kerning (e.g. BigFont), which can make the string shorter than
+// it actually is.
+//
+//*****************************************************************************
+
+int SCOREBOARD_GetStringWidth( FFont *font, const char *string )
+{
+	if (( font == nullptr ) || ( string == nullptr ))
+		return 0;
+
+	int width = font->StringWidth( string );
+
+	if (( width > 0 ) && ( font->GetDefaultKerning( ) < 0 ))
+		width -= font->GetDefaultKerning( );
+
+	return width;
 }
 
 //*****************************************************************************

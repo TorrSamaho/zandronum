@@ -656,6 +656,7 @@ void STACK_ARGS SCOREBOARD_DrawTexture( FTexture *texture, const int x, const in
 bool			SCOREBOARD_ShouldDrawBoard( void );
 bool			SCOREBOARD_ShouldInterpolateOnIntermission( void );
 bool			SCOREBOARD_AdjustVerticalClipRect( int &clipTop, int &clipHeight );
+int				SCOREBOARD_GetStringWidth( FFont *font, const char *string );
 int				SCOREBOARD_CenterAlign( const int biggerSize, const int smallerSize );
 void			SCOREBOARD_ConvertVirtualCoordsToReal( int &left, int &top, int &width, int &height );
 void			SCOREBOARD_BuildLimitStrings( std::list<FString> &lines );

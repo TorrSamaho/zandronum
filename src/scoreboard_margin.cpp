@@ -1579,6 +1579,12 @@ protected:
 			// [AK] Determine the total height of the string.
 			for ( unsigned int i = 0; String.pLines[i].Width >= 0; i++ )
 			{
+				const int kerning = ( *font ).GetDefaultKerning( );
+
+				// [AK] Take into account fonts that have negative kerning.
+				if ( kerning < 0 )
+					String.pLines[i].Width -= kerning;
+
 				if ( i > 0 )
 					String.ulTotalHeight += ulGapSize;
 
@@ -1963,7 +1969,7 @@ public:
 				// [AK] It's possible that the quantity of the medal in printed
 				// form is wider than the icon, so it must also be considered.
 				quantityText.Format( "%u", medalList[i]->awardedCount[displayPlayer] );
-				maxColumnWidth = MAX<unsigned>( maxColumnWidth, ( *font ).StringWidth( quantityText.GetChars( )));
+				maxColumnWidth = MAX<unsigned>( maxColumnWidth, SCOREBOARD_GetStringWidth( font, quantityText.GetChars( )));
 
 				maxRowHeight = MAX<unsigned>( maxRowHeight, icon->GetScaledHeight( ));
 			}
@@ -2034,7 +2040,7 @@ public:
 			}
 
 			quantityText.Format( "%u", medalList[i]->awardedCount[displayPlayer] );
-			const int textX = currentPos.X + SCOREBOARD_CenterAlign( maxColumnWidth, ( *font ).StringWidth( quantityText.GetChars( )));
+			const int textX = currentPos.X + SCOREBOARD_CenterAlign( maxColumnWidth, SCOREBOARD_GetStringWidth( font, quantityText.GetChars( )));
 			const int textY = currentPos.Y + yPos + maxRowHeight + textSpacing;
 
 			SCOREBOARD_DrawString( font, color, textX, textY, quantityText.GetChars( ), DTA_Alpha, combinedAlpha, TAG_DONE );
