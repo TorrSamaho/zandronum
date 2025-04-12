@@ -149,7 +149,7 @@ static	bool		g_bRefreshBeforeRendering = false;
 static	void	HUD_DrawBottomString( ULONG ulDisplayPlayer );
 static	void	HUD_RenderHolders( void );
 static	void	HUD_RenderTeamScores( void );
-static	void	HUD_RenderRankAndSpread( void );
+static	void	HUD_RenderRankAndSpread( unsigned int displayPlayer );
 static	void	HUD_RenderInvasionStats( void );
 static	void	HUD_RenderCountdown( ULONG ulTimeLeft );
 static	void	HUD_DrawFragMessage( const unsigned int displayPlayer );
@@ -315,7 +315,7 @@ void HUD_Render( ULONG ulDisplayPlayer )
 			{
 				// Draw the player's rank and spread in FFA modes.
 				if ((( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ) == false ) && ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNFRAGS ))
-					HUD_RenderRankAndSpread( );
+					HUD_RenderRankAndSpread( ulDisplayPlayer );
 
 				// [BB] Draw number of lives left.
 				if ( GAMEMODE_AreLivesLimited( ))
@@ -1101,10 +1101,11 @@ static void HUD_RenderTeamScores( void )
 
 //*****************************************************************************
 //
-static void HUD_RenderRankAndSpread( void )
+static void HUD_RenderRankAndSpread( unsigned int displayPlayer )
 {
 	// [RC] Don't draw this if there aren't any competitors.
-	if ( g_ulNumPlayers <= 1 )
+	// [AK] Also make sure that the display player is valid.
+	if (( g_ulNumPlayers <= 1 ) || ( displayPlayer >= MAXPLAYERS ))
 		return;
 
 	ULONG ulYPos = ST_Y - g_ulTextHeight * 2 + 1;
@@ -1125,7 +1126,7 @@ static void HUD_RenderRankAndSpread( void )
 	HUD_DrawText( SmallFont, CR_RED, 0, static_cast<int>( ulYPos * g_rYScale ), text, g_bScale );
 
 	// 'Wins' isn't an entry on the statusbar, so we have to draw this here.
-	unsigned int viewplayerwins = static_cast<unsigned int>( players[HUD_GetViewPlayer( )].ulWins );
+	unsigned int viewplayerwins = static_cast<unsigned int>( players[displayPlayer].ulWins );
 	if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNWINS ) && ( viewplayerwins > 0 ))
 	{
 		text.Format( "Wins: " TEXTCOLOR_GRAY "%u", viewplayerwins );
