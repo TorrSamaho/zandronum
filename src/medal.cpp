@@ -926,6 +926,13 @@ void medal_SelectIcon( player_t *player )
 				case SPRITE_ALLY:
 				case SPRITE_ENEMY:
 				{
+					// [AK] Always delete any ally/enemy icons in free spectate mode.
+					if ( CLIENTDEMO_IsInFreeSpectateMode( ))
+					{
+						deleteIcon = true;
+						break;
+					}
+
 					player_t *viewedPlayer = &players[HUD_GetViewPlayer( )];
 
 					if (( PLAYER_IsTrueSpectator( viewedPlayer )) || ( viewedPlayer == player ))
