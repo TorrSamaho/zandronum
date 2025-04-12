@@ -6314,15 +6314,28 @@ static void client_DoGameModeCountdown( BYTESTREAM_s *pByteStream )
 
 	// Begin the countdown.
 	if ( duel )
+	{
 		DUEL_StartCountdown( ulTicks );
+	}
 	else if ( lastmanstanding || teamlms )
+	{
 		LASTMANSTANDING_StartCountdown( ulTicks );
+	}
 	else if ( possession || teampossession )
+	{
 		POSSESSION_StartCountdown( ulTicks );
+	}
 	else if ( survival )
+	{
 		SURVIVAL_StartCountdown( ulTicks );
+	}
 	else if ( invasion )
-		INVASION_StartCountdown( ulTicks );
+	{
+		if ( INVASION_GetCurrentWave( ) == 0 )
+			INVASION_StartFirstCountdown( ulTicks );
+		else
+			INVASION_StartCountdown( ulTicks );
+	}
 }
 
 //*****************************************************************************
