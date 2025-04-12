@@ -2210,11 +2210,15 @@ void PLAYER_ResetAllScoreCounters( player_t *pPlayer )
 	if ( pPlayer == NULL )
 		return;
 
-	if ( pPlayer->lPointCount > 0 )
+	if ( pPlayer->lPointCount != 0 )
 		PLAYER_SetPoints ( pPlayer, 0 );
 
-	if ( pPlayer->fragcount > 0 )
+	if ( pPlayer->fragcount != 0 )
 		PLAYER_SetFragcount( pPlayer, 0, false, false );
+
+	// [AK] Reset the player's kill count too.
+	if ( pPlayer->killcount != 0 )
+		PLAYER_SetKills( pPlayer, 0 );
 
 	if ( pPlayer->ulWins > 0 )
 		PLAYER_SetWins( pPlayer, 0 );
