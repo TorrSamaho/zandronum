@@ -577,35 +577,40 @@ void MEDAL_PlayerDied( ULONG ulPlayer, ULONG ulSourcePlayer )
 	if ( PLAYER_IsValidPlayerWithMo ( ulPlayer ) == false )
 		return;
 
-	// Check for domination and first frag medals.
-	if ( PLAYER_IsValidPlayerWithMo ( ulSourcePlayer ) &&
-		( players[ulSourcePlayer].mo->IsTeammate( players[ulPlayer].mo ) == false ) &&
-		// [Dusk] As players do not get frags for spawn telefrags, they shouldn't get medals for that either
-		( MeansOfDeath != NAME_SpawnTelefrag ))
+	// [Dusk] As players do not get frags for spawn telefrags, they shouldn't
+	// get medals for that either.
+	// [AK] Neither should dying players get punished for being spawn telefragged
+	// because their death count doesn't increase when they do.
+	if ( MeansOfDeath != NAME_SpawnTelefrag )
 	{
-		players[ulSourcePlayer].ulFragsWithoutDeath++;
-		players[ulSourcePlayer].ulDeathsWithoutFrag = 0;
+		// Check for domination and first frag medals.
+		if (( PLAYER_IsValidPlayerWithMo( ulSourcePlayer )) &&
+			( players[ulSourcePlayer].mo->IsTeammate( players[ulPlayer].mo ) == false ))
+		{
+			players[ulSourcePlayer].ulFragsWithoutDeath++;
+			players[ulSourcePlayer].ulDeathsWithoutFrag = 0;
 
-		medal_CheckForFirstFrag( ulSourcePlayer );
-		medal_CheckForDomination( ulSourcePlayer );
-		medal_CheckForFisting( ulSourcePlayer );
-		medal_CheckForExcellent( ulSourcePlayer );
-		medal_CheckForTermination( ulPlayer, ulSourcePlayer );
-		medal_CheckForLlama( ulPlayer, ulSourcePlayer );
+			medal_CheckForFirstFrag( ulSourcePlayer );
+			medal_CheckForDomination( ulSourcePlayer );
+			medal_CheckForFisting( ulSourcePlayer );
+			medal_CheckForExcellent( ulSourcePlayer );
+			medal_CheckForTermination( ulPlayer, ulSourcePlayer );
+			medal_CheckForLlama( ulPlayer, ulSourcePlayer );
 
-		players[ulSourcePlayer].ulLastFragTick = level.time;
+			players[ulSourcePlayer].ulLastFragTick = level.time;
+		}
+
+		// [BB] Don't punish being killed by a teammate (except if a player kills himself).
+		if (( ulPlayer == ulSourcePlayer ) ||
+			( PLAYER_IsValidPlayerWithMo( ulSourcePlayer ) == false ) ||
+			( players[ulSourcePlayer].mo->IsTeammate( players[ulPlayer].mo ) == false ))
+		{
+			players[ulPlayer].ulDeathsWithoutFrag++;
+			medal_CheckForYouFailIt( ulPlayer );
+		}
 	}
 
 	players[ulPlayer].ulFragsWithoutDeath = 0;
-
-	// [BB] Don't punish being killed by a teammate (except if a player kills himself).
-	if ( ( ulPlayer == ulSourcePlayer )
-		|| ( PLAYER_IsValidPlayerWithMo ( ulSourcePlayer ) == false )
-		|| ( players[ulSourcePlayer].mo->IsTeammate( players[ulPlayer].mo ) == false ) )
-	{
-		players[ulPlayer].ulDeathsWithoutFrag++;
-		medal_CheckForYouFailIt( ulPlayer );
-	}
 }
 
 //*****************************************************************************
