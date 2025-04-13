@@ -198,8 +198,11 @@ void DOMINATION_Tick(void)
 				// of the sector. Don't let event scripts change the result value to anything less than zero.
 				LONG lResult = MAX<LONG>( GAMEMODE_HandleEvent( GAMEEVENT_DOMINATION_POINT, NULL, level.info->SectorInfo.Points[i].owner, i, true ), 0 );
 
-				if (( lResult != 0 ) && (( TEAM_GetPointCount( level.info->SectorInfo.Points[i].owner ) < pointlimit ) || ( pointlimit == 0 )))
+				if ( lResult != 0 )
 					TEAM_SetPointCount( level.info->SectorInfo.Points[i].owner, TEAM_GetPointCount( level.info->SectorInfo.Points[i].owner ) + lResult, false );
+
+				if ( GAMEMODE_IsGameInResultSequence( ))
+					break;
 			}
 		}
 	}
