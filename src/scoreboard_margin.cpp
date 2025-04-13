@@ -884,9 +884,6 @@ public:
 		{
 			LONG lActualXPos = Pos.X;
 
-			if ( i > 0 )
-				Pos.Y += ( *font ).GetHeight( ) + ulGapSize;
-
 			if ( AlignmentToUse == HORIZALIGN_CENTER )
 				lActualXPos += SCOREBOARD_CenterAlign( pString->ulMaxWidth, pString->pLines[i].Width );
 			else if ( AlignmentToUse == HORIZALIGN_RIGHT )
@@ -899,6 +896,13 @@ public:
 				DTA_ClipBottom, clipTop + clipHeight,
 				DTA_Alpha, combinedAlpha,
 				TAG_DONE );
+
+			if ( pString->pLines[i].Width == 0 )
+				Pos.Y += ( *font ).GetHeight( );
+			else
+				Pos.Y += ( *font ).StringHeight( pString->pLines[i].Text.GetChars( ));
+
+			Pos.Y += ulGapSize;
 		}
 	}
 
@@ -1589,7 +1593,11 @@ protected:
 					String.ulTotalHeight += ulGapSize;
 
 				String.ulMaxWidth = MAX<ULONG>( String.ulMaxWidth, String.pLines[i].Width );
-				String.ulTotalHeight += ( *font ).GetHeight( );
+
+				if ( String.pLines[i].Width == 0 )
+					String.ulTotalHeight += ( *font ).GetHeight( );
+				else
+					String.ulTotalHeight += ( *font ).StringHeight( String.pLines[i].Text.GetChars( ));
 			}
 		}
 
@@ -1997,7 +2005,7 @@ public:
 
 		// [AK] Next, determine the height to use to draw all the medals.
 		const unsigned int numRows = static_cast<unsigned>( ceilf( static_cast<float>( medalList.Size( )) / numColumns ));
-		currentHeight = ( maxRowHeight + ( *font ).GetHeight( ) + textSpacing ) * numRows + rowGap + ( numRows - 1 );
+		currentHeight = ( maxRowHeight + ( *font ).StringHeight( quantityText.GetChars( )) + textSpacing ) * numRows + rowGap + ( numRows - 1 );
 
 		DrawBaseCommand::Refresh( displayPlayer );
 	}
@@ -2065,7 +2073,7 @@ public:
 						currentPos.X += currentWidth - rowWidth;
 				}
 
-				currentPos.Y += maxRowHeight + ( *font ).GetHeight( ) + textSpacing + rowGap;
+				currentPos.Y += maxRowHeight + ( *font ).StringHeight( quantityText.GetChars( )) + textSpacing + rowGap;
 			}
 			else
 			{
