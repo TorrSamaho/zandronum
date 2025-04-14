@@ -2077,7 +2077,7 @@ void SERVERCONSOLE_SetupColumns( void )
 
 		if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNWINS )
 			ColumnData.pszText = "Wins";
-		else if ( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNFRAGS )
+		else if (( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNFRAGS ) || ( domination ))
 			ColumnData.pszText = "Frags";
 		else if (( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNPOINTS ) || (( GAMEMODE_GetCurrentFlags() & GMF_PLAYERSEARNKILLS ) && ( zadmflags & ZADF_AWARD_DAMAGE_INSTEAD_KILLS )))
 			ColumnData.pszText = "Points";
@@ -2183,10 +2183,10 @@ void SERVERCONSOLE_UpdatePlayerInfo( LONG lPlayer, ULONG ulUpdateFlags )
 			else
 				message.Format( "%d", players[lPlayer].fragcount );
 		}
+		else if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNFRAGS ) || ( domination ))
+			message.Format( "%d", players[lPlayer].fragcount );
 		else if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNPOINTS ) || (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNKILLS ) && ( zadmflags & ZADF_AWARD_DAMAGE_INSTEAD_KILLS )))
 			message.Format( "%ld", players[lPlayer].lPointCount );
-		else if ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNFRAGS )
-			message.Format( "%d", players[lPlayer].fragcount );
 		else
 			message.Format( "%d", players[lPlayer].killcount );
 		Item.pszText = const_cast<char *>( message.GetChars());
