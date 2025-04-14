@@ -628,6 +628,8 @@ bool AFlag::HandlePickup( AInventory *item )
 		{
 			const unsigned int assistPlayer = TEAM_GetAssistPlayer( team );
 
+			TEAM_PrintScoresMessage( team, player, 1 );
+
 			// Give his team a point.
 			TEAM_SetPointCount( team, TEAM_GetPointCount( team ) + 1, true );
 			PLAYER_SetPoints( Owner->player, Owner->player->lPointCount + 1 );
@@ -636,7 +638,6 @@ bool AFlag::HandlePickup( AInventory *item )
 			MEDAL_GiveMedal( player, "Capture" );
 
 			this->Return( nullptr );
-			TEAM_PrintScoresMessage( team, player, 1 );
 
 			// If someone just recently returned the flag, award him with an "Assist!" medal.
 			// [CK] Trigger an event script (activator is the capturer, assister is the second arg),
@@ -730,14 +731,14 @@ bool AWhiteFlag::HandlePickup( AInventory *item )
 	// carrying the white flag.
 	if (( TEAM_GetSimpleCTFSTMode( )) && ( NETWORK_InClientMode( ) == false ))
 	{
+		TEAM_PrintScoresMessage( team, player, 1 );
+
 		// Give his team a point.
 		TEAM_SetPointCount( team, TEAM_GetPointCount( team ) + 1, true );
 		PLAYER_SetPoints( Owner->player, Owner->player->lPointCount + 1 );
 
 		// Award the scorer with a "Capture!" medal.
 		MEDAL_GiveMedal( player, "Capture" );
-
-		TEAM_PrintScoresMessage( team, player, 1 );
 
 		// [AK] Trigger an event script when the white flag is captured.
 		GAMEMODE_HandleEvent( GAMEEVENT_CAPTURES, Owner, GAMEEVENT_CAPTURE_NOASSIST, 1 );
