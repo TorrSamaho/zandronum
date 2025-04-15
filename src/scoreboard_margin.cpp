@@ -174,6 +174,11 @@ static	FString			g_SavedWinnerName;
 static	unsigned int	g_SavedNumPlayersTied = 1;
 static	int				g_SavedWinnerScore = INT_MIN;
 
+// [AK] The ranks of every player, and whether or not they're tied, must also
+// be saved when the game ends.
+static	unsigned int	g_SavedRanks[MAXPLAYERS] = { 0 };
+static	bool			g_SavedTies[MAXPLAYERS] = { false };
+
 //*****************************************************************************
 //	PROTOTYPES
 
@@ -1312,8 +1317,14 @@ protected:
 						break;
 
 					case DRAWSTRING_PLACESTRING:
-						specialValueText = HUD_BuildPlaceString( ulDisplayPlayer );
+					{
+						if (( GAME_GetEndLevelDelay( ) > 0 ) || ( gameaction == ga_completed ))
+							specialValueText = HUD_BuildPlaceString( ulDisplayPlayer, g_SavedRanks[ulDisplayPlayer], g_SavedTies[ulDisplayPlayer] );
+						else
+							specialValueText = HUD_BuildPlaceString( ulDisplayPlayer, HUD_GetRank( ), HUD_IsTied( ));
+
 						break;
+					}
 
 					case DRAWSTRING_PLAYERLEADSTRING:
 					{
@@ -3331,6 +3342,21 @@ void SCOREBOARD_SaveWinnerAndScore( void )
 	{
 		SCOREBOARD_TryClearingWinnerAndScore( false );
 		scoreboard_FindWinnerAndScore( g_SavedWinnerName, g_SavedWinnerScore, g_SavedNumPlayersTied );
+
+		// [AK] Also save the ranks of every player and whether they're tied or
+		// not. This doesn't need to be saved in team-based game modes, though.
+		if (( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSONTEAMS ) == false )
+		{
+			for ( unsigned int i = 0; i < MAXPLAYERS; i++ )
+			{
+				if (( playeringame[i] == false ) || ( PLAYER_IsTrueSpectator( &players[i] )))
+					continue;
+
+				g_SavedRanks[i] = PLAYER_CalcRank( i );
+				g_SavedTies[i] = HUD_IsTied( i );
+			}
+		}
+
 		g_AlreadySavedWinner = true;
 	}
 }
@@ -3363,6 +3389,14 @@ void SCOREBOARD_TryClearingWinnerAndScore( bool endOfRound )
 		g_SavedWinnerName = "";
 		g_SavedWinnerScore = INT_MIN;
 		g_SavedNumPlayersTied = 1;
+
+		// [AK] Clear every player's rank and tied status too.
+		for ( unsigned int i = 0; i < MAXPLAYERS; i++ )
+		{
+			g_SavedRanks[i] = 0;
+			g_SavedTies[i] = false;
+		}
+
 		g_AlreadySavedWinner = false;
 	}
 }

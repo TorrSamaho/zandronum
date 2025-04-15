@@ -92,6 +92,6 @@ LONG	HUD_GetSpread( void );
 void	HUD_SetRespawnTimeLeft( float fRespawnTime );
 FString	HUD_SpellOrdinal( int ranknum, bool bColored = false );
 FString HUD_BuildPointString( void );
-FString HUD_BuildPlaceString( ULONG ulPlayer );
+FString HUD_BuildPlaceString( unsigned int player, unsigned int rank, bool isTied );
 
 #endif	// __ST_HUD_H__

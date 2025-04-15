@@ -1235,7 +1235,7 @@ static void HUD_DrawFragMessage( const unsigned int displayPlayer )
 	StatusBar->AttachMessage( pMsg, MAKE_ID( 'F', 'R', 'A', 'G'));
 
 	// [AK] Build the place string.
-	message = HUD_BuildPlaceString( displayPlayer );
+	message = HUD_BuildPlaceString( displayPlayer, g_ulRank, g_bIsTied );
 
 	if ( g_bFraggedBy == false )
 	{
@@ -1682,7 +1682,7 @@ FString HUD_BuildPointString( void )
 
 //*****************************************************************************
 //
-FString HUD_BuildPlaceString( ULONG ulPlayer )
+FString HUD_BuildPlaceString( unsigned int player, unsigned int rank, bool isTied )
 {
 	FString text;
 
@@ -1697,21 +1697,18 @@ FString HUD_BuildPlaceString( ULONG ulPlayer )
 		else
 		{
 			// If the player is tied with someone else, add a "tied for" to their string.
-			if ( HUD_IsTied( ulPlayer ))
+			if ( isTied )
 				text = "Tied for ";
 
-			// [AK] Get the rank of this player, though it isn't always equivalent to g_ulRank. Particularly,
-			// when we (the local player) get a frag or get fragged while spying on another player.
-			ULONG ulRank = ( ulPlayer == HUD_GetViewPlayer( )) ? g_ulRank : PLAYER_CalcRank( ulPlayer );
-			text.AppendFormat( "%s" TEXTCOLOR_NORMAL " place with ", HUD_SpellOrdinal( ulRank, true ).GetChars() );
+			text.AppendFormat( "%s" TEXTCOLOR_NORMAL " place with ", HUD_SpellOrdinal( rank, true ).GetChars( ));
 
 			// Tack on the rest of the string.
 			if ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNWINS )
-				text.AppendFormat( "%d win%s", static_cast<unsigned int>( players[ulPlayer].ulWins ), players[ulPlayer].ulWins != 1 ? "s" : "" );
+				text.AppendFormat( "%d win%s", static_cast<unsigned int>( players[player].ulWins ), players[player].ulWins != 1 ? "s" : "" );
 			else if ( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNPOINTS )
-				text.AppendFormat( "%d point%s", static_cast<int>( players[ulPlayer].lPointCount ), players[ulPlayer].lPointCount != 1 ? "s" : "" );
+				text.AppendFormat( "%d point%s", static_cast<int>( players[player].lPointCount ), players[player].lPointCount != 1 ? "s" : "" );
 			else
-				text.AppendFormat( "%d frag%s", players[ulPlayer].fragcount, players[ulPlayer].fragcount != 1 ? "s" : "" );
+				text.AppendFormat( "%d frag%s", players[player].fragcount, players[player].fragcount != 1 ? "s" : "" );
 		}
 	}
 
