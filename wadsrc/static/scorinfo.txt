@@ -476,8 +476,11 @@ Scoreboard
 	GapBetweenColumns = 2
 	GapBetweenRows = 2
 	ColumnPadding = 1
-	HeaderHeight = -2
-	RowHeight = -2
+
+	// [AK] The header and rows must always be at least 11 pixels tall.
+	HeaderHeight = -2, 11
+	RowHeight = -2, 11
+
 	ColumnOrder = "BotSkillIcon", "Index", "ReadyToGoAndStatusIcons", "ArtifactIcon", "PlayerIcon", "CountryFlag", "Player", "Vote", "Handicap", "Wins", "Points", "Frags", "Kills", "Damage", "Lives", "Secrets", "Deaths", "Time", "Ping", "ConnectionStrength"
 	RankOrder = "Wins", "Points", "Frags", "Kills", "Damage", "Lives", "Secrets", "Deaths"
 

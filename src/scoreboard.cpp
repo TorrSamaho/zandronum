@@ -2646,8 +2646,10 @@ Scoreboard::Scoreboard( void ) :
 	ulGapBetweenColumns( 0 ),
 	ulGapBetweenRows( 0 ),
 	ulColumnPadding( 0 ),
-	lHeaderHeight( 0 ),
-	lRowHeight( 0 ),
+	headerHeight( 0 ),
+	rowHeight( 0 ),
+	minHeaderHeight( 0 ),
+	minRowHeight( 0 ),
 	headerHeightToUse( 0 ),
 	rowHeightToUse( 0 ),
 	totalScrollHeight( 0 ),
@@ -2829,12 +2831,26 @@ void Scoreboard::Parse( FScanner &sc )
 				case SCOREBOARDCMD_HEADERHEIGHT:
 				case SCOREBOARDCMD_ROWHEIGHT:
 				{
-					sc.MustGetNumber( );
+					const bool isNegative = sc.CheckToken( '-' );
+					sc.MustGetToken( TK_IntConst );
 
-					if ( Command == SCOREBOARDCMD_HEADERHEIGHT )
-						lHeaderHeight = sc.Number;
-					else
-						lRowHeight = sc.Number;
+					int &heightProperty = ( Command == SCOREBOARDCMD_HEADERHEIGHT ) ? headerHeight : rowHeight;
+					heightProperty = sc.Number * ( isNegative ? -1 : 1 );
+
+					// [AK] Allow specifying a minimum height when the height's value is zero or less.
+					if ( sc.CheckToken( ',' ))
+					{
+						unsigned int &minHeightProperty = ( Command == SCOREBOARDCMD_HEADERHEIGHT ) ? minHeaderHeight : minRowHeight;
+
+						if ( heightProperty > 0 )
+						{
+							const char *name = ( Command == SCOREBOARDCMD_HEADERHEIGHT ) ? "header" : "row";
+							sc.ScriptError( "Specifying a minimum %s height is only allowed when the %s height value is zero or less.", name, name );
+						}
+
+						sc.MustGetNumber( );
+						minHeightProperty = MAX<int>( sc.Number, 0 );
+					}
 
 					break;
 				}
@@ -3124,10 +3140,8 @@ void Scoreboard::Refresh( const unsigned int displayPlayer, const int minYPos )
 
 	// [AK] A negative header or row height means setting the height with respect
 	// to the height of the header or row font's respectively, if valid.
-	// In case the row font is being overridden by the user, always choose the
-	// height that's larger between the CVar and SCORINFO property.
-	headerHeightToUse = ( lHeaderHeight <= 0 ) ? ( *headerFont ).GetHeight( ) - lHeaderHeight : lHeaderHeight;
-	rowHeightToUse = ( lRowHeight <= 0 ) ? MAX<int>(( *rowFont ).GetHeight( ), rowFont.value->GetHeight( )) - lRowHeight : lRowHeight;
+	headerHeightToUse = ( headerHeight <= 0 ) ? MAX<int>(( *headerFont ).GetHeight( ) - headerHeight, minHeaderHeight ) : headerHeight;
+	rowHeightToUse = ( rowHeight <= 0 ) ? MAX<int>(( *rowFont ).GetHeight( ) - rowHeight, minRowHeight ) : rowHeight;
 
 	// [AK] Determine the size of the screen to draw the scoreboard.
 	if ( cl_usescoreboardscale )

@@ -588,8 +588,10 @@ struct Scoreboard
 	ULONG ulGapBetweenColumns;
 	ULONG ulGapBetweenRows;
 	ULONG ulColumnPadding;
-	LONG lHeaderHeight;
-	LONG lRowHeight;
+	int headerHeight;
+	int rowHeight;
+	unsigned int minHeaderHeight;
+	unsigned int minRowHeight;
 	unsigned int headerHeightToUse;
 	unsigned int rowHeightToUse;
 	unsigned int totalScrollHeight;
