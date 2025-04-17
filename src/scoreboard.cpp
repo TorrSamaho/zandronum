@@ -3361,6 +3361,10 @@ void Scoreboard::UpdateHeight( const unsigned int displayPlayer, const int minYP
 		totalScrollHeight += ulNumSpectators * ulRowYOffset;
 	}
 
+	// [AK] Don't use the value of the gap between rows value for the last row.
+	// Instead, use the value of the gap between the header and rows.
+	ulHeight += ulGapBetweenHeaderAndRows - ulGapBetweenRows;
+
 	Footer.Refresh( displayPlayer, marginWidth, marginRelX );
 	ulHeight += Footer.GetHeight( );
 	visibleScrollHeight = totalScrollHeight;
