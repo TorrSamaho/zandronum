@@ -895,7 +895,7 @@ public:
 				lActualXPos += pString->ulMaxWidth - pString->pLines[i].Width;
 
 			int textYOffset = 0;
-			const int height = pString->pLines[i].Width == 0 ? ( *font ).GetHeight( ) : ( *font ).StringHeight( pString->pLines[i].Text.GetChars( ), &textYOffset );
+			const int height = ( pString->pLines[i].Text.Len( ) == 0 ) ? ( *font ).GetHeight( ) : ( *font ).StringHeight( pString->pLines[i].Text.GetChars( ), &textYOffset );
 
 			SCOREBOARD_DrawString( font, TextColorToUse, lActualXPos, Pos.Y + lYPos - textYOffset, pString->pLines[i].Text.GetChars( ),
 				DTA_ClipLeft, clipLeft,
@@ -1603,7 +1603,7 @@ protected:
 
 				String.ulMaxWidth = MAX<ULONG>( String.ulMaxWidth, String.pLines[i].Width );
 
-				if ( String.pLines[i].Width == 0 )
+				if ( String.pLines[i].Text.Len( ) == 0 )
 					String.ulTotalHeight += ( *font ).GetHeight( );
 				else
 					String.ulTotalHeight += ( *font ).StringHeight( String.pLines[i].Text.GetChars( ), nullptr );
