@@ -418,18 +418,13 @@ Scoreboard
 				{
 					MultiLineBlock( horizontalalign = center, y = 3 )
 					{
-						RowBlock( bottompadding = 3 )
+						IfSpying( true )
 						{
-							IfSpying( true )
-							{
-								DrawString( value = playername + " has", textcolor = "Grey" )
-							}
-							Else
-							{
-								DrawString( value = "You have", textcolor = "Grey" )
-							}
-
-							DrawString( value = " earned the following medals:", textcolor = "Grey" )
+							DrawString( value = playername + " has earned the following medals:", textcolor = "Grey", bottompadding = 3 )
+						}
+						Else
+						{
+							DrawString( value = "You have earned the following medals:", textcolor = "Grey", bottompadding = 3 )
 						}
 
 						// [AK] Use a width of INT_MAX to ensure the medals are drawn across the entire margin.
@@ -438,18 +433,13 @@ Scoreboard
 				}
 				Else
 				{
-					RowBlock( horizontalalign = center, y = 3 )
+					IfSpying( true )
 					{
-						IfSpying( true )
-						{
-							DrawString( value = playername + " has", textcolor = "Grey" )
-						}
-						Else
-						{
-							DrawString( value = "You have", textcolor = "Grey" )
-						}
-
-						DrawString( value = " not yet earned any medals.", textcolor = "Grey" )
+						DrawString( value = playername + " has not yet earned any medals.", textcolor = "Grey", horizontalalign = center, y = 3 )
+					}
+					Else
+					{
+						DrawString( value = "You have not yet earned any medals.", textcolor = "Grey", horizontalalign = center, y = 3 )
 					}
 				}
 			}
