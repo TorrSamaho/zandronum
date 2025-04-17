@@ -1946,7 +1946,6 @@ public:
 		currentHeight( 0 ),
 		maxWidth( 0 ),
 		maxColumnWidth( 0 ),
-		maxRowHeight( 0 ),
 		columnGap( 0 ),
 		rowGap( 0 ),
 		textSpacing( 0 ) { }
@@ -1966,20 +1965,16 @@ public:
 		MEDAL_RetrieveAwardedMedals( displayPlayer, medalList );
 
 		numColumns = currentWidth = currentHeight = 0;
-		maxColumnWidth = maxRowHeight = 0;
+		maxColumnWidth = 0;
 
 		if ( medalList.Size( ) == 0 )
 			return;
 
-		// [AK] Determine the largest column width and row height to use, based
-		// on the size of the icons of the medals the player has earned.
+		// [AK] Determine the largest column width to use, based on the size of
+		// the icons of the medals the player has earned.
 		for ( unsigned int i = 0; i < medalList.Size( ); i++ )
 		{
-			FTexture *icon = TexMan( medalList[i]->scoreboardIcon );
-
-			// [AK] If this medal has no scoreboard icon, use the default one.
-			if ( icon == nullptr )
-				icon = TexMan( medalList[i]->icon );
+			FTexture *icon = GetMedalIcon( i );
 
 			if ( icon != nullptr )
 			{
@@ -1989,12 +1984,10 @@ public:
 				// form is wider than the icon, so it must also be considered.
 				quantityText.Format( "%u", medalList[i]->awardedCount[displayPlayer] );
 				maxColumnWidth = MAX<unsigned>( maxColumnWidth, SCOREBOARD_GetStringWidth( font, quantityText.GetChars( )));
-
-				maxRowHeight = MAX<unsigned>( maxRowHeight, icon->GetScaledHeight( ));
 			}
 		}
 
-		if (( maxColumnWidth == 0 ) || ( maxColumnWidth > maxWidthToUse ) || ( maxRowHeight == 0 ))
+		if (( maxColumnWidth == 0 ) || ( maxColumnWidth > maxWidthToUse ))
 			return;
 
 		// [AK] Determine the width to use to draw all the medals.
@@ -2014,10 +2007,37 @@ public:
 				break;
 		}
 
-		// [AK] Next, determine the height to use to draw all the medals.
+		// [AK] Next, determine how many rows are needed to draw the medals.
 		const unsigned int numRows = static_cast<unsigned>( ceilf( static_cast<float>( medalList.Size( )) / numColumns ));
-		currentHeight = ( maxRowHeight + ( *font ).StringHeight( quantityText.GetChars( )) + textSpacing ) * numRows + rowGap + ( numRows - 1 );
+		unsigned int maxQuantityTextHeight = 0;
+		unsigned int maxRowHeight = 0;
 
+		// [AK] Finally, determine the total height needed to draw all the
+		// medals. For each row, find its height by finding the tallest medal
+		// icon in that row, as well as the text with the tallest height.
+		for ( unsigned int row = 0; row < numRows; row++ )
+		{
+			for ( unsigned int column = 0; column < numColumns; column++ )
+			{
+				const unsigned int index = numColumns * row + column;
+
+				if ( index >= medalList.Size( ))
+					break;
+
+				quantityText.Format( "%u", medalList[index]->awardedCount[displayPlayer] );
+				maxQuantityTextHeight = MAX<unsigned>( maxQuantityTextHeight, ( *font ).StringHeight( quantityText.GetChars( )));
+
+				FTexture *icon = GetMedalIcon( index );
+
+				if ( icon != nullptr )
+					maxRowHeight = MAX<unsigned>( maxRowHeight, icon->GetScaledHeight( ));
+			}
+
+			currentHeight += maxRowHeight + maxQuantityTextHeight + textSpacing;
+			maxQuantityTextHeight = maxRowHeight = 0;
+		}
+
+		currentHeight += rowGap * ( numRows - 1 );
 		DrawBaseCommand::Refresh( displayPlayer );
 	}
 
@@ -2036,15 +2056,33 @@ public:
 		const fixed_t combinedAlpha = FLOAT2FIXED( alpha * fTranslucency );
 
 		TVector2<LONG> currentPos = startPos;
+		int maxQuantityTextHeight = 0;
+		int maxRowHeight = 0;
 
 		for ( unsigned int i = 0; i < medalList.Size( ); i++ )
 		{
-			FTexture *icon = TexMan( medalList[i]->scoreboardIcon );
+			FTexture *icon = nullptr;
 			FString quantityText;
 
-			// [AK] If this medal has no scoreboard icon, use the default one.
-			if ( icon == nullptr )
-				icon = TexMan( medalList[i]->icon );
+			// [AK] When starting a new row, always find the medal in that row
+			// with the tallest icon first.
+			if ( i % numColumns == 0 )
+			{
+				maxRowHeight = 0;
+
+				for ( unsigned int column = 0; column < numColumns; column++ )
+				{
+					if ( i + column >= medalList.Size( ))
+						break;
+
+					icon = GetMedalIcon( i + column );
+
+					if ( icon != nullptr )
+						maxRowHeight = MAX<int>( maxRowHeight, icon->GetScaledHeight( ));
+				}
+			}
+
+			icon = GetMedalIcon( i );
 
 			if ( icon != nullptr )
 			{
@@ -2060,7 +2098,9 @@ public:
 
 			quantityText.Format( "%u", medalList[i]->awardedCount[displayPlayer] );
 			const int textX = currentPos.X + SCOREBOARD_CenterAlign( maxColumnWidth, SCOREBOARD_GetStringWidth( font, quantityText.GetChars( )));
-			const int textY = currentPos.Y + yPos + maxRowHeight + textSpacing;
+			int textY = currentPos.Y + yPos + maxRowHeight + textSpacing;
+
+			maxQuantityTextHeight = MAX<int>( maxQuantityTextHeight, ( *font ).StringHeight( quantityText.GetChars( )));
 
 			SCOREBOARD_DrawString( font, color, textX, textY, quantityText.GetChars( ), DTA_Alpha, combinedAlpha, TAG_DONE );
 
@@ -2084,7 +2124,8 @@ public:
 						currentPos.X += currentWidth - rowWidth;
 				}
 
-				currentPos.Y += maxRowHeight + ( *font ).StringHeight( quantityText.GetChars( )) + textSpacing + rowGap;
+				currentPos.Y += maxRowHeight + maxQuantityTextHeight + textSpacing + rowGap;
+				maxQuantityTextHeight = 0;
 			}
 			else
 			{
@@ -2153,6 +2194,28 @@ protected:
 		}
 	}
 
+	//*************************************************************************
+	//
+	// [AK] Returns the icon to draw this medal with. It first tries using the
+	// scoreboard icon, and if there's none, then it tries using the default.
+	//
+	//*************************************************************************
+
+	FTexture *GetMedalIcon( const unsigned int index ) const
+	{
+		FTexture *icon = nullptr;
+
+		if ( index < medalList.Size( ))
+		{
+			icon = TexMan( medalList[index]->scoreboardIcon );
+
+			if ( icon == nullptr )
+				icon = TexMan( medalList[index]->icon );
+		}
+
+		return icon;
+	}
+
 	TArray<MEDAL_t *> medalList;
 	Scoreboard::CustomizableFont font;
 	EColorRange color;
@@ -2161,7 +2224,6 @@ protected:
 	unsigned int currentHeight;
 	unsigned int maxWidth;
 	unsigned int maxColumnWidth;
-	unsigned int maxRowHeight;
 	unsigned int columnGap;
 	unsigned int rowGap;
 	unsigned int textSpacing;
