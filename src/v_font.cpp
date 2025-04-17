@@ -875,32 +875,59 @@ int FFont::GetCharWidth (int code) const
 //
 // [AK] FFont :: StringHeight
 //
-// Returns the height of a string using this font in pixels.
+// Returns the real height of a string using this font in pixels. This means
+// that any empty space above or below the string from the font characters
+// is left out. If yOffset isn't a null pointer, the amount of empty space
+// above the string, in pixels, is passed into it, which can be useful if the
+// string needs to be raised up a bit when drawn on the screen.
+//
+// Some of code here was borrowed from CheckRealHeight in "wi_stuff.cpp".
 //
 //==========================================================================
 
-int FFont::StringHeight( const char *str ) const
+int FFont::StringHeight(const char *str, int *yOffset) const
 {
-	if ( str == nullptr )
+	if (str == nullptr)
 		return 0;
 
-	const unsigned int length = strlen( str );
-	int largestHeight = 0;
+	const unsigned int length = strlen(str);
+	int maxY = 0, minY = GetHeight();
 
-	for ( unsigned int i = 0; i < length; i++ )
+	for (unsigned int i = 0; i < length; i++)
 	{
-		FTexture *charTexture = GetChar( str[i], nullptr );
+		FTexture *charTexture = GetChar(str[i], nullptr);
 
-		if ( charTexture != nullptr )
+		if (charTexture != nullptr)
 		{
-			const int textureHeight = charTexture->GetScaledHeight( );
+			const FTexture::Span *span = nullptr;
+			int maxTextureY = 0, minTextureY = charTexture->GetHeight();
 
-			if ( textureHeight > largestHeight )
-				largestHeight = textureHeight;
+			for (int j = 0; j < charTexture->GetWidth(); j++)
+			{
+				charTexture->GetColumn(j, &span);
+
+				while (span->Length != 0)
+				{
+					if (span->TopOffset < minTextureY)
+						minTextureY = span->TopOffset;
+
+					if (span->TopOffset + span->Length > maxTextureY)
+						maxTextureY = span->TopOffset + span->Length;
+
+					span++;
+				}
+			}
+
+			// [AK] Take the scaling of the texture into account.
+			maxY = MAX<int>(maxY, static_cast<int>(maxTextureY / FIXED2FLOAT(charTexture->yScale)));
+			minY = MIN<int>(minY, static_cast<int>(minTextureY / FIXED2FLOAT(charTexture->yScale)));
 		}
 	}
 
-	return largestHeight;
+	if (yOffset != nullptr)
+		*yOffset = minY;
+
+	return maxY - minY;
 }
 
 //==========================================================================

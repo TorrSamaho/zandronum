@@ -366,10 +366,11 @@ void MEDAL_Render( void )
 		string.AppendFormat( " X %u", medal->awardedCount[player] );
 	}
 
+	int textYOffset = 0;
 	int xPos = ( SCREENWIDTH - CleanXfac * SmallFont->StringWidth( string.GetChars( ))) / 2;
-	int yPos = ( viewheight <= ST_Y ? ST_Y : SCREENHEIGHT ) - ( 4 + SmallFont->StringHeight( string.GetChars( ))) * CleanYfac;
+	int yPos = ( viewheight <= ST_Y ? ST_Y : SCREENHEIGHT ) - ( 4 + SmallFont->StringHeight( string.GetChars( ), &textYOffset )) * CleanYfac;
 
-	screen->DrawText( SmallFont, medal->textColor, xPos, yPos, string, DTA_CleanNoMove, true, DTA_Alpha, alpha, TAG_DONE );
+	screen->DrawText( SmallFont, medal->textColor, xPos, yPos - textYOffset * CleanYfac, string, DTA_CleanNoMove, true, DTA_Alpha, alpha, TAG_DONE );
 
 	// [AK] For some reason, if the medal's icon is a sprite instead of a graphic,
 	// it appears one pixel higher than it should. So, if it's a sprite, move it up

@@ -894,7 +894,10 @@ public:
 			else if ( AlignmentToUse == HORIZALIGN_RIGHT )
 				lActualXPos += pString->ulMaxWidth - pString->pLines[i].Width;
 
-			SCOREBOARD_DrawString( font, TextColorToUse, lActualXPos, Pos.Y + lYPos, pString->pLines[i].Text.GetChars( ),
+			int textYOffset = 0;
+			const int height = pString->pLines[i].Width == 0 ? ( *font ).GetHeight( ) : ( *font ).StringHeight( pString->pLines[i].Text.GetChars( ), &textYOffset );
+
+			SCOREBOARD_DrawString( font, TextColorToUse, lActualXPos, Pos.Y + lYPos - textYOffset, pString->pLines[i].Text.GetChars( ),
 				DTA_ClipLeft, clipLeft,
 				DTA_ClipRight, clipLeft + clipWidth,
 				DTA_ClipTop, clipTop,
@@ -902,12 +905,7 @@ public:
 				DTA_Alpha, combinedAlpha,
 				TAG_DONE );
 
-			if ( pString->pLines[i].Width == 0 )
-				Pos.Y += ( *font ).GetHeight( );
-			else
-				Pos.Y += ( *font ).StringHeight( pString->pLines[i].Text.GetChars( ));
-
-			Pos.Y += ulGapSize;
+			Pos.Y += height + ulGapSize;
 		}
 	}
 
@@ -1608,7 +1606,7 @@ protected:
 				if ( String.pLines[i].Width == 0 )
 					String.ulTotalHeight += ( *font ).GetHeight( );
 				else
-					String.ulTotalHeight += ( *font ).StringHeight( String.pLines[i].Text.GetChars( ));
+					String.ulTotalHeight += ( *font ).StringHeight( String.pLines[i].Text.GetChars( ), nullptr );
 			}
 		}
 
@@ -2025,7 +2023,7 @@ public:
 					break;
 
 				quantityText.Format( "%u", medalList[index]->awardedCount[displayPlayer] );
-				maxQuantityTextHeight = MAX<unsigned>( maxQuantityTextHeight, ( *font ).StringHeight( quantityText.GetChars( )));
+				maxQuantityTextHeight = MAX<unsigned>( maxQuantityTextHeight, ( *font ).StringHeight( quantityText.GetChars( ), nullptr ));
 
 				FTexture *icon = GetMedalIcon( index );
 
@@ -2100,9 +2098,10 @@ public:
 			const int textX = currentPos.X + SCOREBOARD_CenterAlign( maxColumnWidth, SCOREBOARD_GetStringWidth( font, quantityText.GetChars( )));
 			int textY = currentPos.Y + yPos + maxRowHeight + textSpacing;
 
-			maxQuantityTextHeight = MAX<int>( maxQuantityTextHeight, ( *font ).StringHeight( quantityText.GetChars( )));
+			int textYOffset = 0;
+			maxQuantityTextHeight = MAX<int>( maxQuantityTextHeight, ( *font ).StringHeight( quantityText.GetChars( ), &textYOffset ));
 
-			SCOREBOARD_DrawString( font, color, textX, textY, quantityText.GetChars( ), DTA_Alpha, combinedAlpha, TAG_DONE );
+			SCOREBOARD_DrawString( font, color, textX, textY - textYOffset, quantityText.GetChars( ), DTA_Alpha, combinedAlpha, TAG_DONE );
 
 			// [AK] Start a new row when enough medals are drawn on one row.
 			if (( i + 1 ) % numColumns == 0 )

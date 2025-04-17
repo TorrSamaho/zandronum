@@ -365,7 +365,7 @@ Scoreboard
 			// [AK] Use a width of INT_MAX to ensure this color box stretches across the entire margin.
 			IfCVar( sb_customizeborders == false ) || IfCVar( sb_noborders == false )
 			{
-				DrawColor( value = teamcolor, width = 2147483648, height = 1, bottompadding = 2 )
+				DrawColor( value = teamcolor, width = 2147483648, height = 1, bottompadding = 3 )
 			}
 		}
 
@@ -388,7 +388,7 @@ Scoreboard
 						DrawString( value = "Wins: " + teamwincount, font = "BigFont", textcolor = teamtextcolor, bottompadding = 1 )
 					}
 
-					DrawString( value = "Frags: " + teamfragcount, textcolor = teamtextcolor, bottompadding = 2 )
+					DrawString( value = "Frags: " + teamfragcount, textcolor = teamtextcolor, bottompadding = 3 )
 				}
 			}
 		}
@@ -403,7 +403,7 @@ Scoreboard
 			// [AK] Use a width of INT_MAX to ensure this color box stretches across the entire margin.
 			IfCVar( sb_customizeborders == false ) || IfCVar( sb_noborders == false )
 			{
-				DrawColor( value = "DD DD DD", width = 2147483648, height = 1, bottompadding = 2 )
+				DrawColor( value = "DD DD DD", width = 2147483648, height = 1, bottompadding = 3 )
 			}
 		}
 	}
@@ -416,7 +416,7 @@ Scoreboard
 			{
 				IfPlayerHasMedals( true )
 				{
-					MultiLineBlock( horizontalalign = center, y = 2 )
+					MultiLineBlock( horizontalalign = center, y = 3 )
 					{
 						RowBlock( bottompadding = 3 )
 						{
@@ -433,12 +433,12 @@ Scoreboard
 						}
 
 						// [AK] Use a width of INT_MAX to ensure the medals are drawn across the entire margin.
-						DrawMedals( maxwidth = 2147483648, textcolor = "Grey", columngap = 5, rowgap = 1, textspacing = 1 )
+						DrawMedals( maxwidth = 2147483648, textcolor = "Grey", columngap = 5, rowgap = 3, textspacing = 3 )
 					}
 				}
 				Else
 				{
-					RowBlock( bottompadding = 3, horizontalalign = center, y = 2 )
+					RowBlock( horizontalalign = center, y = 3 )
 					{
 						IfSpying( true )
 						{
@@ -472,7 +472,7 @@ Scoreboard
 	RowBackgroundAmount = 0.65
 	DeadPlayerTextAlpha = 0.35
 	DeadPlayerRowBackgroundAmount = 0
-	GapBetweenHeaderAndRows = 2
+	GapBetweenHeaderAndRows = 3
 	GapBetweenColumns = 2
 	GapBetweenRows = 2
 	ColumnPadding = 1

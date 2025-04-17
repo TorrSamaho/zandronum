@@ -1259,7 +1259,9 @@ void ScoreColumn::DrawString( const char *pszString, FFont *pFont, const ULONG u
 	int clipTop = lYPos;
 	int clipHeight = ulHeight;
 
-	LONG lNewYPos = lYPos + SCOREBOARD_CenterAlign( clipHeight, pFont->StringHeight( pszString ));
+	int stringYOffset = 0;
+	const int stringHeight = pFont->StringHeight( pszString, &stringYOffset );
+	LONG lNewYPos = lYPos + SCOREBOARD_CenterAlign( clipHeight, stringHeight ) - stringYOffset;
 
 	if ( SCOREBOARD_AdjustVerticalClipRect( clipTop, clipHeight ) == false )
 		return;

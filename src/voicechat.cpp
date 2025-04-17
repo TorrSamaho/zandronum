@@ -2244,8 +2244,9 @@ void VOIPPanel::Refresh( void )
 			}
 		}
 
+		int textYOffset = 0;
 		const int textWidth = SmallFont->StringWidth( it->text );
-		const int textHeight = SmallFont->StringHeight( it->text );
+		const int textHeight = SmallFont->StringHeight( it->text, &textYOffset );
 		const int rowHeight = MAX<int>( textHeight, speakerIcon ? speakerIcon->GetScaledHeight( ) : 0 );
 
 		if ( alignBottom )
@@ -2255,7 +2256,7 @@ void VOIPPanel::Refresh( void )
 			it->speakerYPos = yPos + ( rowHeight - speakerIcon->GetScaledHeight( )) / 2;
 
 		it->textXPos = alignRight ? xPos - speakerXOffset - textWidth : xPos + speakerXOffset;
-		it->textYPos = yPos + ( rowHeight - textHeight ) / 2;
+		it->textYPos = yPos + ( rowHeight - textHeight ) / 2 - textYOffset;
 
 		// [AK] If the panel is aligned to the top of the screen, then the next
 		// row goes underneath this one. Otherwise, it goes above it.
