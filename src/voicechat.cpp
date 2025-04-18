@@ -1228,11 +1228,14 @@ void VOIPController::SetVolume( float volume )
 
 	if ( VoIPChannelGroup == nullptr )
 	{
-		const FMOD_RESULT fmodErrorCode = VoIPChannelGroup->setVolume( volume );
-
-		if ( fmodErrorCode != FMOD_OK )
-			Printf( TEXTCOLOR_ORANGE "Couldn't change the volume of the VoIP channel group: %s\n", FMOD_ErrorString( fmodErrorCode ));
+		Printf( TEXTCOLOR_ORANGE "Couldn't change the volume of the VoIP channel group: it doesn't exist.\n" );
+		return;
 	}
+
+	const FMOD_RESULT fmodErrorCode = VoIPChannelGroup->setVolume( volume );
+
+	if ( fmodErrorCode != FMOD_OK )
+		Printf( TEXTCOLOR_ORANGE "Couldn't change the volume of the VoIP channel group: %s\n", FMOD_ErrorString( fmodErrorCode ));
 }
 
 //*****************************************************************************
