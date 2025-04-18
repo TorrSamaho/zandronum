@@ -2527,7 +2527,8 @@ void WI_checkForAccelerate(void)
 		}
 
 		// Also check to see if everyone is ready to go on. If so, then change the map.
-		if ( SERVER_IsEveryoneReadyToGoOn( ))
+		// [AK] Don't do this in case the "map" CCMD is used during the intermission.
+		if (( gameaction != ga_newgame ) && ( gameaction != ga_newgame2 ) && ( SERVER_IsEveryoneReadyToGoOn( )))
 			acceleratestage = 1;
 
 		// Nothing more to do in server mode.
