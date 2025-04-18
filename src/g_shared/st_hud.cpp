@@ -1667,7 +1667,7 @@ FString HUD_BuildPointString( void )
 					teamName.AppendFormat( TEXTCOLOR_NORMAL "%s and %s", ulNumTeamsWithHighestScore > 2 ? "," : "", lastTeamName.GetChars( ));
 
 				// [AK] Show a list of all teams who currently have the highest score and how much they have.
-				text.Format( "Teams %s ", gamestate == GS_LEVEL ? "leading with" : "that tied at" );
+				text.Format( "Teams %stied at ", gamestate != GS_LEVEL ? "that " : "" );
 				text.AppendFormat( "%d %s: %s", static_cast<int>( lHighestScore ), scoreName.GetChars( ), teamName.GetChars( ));
 			}
 		}
