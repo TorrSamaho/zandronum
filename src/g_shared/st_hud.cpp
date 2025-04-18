@@ -1641,12 +1641,14 @@ FString HUD_BuildPointString( void )
 	}
 
 	FString text;
-	scoreName.AppendFormat( "%s", (( ulNumAvailableTeams == 2 ) || ( lHighestScore != 1 )) ? "s" : "" );
+
+	if ((( ulNumAvailableTeams == 2 ) && ( ulNumAvailableTeams != ulNumTeamsWithHighestScore )) || ( lHighestScore != 1 ))
+		scoreName += 's';
 
 	// Build the score message.
 	if ( ulNumAvailableTeams == ulNumTeamsWithHighestScore )
 	{
-		text.Format( "Teams are tied at %d %s", static_cast<int>( lHighestScore ), scoreName.GetChars() );
+		text.Format( "Teams %s tied at %d %s", gamestate == GS_LEVEL ? "are" : "have", static_cast<int>( lHighestScore ), scoreName.GetChars( ));
 	}
 	else
 	{
@@ -1665,7 +1667,7 @@ FString HUD_BuildPointString( void )
 					teamName.AppendFormat( TEXTCOLOR_NORMAL "%s and %s", ulNumTeamsWithHighestScore > 2 ? "," : "", lastTeamName.GetChars( ));
 
 				// [AK] Show a list of all teams who currently have the highest score and how much they have.
-				text.Format( "Teams %s with ", gamestate == GS_LEVEL ? "leading" : "that won" );
+				text.Format( "Teams %s ", gamestate == GS_LEVEL ? "leading with" : "that tied at" );
 				text.AppendFormat( "%d %s: %s", static_cast<int>( lHighestScore ), scoreName.GetChars( ), teamName.GetChars( ));
 			}
 		}
