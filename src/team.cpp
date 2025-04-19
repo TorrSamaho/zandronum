@@ -660,7 +660,7 @@ void TEAM_DoWinSequence( ULONG ulTeamIdx )
 	else
 	{
 		message = "DRAW GAME!";
-		color = CR_RED;
+		color = CR_GREEN;
 	}
 
 	HUD_DrawStandardMessage( message.GetChars( ), color, false, 3.0f, 2.0f, true );
