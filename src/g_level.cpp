@@ -1591,12 +1591,11 @@ void G_DoLoadLevel (int position, bool autosave)
 	if ( StatusBar )
 		StatusBar->AttachToPlayer (&players[consoleplayer]);
 	P_DoDeferedScripts ();	// [RH] Do script actions that were triggered on another map.
-	
-	// [BC] Support for client-side demos.
-	if (demoplayback || ( CLIENTDEMO_IsPlaying( )) || oldgs == GS_STARTUP || oldgs == GS_TITLELEVEL)
-		C_HideConsole ();
 
 	C_FlushDisplay ();
+
+	if (demoplayback || oldgs == GS_STARTUP || oldgs == GS_TITLELEVEL)
+		C_HideConsole ();
 
 	// [BC/BB] Spawn various necessary game objects at the start of the map.
 	GAMEMODE_SpawnSpecialGamemodeThings();
