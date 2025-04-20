@@ -890,17 +890,18 @@ void P_UpdateSpecials ()
 {
 	// LEVEL TIMER
 	// [BB] The gamemode decides whether the timelimit is used.
-	if ( GAMEMODE_IsTimelimitActive() )
+	// [AK] Don't do anything here if the current level is being exited.
+	if (( gameaction != ga_completed ) && ( GAMEMODE_IsTimelimitActive( )))
 	{
 		// [RC] Play the five minute warning.
-		if ( level.time == (int)( ( timelimit - 5 ) * TICRATE * 60 ) ) // I'm amazed this works so well without a flag.
+		if ( level.time == static_cast<int>(( timelimit - 5 ) * TICRATE * 60 )) // I'm amazed this works so well without a flag.
 		{
 			Printf("Five minutes remain!\n");
 			ANNOUNCER_PlayEntry( cl_announcer, "FiveMinuteWarning" );
 		}
 
 		// [RC] Play the one minute warning.
-		else if ( level.time == (int)( ( timelimit - 1 ) * TICRATE * 60 ) )
+		else if ( level.time == static_cast<int>(( timelimit - 1 ) * TICRATE * 60 ))
 		{
 			Printf("One minute remains!\n");
 			ANNOUNCER_PlayEntry( cl_announcer, "OneMinuteWarning" );
@@ -908,7 +909,7 @@ void P_UpdateSpecials ()
 
 		if ( NETWORK_InClientMode() == false )
 		{
-			if (( level.time >= (int)( timelimit * TICRATE * 60 )) && ( GAME_GetEndLevelDelay( ) == 0 ))
+			if (( level.time >= static_cast<int>( timelimit * TICRATE * 60 )) && ( GAME_GetEndLevelDelay( ) == 0 ))
 			{
 				// Special game modes handle this differently.
 				if ( duel )
