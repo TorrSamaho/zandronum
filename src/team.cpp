@@ -451,7 +451,7 @@ void TEAM_ScoreSkulltagPoint( player_t *player, unsigned int numPoints, AActor *
 	TEAM_PrintScoresMessage( player->Team, playerIndex, numPoints );
 
 	// Give their team a point.
-	TEAM_SetPointCount( player->Team, TEAM_GetPointCount( player->Team ) + numPoints, true );
+	TEAM_SetPointCount( player->Team, TEAM_GetPointCount( player->Team ) + numPoints, true, false );
 	PLAYER_SetPoints( player, player->lPointCount + numPoints );
 
 	// Take the skull away.
@@ -871,23 +871,21 @@ LONG TEAM_GetPointCount( ULONG ulTeamIdx )
 
 //*****************************************************************************
 //
-void TEAM_SetPointCount( ULONG ulTeamIdx, LONG lPointCount, bool bAnnouncer )
+void TEAM_SetPointCount( unsigned int team, int pointCount, bool doAnnouncement, bool showWinSequence )
 {
-	LONG lOldPointCount;
-
-	if ( TEAM_CheckIfValid( ulTeamIdx ) == false )
+	if ( TEAM_CheckIfValid( team ) == false )
 		return;
 
-	lOldPointCount = TEAM_GetPointCount( ulTeamIdx );
-	teams[ulTeamIdx].lPointCount = lPointCount;
-	if ( bAnnouncer && ( TEAM_GetPointCount( ulTeamIdx ) > lOldPointCount ))
+	const int oldPointCount = TEAM_GetPointCount( team );
+	teams[team].lPointCount = pointCount;
+
+	if (( doAnnouncement ) && ( TEAM_GetPointCount( team ) > oldPointCount ))
 	{
-		// Build the message.
-		// Whatever the team's name is, is the first part of the message. For example:
-		// if the "blue" team has been defined then the message will be "BlueScores".
-		// This way we don't have to change every announcer to use a new system. 
-		FString name;
-		name += TEAM_GetName( ulTeamIdx );
+		// Build the message. Whatever the team's name is, is the first part of
+		// the message. For example: if the "blue" team has been defined then the
+		// message will be "BlueScores". This way we don't have to change every
+		// announcer to use a new system.
+		FString name = TEAM_GetName( team );
 		name += "Scores";
 
 		// Play the announcer sound for scoring.
@@ -897,22 +895,27 @@ void TEAM_SetPointCount( ULONG ulTeamIdx, LONG lPointCount, bool bAnnouncer )
 	// If we're the server, tell clients about the team score update.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
-		SERVERCOMMANDS_SetTeamScore( ulTeamIdx, TEAMSCORE_POINTS, bAnnouncer );
+		SERVERCOMMANDS_SetTeamScore( team, TEAMSCORE_POINTS, doAnnouncement );
 
 		// Also, update the scoreboard.
 		SERVERCONSOLE_UpdateScoreboard( );
 	}
 
 	// Implement the pointlimit.
-	if ( pointlimit <= 0 || NETWORK_InClientMode() )
+	if (( pointlimit <= 0 ) || ( NETWORK_InClientMode( )))
 		return;
 
-	if ( TEAM_GetPointCount( ulTeamIdx ) >= (LONG)pointlimit )
+	if ( TEAM_GetPointCount( team ) >= pointlimit )
 	{
-		NETWORK_Printf( "\034%s%s " TEXTCOLOR_NORMAL "has won the game!\n", TEAM_GetTextColorName( ulTeamIdx ), TEAM_GetName( ulTeamIdx ));
+		NETWORK_Printf( "\034%s%s " TEXTCOLOR_NORMAL "has won the game!\n", TEAM_GetTextColorName( team ), TEAM_GetName( team ));
 
 		// Do the win sequence for the winner.
-		TEAM_DoWinSequence( ulTeamIdx );
+		// [AK] In game modes with team items (e.g. CTF and Skulltag), if the
+		// team wins because a player scored the last point by capturing the
+		// item, it's better to not display the "x wins!" message in favour of
+		// showing the "x team scores! message instead.
+		if ( showWinSequence )
+			TEAM_DoWinSequence( team );
 
 		// End the level after five seconds.
 		GAME_SetEndLevelDelay( 5 * TICRATE );

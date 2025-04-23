@@ -631,7 +631,7 @@ bool AFlag::HandlePickup( AInventory *item )
 			TEAM_PrintScoresMessage( team, player, 1 );
 
 			// Give his team a point.
-			TEAM_SetPointCount( team, TEAM_GetPointCount( team ) + 1, true );
+			TEAM_SetPointCount( team, TEAM_GetPointCount( team ) + 1, true, false );
 			PLAYER_SetPoints( Owner->player, Owner->player->lPointCount + 1 );
 
 			// Award the scorer with a "Capture!" medal.
@@ -734,7 +734,7 @@ bool AWhiteFlag::HandlePickup( AInventory *item )
 		TEAM_PrintScoresMessage( team, player, 1 );
 
 		// Give his team a point.
-		TEAM_SetPointCount( team, TEAM_GetPointCount( team ) + 1, true );
+		TEAM_SetPointCount( team, TEAM_GetPointCount( team ) + 1, true, false );
 		PLAYER_SetPoints( Owner->player, Owner->player->lPointCount + 1 );
 
 		// Award the scorer with a "Capture!" medal.

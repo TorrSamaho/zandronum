@@ -112,7 +112,7 @@ LONG		TEAM_GetRailgunColor( ULONG ulTeamIdx );
 void		TEAM_SetRailgunColor( ULONG ulTeamIdx, LONG lColor );
 
 LONG		TEAM_GetPointCount( ULONG ulTeamIdx );
-void		TEAM_SetPointCount( ULONG ulTeamIdx, LONG lPointCount, bool bAnnouncer );
+void		TEAM_SetPointCount( unsigned int team, int pointCount, bool doAnnouncement, bool showWinSequence = true );
 
 const char	*TEAM_GetSmallHUDIcon( ULONG ulTeamIdx );
 void		TEAM_SetSmallHUDIcon( ULONG ulTeamIdx, const char *pszName, bool bFlag );
