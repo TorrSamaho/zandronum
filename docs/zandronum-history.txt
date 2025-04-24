@@ -230,7 +230,6 @@
 -	- Fixed: actors with the CLIENTSIDEONLY flag didn't create splashes in online games. [AKMDM]
 -	- Fixed: the server didn't destroy actors that were clientsided only and spawned from serversided ACS scripts, and clients didn't mark actors spawned from clientsided ACS scripts as clientsided only. [AKMDM]
 -	- Fixed: unmorphing a player before they disconnected, joined spectators, or respawned didn't always succeed, and could sometimes cause clients to spawn a player that no longer existed. Also prevented exit flashes from spawning when players unmorphed in these special cases. [AKMDM]
--	- Fixed: voodoo dolls didn't work in multiplayer emulation (addresses 2510). [Sean]
 -	- Fixed: A_Raise sometimes failed to remove respawn invulnerability from a player if cl_respawninvuleffect was 0, and could remove an invulnerability powerup that a player had in their inventory instead of the actual respawn invulnerability. [AKMDM]
 -	- Fixed: Unloading Clientside scripts would crash out the clients online (addresses 2147). [Ru5tK1ng]
 -	- Fixed: clients didn't fully reset the map on their end when starting the first wave's countdown in invasion. [AKMDM]
