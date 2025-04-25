@@ -969,7 +969,24 @@ BOOL CALLBACK SERVERCONSOLE_MapRotationCallback( HWND hDlg, UINT Message, WPARAM
 			case IDC_MAPNAME:
 
 				if ( HIWORD( wParam ) == CBN_EDITCHANGE || HIWORD( wParam ) == CBN_SELCHANGE )
+				{
+					// [AK] Update the combo box when the selected item changes.
+					if ( HIWORD( wParam ) == CBN_SELCHANGE )
+					{
+						const int selectedItem = SendDlgItemMessage( hDlg, IDC_MAPNAME, CB_GETCURSEL, 0, 0 );
+
+						if ( selectedItem != CB_ERR )
+						{
+							const int length = SendDlgItemMessage( hDlg, IDC_MAPNAME, CB_GETLBTEXTLEN, selectedItem, 0 );
+							auto buffer = std::make_unique<char[]>( length );
+
+							SendDlgItemMessage( hDlg, IDC_MAPNAME, CB_GETLBTEXT, selectedItem, (LPARAM)(LPCTSTR)buffer.get( ));
+							SetDlgItemText( hDlg, IDC_MAPNAME, buffer.get( ));
+						}
+					}
+
 					serverconsole_MapRotation_Update( hDlg );
+				}
 
 				if ( HIWORD( wParam ) != CBN_DBLCLK ) // Double-clicking a map acts as if "Add >>" was pushed
 					break;			
