@@ -223,4 +223,5 @@ Domination
 	Name "Domination"
 	ShortName "DOM"
 	F1Texture "F1_DOM"
+	WelcomeSound "WelcomeToDomination"
 }

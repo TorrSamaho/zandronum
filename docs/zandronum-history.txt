@@ -87,6 +87,7 @@
 +	- Added the CCMD "listvotetypes" to list all native and custom vote types. [Trillster]
 +	- Added the WEAPON.ALLOW_WITH_RESPAWN_INVUL flag to basic weapons in Heretic, Hexen, and Strife [AKMDM]
 +	- Backported the +INVENTORY.ALWAYSRESPAWN actor flag from ZDoom. [Trillster]
++	- Added a welcome sound to the domination game mode since several announcers already had a "welcome to domination" sound recorded. [AKMDM]
 -	- Fixed: clients didn't initialize a sector's friction properly in some cases due to a superfluous check that wasn't removed earlier. [AKMDM]
 -	- Fixed: the server wouldn't initialize compatflags and compatflags2 properly if entered as command line parameters. [AKMDM]
 -	- Fixed: serverinfo CVars entered on the command line were restored in reverse order. [AKMDM]
