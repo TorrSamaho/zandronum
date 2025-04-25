@@ -788,6 +788,10 @@ int AWhiteFlag::AllowPickup( AActor *toucher )
 			return ( DENY_PICKUP );
 		}
 
+		// [AK] Also don't allow it to be picked up after the game's ended.
+		if ( GAMEMODE_IsGameInProgress( ) == false )
+			return ( DENY_PICKUP );
+
 		return ( ALLOW_PICKUP );
 	}
 	else
