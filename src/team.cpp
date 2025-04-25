@@ -117,23 +117,17 @@ void TEAM_Construct( void )
 //
 void TEAM_Tick( void )
 {
-	ULONG	ulIdx;
-
-	for ( ulIdx = 0; ulIdx < teams.Size( ); ulIdx++ )
+	// [AK] Don't auto-return team items during result sequences.
+	if ( GAMEMODE_IsGameInResultSequence( ) == false )
 	{
-		if ( teams[ulIdx].ulReturnTicks )
+		for ( unsigned int i = 0; i < teams.Size( ); i++ )
 		{
-			teams[ulIdx].ulReturnTicks--;
-			if ( teams[ulIdx].ulReturnTicks == 0 )
-				TEAM_ExecuteReturnRoutine( ulIdx, NULL );
+			if (( teams[i].ulReturnTicks > 0 ) && ( --teams[i].ulReturnTicks == 0 ))
+				TEAM_ExecuteReturnRoutine( i, nullptr );
 		}
-	}
 
-	if ( g_ulWhiteFlagReturnTicks )
-	{
-		g_ulWhiteFlagReturnTicks--;
-		if ( g_ulWhiteFlagReturnTicks == 0 )
-			TEAM_ExecuteReturnRoutine( ulIdx, NULL );
+		if (( g_ulWhiteFlagReturnTicks > 0 ) && ( --g_ulWhiteFlagReturnTicks == 0 ))
+			TEAM_ExecuteReturnRoutine( teams.Size( ), nullptr );
 	}
 }
 

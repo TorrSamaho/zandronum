@@ -295,6 +295,7 @@
 !	- Domination control points are now displayed in the order that they're defined in SECTINFO. [Trillster]
 !	- The "held by" message for the white flag is now colorized the same way as it is when picking up a team's flag or skull. [AKMDM]
 !	- The ACS function "SetPlayerClass" is allowed to change a spectator's class before they join the game now. [AKMDM]
+!	- Team items like the flags/skulls don't auto-return after the game's ended anymore. [AKMDM]
 
 
 3.1
