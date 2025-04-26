@@ -1094,6 +1094,7 @@ void SERVERCOMMANDS_SetLocalPlayerRespawnDelayTime( unsigned int player )
 
 	ServerCommands::SetLocalPlayerRespawnDelayTime command;
 	command.SetRespawnDelayTics( players[player].respawn_time - level.time );
+	command.SetSpawnTelefragged( players[player].bSpawnTelefragged );
 	command.sendCommandToClients( player, SVCF_ONLYTHISCLIENT );
 }
 

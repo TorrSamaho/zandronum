@@ -4622,7 +4622,14 @@ void ServerCommands::SetLocalPlayerJumpTics::Execute()
 void ServerCommands::SetLocalPlayerRespawnDelayTime::Execute()
 {
 	const float respawnDelayTime = static_cast<float>( respawnDelayTics ) / TICRATE;
-	HUD_SetRespawnTimeLeft(( respawnDelayTime > 0.1f ) ? respawnDelayTime : -1.0f );
+
+	// [AK] HUD_SetRespawnTimeLeft needs to know if the local player was spawn
+	// telefragged or not, so set the member to the value the server sent.
+	players[consoleplayer].bSpawnTelefragged = spawnTelefragged;
+	HUD_SetRespawnTimeLeft( respawnDelayTime );
+
+	// [AK] Disable this now, it's no longer needed.
+	players[consoleplayer].bSpawnTelefragged = false;
 }
 
 //*****************************************************************************

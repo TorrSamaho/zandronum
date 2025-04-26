@@ -1500,11 +1500,20 @@ LONG HUD_GetSpread( void )
 //
 void HUD_SetRespawnTimeLeft( float fRespawnTime )
 {
+	const player_t *player = &players[consoleplayer];
+
 	// [AK] The server shouldn't execute this.
 	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 		return;
 
-	g_fRespawnDelay = fRespawnTime;
+	// [AK] Don't show the timer if the local player has lost their last life
+	// and wasn't spawn telefragged. Also, the timer is precise to only one
+	// decimal place, so it's not worth showing if it's below 0.1 seconds.
+	if ((( GAMEMODE_ShouldPlayerLoseLife( )) && ( player->ulLivesLeft == 0 ) && ( player->bSpawnTelefragged == false )) || ( fRespawnTime <= 0.1f ))
+		g_fRespawnDelay = -1.0f;
+	else
+		g_fRespawnDelay = fRespawnTime;
+
 	g_lRespawnGametic = level.time + static_cast<LONG>( g_fRespawnDelay * TICRATE );
 }
 

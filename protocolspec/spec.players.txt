@@ -257,6 +257,7 @@ EndCommand
 Command SetLocalPlayerRespawnDelayTime
 	ExtendedCommand
 	ULong respawnDelayTics
+	Bool spawnTelefragged
 EndCommand
 
 Command DisconnectPlayer
