@@ -12667,7 +12667,8 @@ scriptwait:
 					{
 						if (actor->player)
 						{
-							if (P_UndoPlayerMorph(activator->player, actor->player, 0, force))
+							// [AK] Added a check to make sure the activator exists.
+							if (P_UndoPlayerMorph(activator ? activator->player : nullptr, actor->player, 0, force))
 							{
 								changes++;
 							}

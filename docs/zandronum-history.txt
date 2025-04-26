@@ -235,6 +235,7 @@
 -	- Fixed: Unloading Clientside scripts would crash out the clients online (addresses 2147). [Ru5tK1ng]
 -	- Fixed: clients didn't fully reset the map on their end when starting the first wave's countdown in invasion. [AKMDM]
 -	- Fixed: a player's frag or point count wasn't reset to zero if they were negative, neither was their kill count ever reset to zero, when they joined spectators. [AKMDM]
+-	- Fixed: the ACS function "UnMorphActor" caused a crash when the world was the activator and it tried unmorphing a player using a non-zero tag. [AKMDM]
 !	- The result value of GAMEEVENT_MEDALS event scripts can now be used to determine whether or not the player receives the medal. [AKMDM]
 !	- GAMEMODE flags are now validated after all GAMEMODE lumps have been parsed instead of after each one. The internal game mode name (e.g. "TeamLMS") is now printed with the error message instead of the actual name. [AKMDM]
 !	- Added an extra check to ensure that game modes have a (short) name. [AKMDM]
