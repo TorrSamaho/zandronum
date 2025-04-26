@@ -1987,7 +1987,8 @@ public:
 		if ( NETWORK_InClientMode() )
 			return;
 
-		if ( ReturnTics > 0 )
+		// [AK] Don't auto-return artifacts during result sequences.
+		if (( GAMEMODE_IsGameInResultSequence( ) == false ) && ( ReturnTics > 0 ))
 		{
 			ReturnTics--;
 			if ( ReturnTics == 0 )
