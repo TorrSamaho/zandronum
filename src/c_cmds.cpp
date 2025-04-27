@@ -348,10 +348,30 @@ static bool CheckOnlineCheat ( ECheatCommand cheat )
 	return false;
 }
 
+//
+// [AK] CheckIfUsingUnrestrictedSpectatorMode
+//
+// Another helper function for noclip, noclip2, and fly.
+// Checks if the player is using the unrestricted spectator mode.
+//
+static bool CheckIfUsingUnrestrictedSpectatorMode ( FCommandLine &argv )
+{
+	player_t *const player = CLIENTDEMO_IsPlaying( ) ? CLIENTDEMO_GetFreeSpectatorPlayer( ) : &players[consoleplayer];
+
+	if ( P_IsSpectatorUnrestricted( player->mo ))
+	{
+		Printf( "You can't use %s while using the unrestricted spectator mode.\n", argv[0] );
+		return true;
+	}
+
+	return false;
+}
+
 CCMD (fly)
 {
 	// [TP] Check if this noclip needs to be handled some other way
-	if ( CheckOnlineCheat( CHT_FLY ))
+	// [AK] This can't be used while using the unrestricted spectator mode.
+	if (CheckIfUsingUnrestrictedSpectatorMode (argv) || CheckOnlineCheat (CHT_FLY))
 		return;
 
 	if (CheckCheatmode ())
@@ -371,7 +391,8 @@ argv(0) noclip
 CCMD (noclip)
 {
 	// [TP] Check if this noclip needs to be handled some other way
-	if ( CheckOnlineCheat( CHT_NOCLIP ))
+	// [AK] This can't be used while using the unrestricted spectator mode.
+	if (CheckIfUsingUnrestrictedSpectatorMode (argv) || CheckOnlineCheat (CHT_NOCLIP))
 		return;
 
 	if (CheckCheatmode ())
@@ -384,7 +405,8 @@ CCMD (noclip)
 CCMD (noclip2)
 {
 	// [TP] Check if this noclip needs to be handled some other way
-	if ( CheckOnlineCheat( CHT_NOCLIP2 ))
+	// [AK] This can't be used while using the unrestricted spectator mode.
+	if (CheckIfUsingUnrestrictedSpectatorMode (argv) || CheckOnlineCheat (CHT_NOCLIP2))
 		return;
 
 	if (CheckCheatmode ())
