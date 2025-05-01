@@ -761,6 +761,8 @@ void R_InitSkins (void)
 				}
 				else
 				{
+					bool isCustomProperty = true; // [TRSR/AK]
+
 					for (j = 0; j < NUMSKINSOUNDS; j++)
 					{
 						if (stricmp (key, skinsoundnames[j][0]) == 0)
@@ -774,43 +776,49 @@ void R_InitSkins (void)
 							{ // Replacement not found, try finding it in the global namespace
 								sndlumps[j] = Wads.CheckNumForFullName (sc.String, true, ns_sounds);
 							}
-							break; // [TRSR] Break out early since no other skin sound name will match.
+
+							// [TRSR/AK] A sound was found, so this isn't a custom property.
+							if (isCustomProperty)
+							{
+								isCustomProperty = false;
+							}
 						}
 					}
 					//if (j == 8)
 					//	Printf ("Funny info for skin %i: %s = %s\n", i, key, sc.String);
 
 					// [TRSR] Handle custom properties by putting them into property map.
-					if ( j != NUMSKINSOUNDS )
-						continue;
+					if (isCustomProperty)
+					{
+						do
+						{
+							PlayerValue val;
+							FString customProperty = sc.String;
 
-					do {
-						PlayerValue val;
-						FString customProperty = sc.String;
+							if (customProperty.IsInt())
+							{
+								val.SetValue<int>(atoi(sc.String));
+							}
+							else if (customProperty.IsFloat())
+							{
+								val.SetValue<float>(static_cast<float>(atof(sc.String)));
+							}
+							else if (customProperty.CompareNoCase("true") == 0)
+							{
+								val.SetValue<bool>(true);
+							}
+							else if (customProperty.CompareNoCase("false") == 0)
+							{
+								val.SetValue<bool>(false);
+							}
+							else
+							{
+								val.SetValue<const char*>(sc.String);
+							}
 
-						if ( customProperty.IsInt() )
-						{
-							val.SetValue<int>( atoi( sc.String ) );
-						}
-						else if ( customProperty.IsFloat() )
-						{
-							val.SetValue<float>( static_cast<float>( atof( sc.String ) ) );
-						}
-						else if ( customProperty.CompareNoCase( "true" ) == 0 )
-						{
-							val.SetValue<bool>( true );
-						}
-						else if ( customProperty.CompareNoCase( "false" ) == 0 )
-						{
-							val.SetValue<bool>( false );
-						}
-						else
-						{
-							val.SetValue<const char*>( sc.String );
-						}
-
-						skins[i].propertyList[key].Push( val );
-					} while ( sc.CheckToken( ',' ) && sc.GetToken() );
+							skins[i].propertyList[key].Push(val);
+						} while (sc.CheckToken(',') && sc.GetToken());
+					}
 				}
 			}
 			while(sc.GetString());
