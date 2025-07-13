@@ -15,6 +15,7 @@
 3.2.1
 -----
 
++	- Add the CVar sv_printconnectionmessages, which controls whether messages and errors for clients not completely connected to the server are printed to the server console. [Sean]
 -	- Fixed: some of the sounds that a skin was using weren't playing correctly. [AKMDM]
 -	- Fixed: spectators were unable to pass through teleporters while using the unrestricted spectator mode. [AKMDM]
 -	- Fixed: weapons with the NOLMS flag were no longer given to players after they already spawned in (T)LMS, particularly morph weapons. [AKMDM]
