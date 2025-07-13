@@ -15,6 +15,7 @@
 3.2.1
 -----
 
++	- Add the CVar sv_printconnectionmessages, which controls whether messages and errors for clients not completely connected to the server are printed to the server console. [Sean]
 -	- Fixed: some of the sounds that a skin was using weren't playing correctly. [AKMDM]
 
 
