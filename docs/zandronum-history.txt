@@ -67,7 +67,7 @@
 +	- Added ACS function: "GetPlayerCountry", to return the alpha-2 or alpha-3 code, or full name, of the country a player's connecting from. This also respects a player's choice to hide their country. [AKMDM]
 +	- Added the CVars "cl_motionswayspeed" and "cl_jumpswayspeed" (and MotionSwaySpeed and JumpSwaySpeed DECORATE weapon properties), to add additional sway to a player's weapon when they move, crouch, or jump up or down. [AKMDM]
 +	- Added the CVars "cl_stillbobspeed" and "cl_stillbobrange" (and StillBobSpeed and StillBobRange DECORATE weapon properties), to also bob the weapon up and down while the player stands still. [AKMDM]
-+	- Added the CVar "cl_spectatorsource", which enables source-engine like noclipping that allows spectators to pass through floors and ceilings. Based on the "zcc_spectsource" feature from ZCC. [AKMDM]
++	- Added the CVar "cl_spectatormode", and a new "unrestricted" (default) mode that allows spectators to always pass through walls, floors, and ceilings, and not bob in the air. Based on the "zcc_spectsource" feature from ZCC. [AKMDM]
 +	- Added a new flag to lmsspectatorsettings: "lms_spectatorvoicechat", to decide if spectators can talk with live players while a game's in progress. [AKMDM]
 +	- Added event GAMEEVENT_LEVEL_INIT, which executes early in map initialization, before things are spawned, OPEN scripts executed, etc. [StrikerTheHedgefox]
 +	- Added A_ClientsideACSExecute which allows non-clientside actors to execute clientside scripts from within actor states, without using any network traffic. Useful for per-client effects. [StrikerTheHedgefox]
