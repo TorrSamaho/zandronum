@@ -2885,7 +2885,8 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 // check for smooth step up
 //
 	// [BC] Don't adjust viewheight while predicting.
-	if ( CLIENT_PREDICT_IsPredicting( ) == false )
+	// [AK] Don't do this while using the unrestricted spectator mode either.
+	if (CLIENT_PREDICT_IsPredicting() == false && P_IsSpectatorUnrestricted(mo) == false)
 	{
 		if (mo->player && mo->player->mo == mo && mo->z < mo->floorz)
 		{
@@ -3017,7 +3018,8 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 			}
 		}
 	}
-	if (mo->player && (mo->flags & MF_NOGRAVITY) && (mo->z > mo->floorz))
+	// [AK] Friction must always be applied while using the unrestricted spectator mode.
+	if (mo->player && (mo->flags & MF_NOGRAVITY) && (mo->z > mo->floorz || P_IsSpectatorUnrestricted(mo)))
 	{
 		if (!mo->IsNoClip2())
 		{
@@ -3051,7 +3053,8 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 		P_CheckFor3DFloorHit(mo);
 		// [RH] Need to recheck this because the sector action might have
 		// teleported the actor so it is no longer below the floor.
-		if (mo->z <= mo->floorz)
+		// [AK] Spectators without physical restrictions are allowed to pass through the floor.
+		if (mo->z <= mo->floorz && P_IsSpectatorUnrestricted(mo) == false)
 		{
 			// [BC] We need to do the sky check first, otherwise bouncy things
 			// can potentially bounce off the sky (such as grenades).
@@ -3199,7 +3202,8 @@ void P_ZMovement (AActor *mo, fixed_t oldfloorz)
 		P_CheckFor3DCeilingHit(mo);
 		// [RH] Need to recheck this because the sector action might have
 		// teleported the actor so it is no longer above the ceiling.
-		if (mo->z + mo->height > mo->ceilingz)
+		// [AK] Spectators without physical restrictions are allowed to pass through the ceiling.
+		if (mo->z + mo->height > mo->ceilingz && P_IsSpectatorUnrestricted(mo) == false)
 		{
 			// [BC] We need to do the sky check first, otherwise bouncy things
 			// can potentially bounce off the sky (such as grenades).
@@ -4015,37 +4019,11 @@ void AActor::Tick ()
 				{
 					special2++;
 				}
-
-				// [AK] Don't freeze spectators who have no physical restrictions.
-				if (P_IsSpectatorUnrestricted(this) == false)
-					return;
 			}
 		}
 
 		UnlinkFromWorld ();
 		flags |= MF_NOBLOCKMAP;
-
-		// [AK] Spectators without physical restrictions still need a way to slow down.
-		if (P_IsSpectatorUnrestricted(this))
-		{
-			fixed_t *const velocity[3] = {&velx, &vely, &velz};
-
-			for (unsigned int i = 0; i < 3; i++)
-			{
-				*velocity[i] = FixedMul(*velocity[i], FRICTION_FLY);
-
-				if (abs(*velocity[i]) < STOPSPEED)
-				{
-					// [AK] Use forward/backward and side movement for the x and y velocities.
-					const short movement = (i < 2) ? (player->cmd.ucmd.forwardmove | player->cmd.ucmd.sidemove) : player->cmd.ucmd.upmove;
-
-					if (movement == 0)
-						*velocity[i] = 0;
-				}
-			}
-
-			UpdateWaterLevel(z, false);
-		}
 
 		x += velx;
 		y += vely;

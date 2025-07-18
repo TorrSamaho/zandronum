@@ -128,14 +128,20 @@ void P_SerializePlayers (FArchive &arc, bool skipload)
 			if (players[consoleplayer].bDeadSpectator)
 				PLAYER_SetSpectator (&players[consoleplayer], false, false);
 
-			// [AK] Set the NOINTERACTION flag depending on whether or not
+			// [AK] Set the NOCLIP flag/cheats depending on whether or not
 			// there should be no physical restrictions.
 			if (players[consoleplayer].mo != nullptr)
 			{
 				if (P_IsSpectatorUnrestricted (players[consoleplayer].mo))
-					players[consoleplayer].mo->flags5 |= MF5_NOINTERACTION;
+				{
+					players[consoleplayer].mo->flags |= MF_NOCLIP;
+					players[consoleplayer].cheats |= (CF_FLY | CF_NOCLIP | CF_NOCLIP2);
+				}
 				else
-					players[consoleplayer].mo->flags5 &= ~MF5_NOINTERACTION;
+				{
+					players[consoleplayer].mo->flags &= ~MF_NOCLIP;
+					players[consoleplayer].cheats &= ~(CF_NOCLIP | CF_NOCLIP2);
+				}
 			}
 		}
 	}

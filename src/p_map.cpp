@@ -1494,7 +1494,8 @@ bool P_CheckPosition(AActor *thing, fixed_t x, fixed_t y, FCheckPosition &tm, bo
 	validcount++;
 	spechit.Clear();
 
-	if ((thing->flags & MF_NOCLIP) && !(thing->flags & MF_SKULLFLY))
+	// [AK] Ignore spectators without physical restrictions; they have noclip.
+	if ((thing->flags & MF_NOCLIP) && !(thing->flags & MF_SKULLFLY) && P_IsSpectatorUnrestricted(thing) == false)
 		return true;
 
 	// Check things first, possibly picking things up.
@@ -1572,7 +1573,8 @@ bool P_CheckPosition(AActor *thing, fixed_t x, fixed_t y, FCheckPosition &tm, bo
 
 	thing->BlockingMobj = NULL;
 	thing->height = realheight;
-	if (actorsonly || (thing->flags & MF_NOCLIP))
+	// [AK] Ignore spectators without physical restrictions; they have noclip.
+	if (actorsonly || ((thing->flags & MF_NOCLIP) && P_IsSpectatorUnrestricted(thing) == false))
 		return (thing->BlockingMobj = thingblocker) == NULL;
 
 	FBlockLinesIterator it(box);
@@ -1586,6 +1588,16 @@ bool P_CheckPosition(AActor *thing, fixed_t x, fixed_t y, FCheckPosition &tm, bo
 
 	while ((ld = it.Next()))
 	{
+		// [AK] Spectators without physical restrictions should only be executing
+		// line specials if they reached this point.
+		if (P_IsSpectatorUnrestricted(thing))
+		{
+			if (ld->special)
+				spechit.Push(ld);
+
+			continue;
+		}
+
 		good &= PIT_CheckLine(ld, box, tm);
 	}
 	if (!good)
@@ -2161,7 +2173,8 @@ bool P_TryMove(AActor *thing, fixed_t x, fixed_t y,
 	}
 */
 	// if any special lines were hit, do the effect
-	if (!(thing->flags & (MF_TELEPORT | MF_NOCLIP)))
+	// [AK] Allow spectators without physical restrictions to execute line specials.
+	if (!(thing->flags & (MF_TELEPORT | MF_NOCLIP)) || P_IsSpectatorUnrestricted(thing))
 	{
 		while (spechit.Pop(ld))
 		{
@@ -2376,7 +2389,8 @@ bool P_OldTryMove (AActor *thing, fixed_t x, fixed_t y,
 	thing->LinkToWorld( );
 
 	// if any special lines were hit, do the effect
-	if (!(thing->flags & (MF_TELEPORT|MF_NOCLIP)))
+	// [AK] Allow spectators without physical restrictions to execute line specials.
+	if (!(thing->flags & (MF_TELEPORT|MF_NOCLIP)) || P_IsSpectatorUnrestricted(thing))
 	{
 		while (spechit.Pop (ld))
 		{

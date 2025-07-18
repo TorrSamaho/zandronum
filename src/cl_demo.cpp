@@ -608,9 +608,15 @@ void CLIENTDEMO_ReadPacket( void )
 					if (( players[consoleplayer].bSpectating ) && ( players[consoleplayer].mo != nullptr ))
 					{
 						if ( g_ConsolePlayerUnrestricted )
-							players[consoleplayer].mo->flags5 |= MF5_NOINTERACTION;
+						{
+							players[consoleplayer].mo->flags |= MF_NOCLIP;
+							players[consoleplayer].cheats |= (CF_FLY | CF_NOCLIP | CF_NOCLIP2);
+						}
 						else
-							players[consoleplayer].mo->flags5 &= ~MF5_NOINTERACTION;
+						{
+							players[consoleplayer].mo->flags &= ~MF_NOCLIP;
+							players[consoleplayer].cheats &= ~(CF_NOCLIP | CF_NOCLIP2);
+						}
 					}
 				}
 				break;

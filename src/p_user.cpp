@@ -119,17 +119,16 @@ CUSTOM_CVAR (Int, cl_spectatormode, SPECMODE_NO_RESTRICTIONS, CVAR_ARCHIVE|CVAR_
 	{
 		if (self == SPECMODE_NO_RESTRICTIONS)
 		{
-			player->mo->flags |= MF_NOGRAVITY;
+			player->mo->flags |= (MF_NOGRAVITY | MF_NOCLIP);
 			player->mo->flags2 |= MF2_FLY;
-			player->mo->flags5 |= MF5_NOINTERACTION;
 
-			// [AK] Always enable the fly cheat and disable the noclip cheats.
-			player->cheats |= CF_FLY;
-			player->cheats &= ~(CF_NOCLIP | CF_NOCLIP2);
+			// [AK] Always enable the fly and noclip cheats.
+			player->cheats |= (CF_FLY | CF_NOCLIP | CF_NOCLIP2);
 		}
 		else
 		{
-			player->mo->flags5 &= ~MF5_NOINTERACTION;
+			player->mo->flags &= ~MF_NOCLIP;
+			player->cheats &= ~(CF_NOCLIP | CF_NOCLIP2);
 		}
 	}
 
