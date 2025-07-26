@@ -1001,7 +1001,8 @@ AInventory *AActor::FindInventory (FName type)
 //
 //============================================================================
 
-AInventory *AActor::GiveInventoryType (const PClass *type)
+// [AK] Added checkNoLMSFlag, specifically for weapons.
+AInventory *AActor::GiveInventoryType (const PClass *type, bool checkNoLMSFlag)
 {
 	AInventory *item = NULL;
 	AWeapon *weapon = NULL; // [RK]
@@ -1011,7 +1012,8 @@ AInventory *AActor::GiveInventoryType (const PClass *type)
 		item = static_cast<AInventory *>(Spawn (type, 0,0,0, NO_REPLACE));
 
 		// [RK] In LMS or TLMS we'll cast the item to check for the NOLMS flag.
-		if ( item->IsKindOf( RUNTIME_CLASS( AWeapon )) && ( lastmanstanding || teamlms ))
+		// [AK] Only do this when we should check for this flag.
+		if (checkNoLMSFlag && item->IsKindOf (RUNTIME_CLASS(AWeapon)) && (lastmanstanding || teamlms))
 			weapon = static_cast<AWeapon*>(item);
 
 		// [RK] If the NOLMS flag is found on the weapon, skip any further pickup checks.
@@ -1031,17 +1033,18 @@ AInventory *AActor::GiveInventoryType (const PClass *type)
 //
 //============================================================================
 
-AInventory *AActor::GiveInventoryTypeRespectingReplacements (const PClass *type)
+// [AK] Added checkNoLMSFlag, specifically for weapons.
+AInventory *AActor::GiveInventoryTypeRespectingReplacements (const PClass *type, bool checkNoLMSFlag)
 {
 	const PClass *pReplacementClass = type->ActorInfo->GetReplacement( )->Class;
 	// [BB] Special handling for DehackedPickup: In this case the original actor is
 	// already modified and we need to give it to him instead of the replacement.
 	if ( pReplacementClass->IsDescendantOf ( PClass::FindClass( "DehackedPickup" ) ) )
-		return GiveInventoryType ( type );
+		return GiveInventoryType ( type, checkNoLMSFlag );
 	// [BB] If the replacement is something, that is not of type AInventory, we
 	// can't give it to the actor.
 	else if ( pReplacementClass->IsDescendantOf( RUNTIME_CLASS( AInventory )) )
-		return GiveInventoryType ( pReplacementClass );
+		return GiveInventoryType ( pReplacementClass, checkNoLMSFlag );
 	else
 		return NULL;
 }

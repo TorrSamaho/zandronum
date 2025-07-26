@@ -1632,7 +1632,7 @@ void APlayerPawn::GiveDefaultInventory ()
 				I_Error("Tried to give an improperly defined railgun.\n");
 
 			// Give the player the weapon.
-			pInventory = player->mo->GiveInventoryType( pRailgun );
+			pInventory = player->mo->GiveInventoryType( pRailgun, true );
 
 			if ( pInventory )
 			{
@@ -1656,7 +1656,7 @@ void APlayerPawn::GiveDefaultInventory ()
 		else if (( buckshot && bBuckshotPossible ) && ( deathmatch || teamgame ))
 		{
 			// Give the player the weapon.
-			pInventory = player->mo->GiveInventoryTypeRespectingReplacements( PClass::FindClass( "SuperShotgun" ) );
+			pInventory = player->mo->GiveInventoryTypeRespectingReplacements( PClass::FindClass( "SuperShotgun" ), true );
 
 			if ( pInventory )
 			{
@@ -1769,7 +1769,7 @@ void APlayerPawn::GiveDefaultInventory ()
 
 				if ( pType->ParentClass->IsDescendantOf( RUNTIME_CLASS( AWeapon )))
 				{
-					pInventory = player->mo->GiveInventoryTypeRespectingReplacements( pType );
+					pInventory = player->mo->GiveInventoryTypeRespectingReplacements( pType, true );
 
 					// Make this weapon the player's pending weapon if it ranks higher.
 					// [BB] We obviously only can do the cast when the possible replacement is still a weapon.
@@ -1899,7 +1899,7 @@ void APlayerPawn::GiveDefaultInventory ()
 
 				if ( pType->ParentClass->IsDescendantOf( RUNTIME_CLASS( AWeapon )))
 				{
-					pInventory = player->mo->GiveInventoryTypeRespectingReplacements( pType );
+					pInventory = player->mo->GiveInventoryTypeRespectingReplacements( pType, true );
 
 					// Make this weapon the player's pending weapon if it ranks higher.
 					pWeapon = static_cast<AWeapon *>( pInventory );

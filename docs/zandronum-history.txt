@@ -17,6 +17,7 @@
 
 -	- Fixed: some of the sounds that a skin was using weren't playing correctly. [AKMDM]
 -	- Fixed: spectators were unable to pass through teleporters while using the unrestricted spectator mode. [AKMDM]
+-	- Fixed: weapons with the NOLMS flag were no longer given to players after they already spawned in (T)LMS, particularly morph weapons. [AKMDM]
 
 
 3.2
