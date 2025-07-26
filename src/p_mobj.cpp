@@ -1018,7 +1018,7 @@ AInventory *AActor::GiveInventoryType (const PClass *type, bool checkNoLMSFlag)
 
 		// [RK] If the NOLMS flag is found on the weapon, skip any further pickup checks.
 		// Otherwise CallTryPickup will proceed as normal and run checks on the item.
-		if (( weapon && ( weapon->WeaponFlags & WIF_NOLMS )) || !item->CallTryPickup (this))
+		if ((weapon && (weapon->WeaponFlags & WIF_NOLMS)) || !item->CallTryPickup (this))
 		{
 			item->Destroy ();
 			return NULL;
