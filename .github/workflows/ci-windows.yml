@@ -1,0 +1,82 @@
+name: Windows build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-2022
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        build_type: [Release]
+        platform: ["Win32", "x64"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set reusable strings
+      id: strings
+      shell: bash
+      run: |
+        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+        echo "deps-dir=${{ github.workspace }}/deps" >> "$GITHUB_OUTPUT"
+
+    - name: Install dependencies for Windows
+      shell: pwsh
+      if: runner.os == 'Windows'
+      run: |
+        Invoke-WebRequest -Outfile 'deps.zip' 'https://github.com/DrinkyBird/zan-ci-deps/releases/download/ci-dependencies/zan-windows-deps.zip'
+        Expand-Archive 'deps.zip' -DestinationPath '${{ steps.strings.outputs.deps-dir }}'
+
+    - name: Configure CMake
+      shell: pwsh
+      run: |
+        $bits = 32;
+        $sslArch = 'x86';
+        $fmodArch = '';
+        If ( '${{ matrix.platform }}' -eq 'x64' ) {
+            $bits = 64;
+            $sslArch = 'x64';
+            $fmodArch = '64';
+        }
+        
+        # see src/CMakeLists.txt, it takes an env variable hint for finding DirectX
+        $env:DXSDK_DIR = "${{ steps.strings.outputs.deps-dir }}\dxsdk" ;
+        
+        # We need it for the artefacts later
+        echo "FMOD_DLL=${{ steps.strings.outputs.deps-dir }}\fmod\api\fmodex${fmodArch}.dll" >> $env:GITHUB_ENV ;
+        
+        & cmake -B "${{ steps.strings.outputs.build-output-dir }}" -S "${{ github.workspace }}" `
+            -A "${{ matrix.platform }}" `
+            -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" `
+            -DRELEASE_WITH_DEBUG_FILE=ON `
+            -DOPUS_INCLUDE_DIR="${{ steps.strings.outputs.deps-dir }}\opus\include" `
+            -DOPUS_LIBRARIES="${{ steps.strings.outputs.deps-dir }}\opus\lib${bits}\opus.lib" `
+            -DOPENSSL_INCLUDE_DIR="${{ steps.strings.outputs.deps-dir }}\openssl${bits}\include" `
+            -DLIB_EAY_DEBUG="${{ steps.strings.outputs.deps-dir }}\openssl${bits}\lib\VC\${sslArch}\MTd\libcrypto_static.lib" `
+            -DLIB_EAY_RELEASE="${{ steps.strings.outputs.deps-dir }}\openssl${bits}\lib\VC\${sslArch}\MT\libcrypto_static.lib" `
+            -DSSL_EAY_DEBUG="${{ steps.strings.outputs.deps-dir }}\openssl${bits}\lib\VC\${sslArch}\MTd\libssl_static.lib" `
+            -DSSL_EAY_RELEASE="${{ steps.strings.outputs.deps-dir }}\openssl${bits}\lib\VC\${sslArch}\MT\libssl_static.lib" `
+            -DFMOD_INCLUDE_DIR="${{ steps.strings.outputs.deps-dir }}\fmod\api\inc" `
+            -DFMOD_LIBRARY="${{ steps.strings.outputs.deps-dir }}\fmod\api\lib\fmodex${fmodArch}_vc.lib" `
+            -DNASM_PATH="${{ steps.strings.outputs.deps-dir }}\nasm\nasm.exe"
+
+    - name: Build
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+
+    - name: Create package
+      shell: pwsh
+      run: |
+        mkdir package
+        cp ${{ steps.strings.outputs.build-output-dir }}\${{ matrix.build_type }}\*.exe package
+        cp ${{ steps.strings.outputs.build-output-dir }}\${{ matrix.build_type }}\*.pdb package
+        cp ${{ steps.strings.outputs.build-output-dir }}\${{ matrix.build_type }}\*.pk3 package
+        cp ${env:FMOD_DLL} package
+
+    - name: Upload artefacts
+      uses: actions/upload-artifact@v4
+      with:
+        path: package
+        name: ${{ matrix.platform }} ${{ matrix.build_type }}
