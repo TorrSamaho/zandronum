@@ -2860,7 +2860,8 @@ void P_CalcHeight (player_t *player)
 		}
 	}
 
-	if (player->morphTics)
+	// [AK] Bob the screen for morphed players if NOMORPHLIMITATIONS is enabled.
+	if (player->morphTics && ((player->mo->PlayerFlags & PPF_NOMORPHLIMITATIONS) == false))
 	{
 		bob = 0;
 	}

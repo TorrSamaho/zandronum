@@ -20,6 +20,7 @@
 -	- Fixed: spectators were unable to pass through teleporters while using the unrestricted spectator mode. [AKMDM]
 -	- Fixed: weapons with the NOLMS flag were no longer given to players after they already spawned in (T)LMS, particularly morph weapons. [AKMDM]
 -	- Fixed: a player that morphed into a class with the NOMORPHLIMITATIONS flag didn't keep their pitch, and would instead spawn with any weapon they previously owned already selected if they had no morph weapon, in online games. [AKMDM]
+!	- The screen now bobs for morphed players with the NOMORPHLIMITATIONS flag. [AKMDM]
 
 
 3.2
