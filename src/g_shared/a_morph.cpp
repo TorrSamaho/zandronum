@@ -104,6 +104,8 @@ bool P_MorphPlayer (player_t *activator, player_t *p, const PClass *spawntype, i
 		morphed->vely = actor->vely;
 		morphed->velz = actor->velz;
 		morphed->pitch = actor->pitch;
+		// [AK] Set the morphed player's reaction time to zero too.
+		morphed->reactiontime = 0;
 	}
 	if (actor->renderflags & RF_INVISIBLE)
 	{
@@ -274,7 +276,9 @@ bool P_UndoPlayerMorph (player_t *activator, player_t *player, int unmorphflag, 
 	}
 	mo->angle = pmo->angle;
 	mo->player = player;
-	mo->reactiontime = 18;
+	// [AK] Don't adjust the reaction time if NOMORPHLIMITATIONS is enabled.
+	if (noMorphLimitations == false)
+		mo->reactiontime = 18;
 	mo->flags = pmo->special2 & ~MF_JUSTHIT;
 	// [Binary] Keep movement if +NOMORPHLIMITATIONS is used.
 	if (noMorphLimitations)

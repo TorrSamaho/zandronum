@@ -2588,7 +2588,11 @@ explode:
 		if (player && player->mo == mo)
 			player->velx = player->vely = 0; 
 	}
-	else
+	// [AK] Don't apply friction to a player's velocity when they just morphed
+	// to a class with NOMORPHLIMITATIONS enabled. They must keep the same
+	// velocity they had prior to morphing, since friction was already applied.
+	// Checking for the MF7_HANDLENODELAY flag is good enough to verify this.
+	else if (player == nullptr || player->morphTics == 0 || !(player->mo->PlayerFlags & PPF_NOMORPHLIMITATIONS) || !(player->mo->flags7 & MF7_HANDLENODELAY))
 	{
 		// phares 3/17/98
 		// Friction will have been adjusted by friction thinkers for icy

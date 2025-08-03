@@ -3452,6 +3452,7 @@ void ServerCommands::SpawnPlayer::Execute()
 	APlayerPawn				*pActor;
 	LONG					lSkin;
 	bool					bWasWatchingPlayer;
+	bool					hadNoMorphLimitations = false;
 	AActor					*pCameraActor;
 	APlayerPawn				*pOldActor;
 
@@ -3542,6 +3543,11 @@ void ServerCommands::SpawnPlayer::Execute()
 		// If so, we need to reattach his camera to it when the player respawns.
 		if ( pOldActor->CheckLocalView( consoleplayer ))
 			bWasWatchingPlayer = true;
+
+		// [AK] Check if the player's old body had NOMORPHLIMITATIONS enabled.
+		// This is only relevant when the player is unmorphing.
+		if ( pOldActor->PlayerFlags & PPF_NOMORPHLIMITATIONS )
+			hadNoMorphLimitations = true;
 
 		if (( priorState == PST_REBORN ) ||
 			( priorState == PST_REBORNNOINVENTORY ) ||
@@ -3804,6 +3810,9 @@ void ServerCommands::SpawnPlayer::Execute()
 		// Don't do this if the morphed class has NOMORPHLIMITATIONS enabled.
 		if (( pPlayer->mo->PlayerFlags & PPF_NOMORPHLIMITATIONS ) == false )
 			pPlayer->mo->ScoreIcon = static_cast<APlayerPawn *>( GetDefaultByType( PlayerClasses[oldPlayerClass].Type ))->ScoreIcon;
+		// [AK] If the aforementioned flag's enabled, set the reaction time to zero too.
+		else
+			pPlayer->mo->reactiontime = 0;
 	}
 	else
 	{
@@ -3811,9 +3820,10 @@ void ServerCommands::SpawnPlayer::Execute()
 
 		// [BB] If the player was just unmorphed, we need to set reactiontime to the same value P_UndoPlayerMorph uses.
 		// [EP] The morph style, too.
+		// [AK] The reaction time should be zero when unmorphing from a class with NOMORPHLIMITATIONS enabled.
 		if ( bPlayerWasMorphed )
 		{
-			pPlayer->mo->reactiontime = 18;
+			pPlayer->mo->reactiontime = hadNoMorphLimitations ? 0 : 18;
 			pPlayer->MorphStyle = 0;
 		}
 	}
