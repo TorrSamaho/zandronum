@@ -159,6 +159,13 @@ bool ACustomInventory::CallStateChain (AActor *actor, FState * State)
 			// Abort immediately if the state jumps to itself!
 			if (State == State->GetNextState()) 
 			{
+				// [AK] The server handles state chain results, so if the client
+				// reaches here, then it already succeeded on the server's end.
+				// Thus, let it succeed on the client's end, even in this case,
+				// because they likely didn't predict the result properly.
+				if (NETWORK_InClientMode())
+					return true;
+
 				return false;
 			}
 			

@@ -21,6 +21,7 @@
 -	- Fixed: weapons with the NOLMS flag were no longer given to players after they already spawned in (T)LMS, particularly morph weapons. [AKMDM]
 -	- Fixed: a player that morphed into a class with the NOMORPHLIMITATIONS flag didn't keep their pitch, and would instead spawn with any weapon they previously owned already selected if they had no morph weapon, in online games. [AKMDM]
 -	- Fixed: players were briefly unable to move upon (un)morphing to/from a class with the NOMORPHLIMITATIONS flag. [AKMDM]
+-	- Fixed: clients sometimes weren't given CustomInventory items on their end, even though they successfully picked them up on the server's end. [AKMDM]
 !	- The screen now bobs for morphed players with the NOMORPHLIMITATIONS flag. [AKMDM]
 
 
