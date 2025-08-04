@@ -183,7 +183,7 @@ bool ACustomInventory::CallStateChain (AActor *actor, FState * State)
 	// immune to state chain failure in event it cannot predict the result properly. Since the client is here, it has
 	// already succeded on the server. Without this, clients would sometimes be unable to handle e.g. GiveInventory
 	// messages properly for CustomInventory items with Pickup states that call ACS.
-	if ( NETWORK_InClientMode() )
+	if (NETWORK_InClientMode())
 		return true;
 
 	return result;
