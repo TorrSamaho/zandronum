@@ -543,10 +543,6 @@ struct CLIENT_s
 	// [AK] A list of specials this player executed while being extrapolated.
 	TArray<CLIENT_SAVED_SPECIAL_s>	ExtrapolatedSpecials;
 
-	// [AK] Last tick that the player respawned. This is particularly used to prevent weapon desyncs
-	// if the client fires too early after respawning.
-	unsigned int	lastRespawnTick;
-
 	// [BB] Variables for the account system
 	FString username;
 	unsigned int clientSessionID;

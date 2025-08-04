@@ -3119,6 +3119,7 @@ void PLAYER_ResetPlayerData( player_t *pPlayer )
 	pPlayer->Team = 0;
 	pPlayer->lPointCount = 0;
 	pPlayer->ulDeathCount = 0;
+	pPlayer->lastRespawnTick = 0;
 	PLAYER_ResetSpecialCounters ( pPlayer );
 	pPlayer->statuses = 0;
 	pPlayer->bSpectating = 0;

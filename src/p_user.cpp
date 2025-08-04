@@ -356,6 +356,7 @@ player_t::player_t()
   Team( 0 ),
   lPointCount( 0 ),
   ulDeathCount( 0 ),
+  lastRespawnTick( 0 ),
   ulLastFragTick( 0 ),
   ulLastExcellentTick( 0 ),
   ulLastBFGFragTick( 0 ),
@@ -514,6 +515,7 @@ player_t &player_t::operator=(const player_t &p)
 	Team = p.Team;
 	lPointCount = p.lPointCount;
 	ulDeathCount = p.ulDeathCount;
+	lastRespawnTick = p.lastRespawnTick;
 	ulLastFragTick = p.ulLastFragTick;
 	ulLastExcellentTick = p.ulLastExcellentTick;
 	ulLastBFGFragTick = p.ulLastBFGFragTick;

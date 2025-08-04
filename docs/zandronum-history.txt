@@ -23,6 +23,7 @@
 -	- Fixed: players were briefly unable to move upon (un)morphing to/from a class with the NOMORPHLIMITATIONS flag. [AKMDM]
 -	- Fixed: clients sometimes weren't given CustomInventory items on their end, even though they successfully picked them up on the server's end. [AKMDM]
 !	- The screen now bobs for morphed players with the NOMORPHLIMITATIONS flag. [AKMDM]
+!	- There's now a short period when the player can still switch to the weapon they picked up upon respawning, even when they're pressing the fire button(s) and cl_noswitchonfire would've prevented it. [AKMDM]
 
 
 3.2

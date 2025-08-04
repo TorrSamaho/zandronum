@@ -448,12 +448,27 @@ void AWeapon::AttachToOwner (AActor *other)
 			// [AK] Don't switch the weapon if we don't want to while pressing the fire button(s).
 			if (( shouldSwitch ) && ( NETWORK_GetState( ) != NETSTATE_SERVER ) && (( Owner->player - players ) == consoleplayer ))
 			{
-				const DWORD buttons = Owner->player->cmd.ucmd.buttons;
+				// [AK] It's common for players to respawn on top of weapons in deathmatch levels.
+				// It's reasonable to assume that the player would always want to switch to this
+				// weapon instead of keeping the one they spawned with (e.g. the pistol in Doom).
+				// Thus, don't check if they're pressing the fire button(s) for a short period after
+				// they respawned; ten ticks should be long enough.
+				unsigned int maxTicksSinceRespawn = 10;
 
-				if ((( cl_noswitchonfire & NOSWITCH_PRIMARYFIRE ) && ( buttons & BT_ATTACK )) ||
-					(( cl_noswitchonfire & NOSWITCH_SECONDARYFIRE ) && ( buttons & BT_ALTATTACK )))
+				// [AK] Take into account the player's ping too. It takes longer for a player with
+				// a higher ping to pick up a weapon than one with a lower ping. Always round up.
+				if ( NETWORK_InClientMode( ))
+					maxTicksSinceRespawn += static_cast<unsigned>( ceil( Owner->player->ulPing / MS_PER_TIC ));
+
+				if ( static_cast<unsigned>( gametic ) - Owner->player->lastRespawnTick > maxTicksSinceRespawn )
 				{
-					shouldSwitch = false;
+					const DWORD buttons = Owner->player->cmd.ucmd.buttons;
+
+					if ((( cl_noswitchonfire & NOSWITCH_PRIMARYFIRE ) && ( buttons & BT_ATTACK )) ||
+						(( cl_noswitchonfire & NOSWITCH_SECONDARYFIRE ) && ( buttons & BT_ALTATTACK )))
+					{
+						shouldSwitch = false;
+					}
 				}
 			}
 

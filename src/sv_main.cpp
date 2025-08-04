@@ -2145,7 +2145,6 @@ void SERVER_SetupNewConnection( BYTESTREAM_s *pByteStream, bool bNewPlayer )
 	g_aClients[lClient].ScreenWidth = 0;
 	g_aClients[lClient].ScreenHeight = 0;
 	g_aClients[lClient].ulClientGameTic = 0;
-	g_aClients[lClient].lastRespawnTick = 0;
 	// [CK] Since the client is not up to date at all, the farthest the client
 	// should be able to go back is the gametic they connected with.
 	g_aClients[lClient].lLastServerGametic = gametic;
@@ -6239,7 +6238,7 @@ bool ClientMoveCommand::process( const ULONG clientIndex ) const
 			// [AK] Don't do this if we're processing a move commmand sent by the client before they
 			// respawned. Doing so causes their weapon to desync, especially at higher pings.
 			if ((( level.maptime > 3 * TICRATE ) || (( client->State == CLS_SPAWNED ) && ( player->ReadyWeapon == nullptr ) && ( player->PendingWeapon == WP_NOCHANGE ))) &&
-				( static_cast<int>( moveCmd.ulServerGametic - client->lastRespawnTick ) > 0 ))
+				( static_cast<int>( moveCmd.ulServerGametic - player->lastRespawnTick ) > 0 ))
 			{
 				const PClass *type = NETWORK_GetClassFromIdentification( moveCmd.usWeaponNetworkIndex );
 				if (( type ) && ( type->IsDescendantOf( RUNTIME_CLASS( AWeapon ))))

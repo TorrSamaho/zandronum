@@ -701,6 +701,11 @@ public:
 	// How many times has this player died?
 	ULONG		ulDeathCount;
 
+	// [AK] Last tick that the player respawned. This is used to prevent weapon desyncs
+	// if the client fires too early after respawning in online games, and to handle
+	// cl_noswitchonfire shortly after the player respawns.
+	unsigned int lastRespawnTick;
+
 	// The last tick this player got a frag.
 	ULONG		ulLastFragTick;
 
