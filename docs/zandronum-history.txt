@@ -12,6 +12,12 @@
 ===============================================================================================================
 
 
+3.3
+---
+
++	- Added the CVar sv_terminatorfragaward, which controls how many frags are obtained upon fragging the Terminator. [geNia, Trillster]
+
+
 3.2.1
 -----
 

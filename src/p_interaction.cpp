@@ -103,6 +103,13 @@ EXTERN_CVAR (Bool, show_obituaries)
 // the player's max health instead of a hard-coded health of 100.
 CVAR( Bool, blood_fade_usemaxhealth, false, CVAR_ARCHIVE )
 
+// [TRSR] Adjusts the number of frags gained when fragging the Terminator.
+CUSTOM_CVAR(Int, sv_terminatorfragaward, 10, CVAR_SERVERINFO | CVAR_GAMEPLAYSETTING)
+{
+	if ( self <= 0 )
+		self = 1;
+};
+
 FName MeansOfDeath;
 bool FriendlyFire;
 
@@ -575,8 +582,9 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 			if (player == source->player)	// [RH] Cumulative frag count
 			{
 				// [BC] Frags are server side.
+				// [TRSR] Terminator loses extra frags based on sv_terminatorfragaward
 				if ( NETWORK_InClientMode() == false )
-					PLAYER_SetFragcount( player, player->fragcount - (( bPossessedTerminatorArtifact ) ? 10 : 1 ), true, true );
+					PLAYER_SetFragcount( player, player->fragcount - (( bPossessedTerminatorArtifact ) ? sv_terminatorfragaward : 1 ), true, true );
 			}
 			else
 			{
@@ -584,16 +592,16 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 				GAMEMODE_HandleEvent ( GAMEEVENT_PLAYERFRAGS, source->player->mo, static_cast<int> ( player - players ) );
 
 				// [BC] Frags are server side.
-				// [BC] Player receives 10 frags for killing the terminator!
+				// [BC/TRSR] Players receive extra frags for fragging the Terminator based on sv_terminatorfragaward
 				if ( NETWORK_InClientMode() == false )
 				{
 					if ((dmflags2 & DF2_YES_LOSEFRAG) && deathmatch)
 						PLAYER_SetFragcount( player, player->fragcount - 1, true, true );
 
 					if ( source->IsTeammate( this ))
-						PLAYER_SetFragcount( source->player, source->player->fragcount - (( bPossessedTerminatorArtifact ) ? 10 : 1 ), true, true );
+						PLAYER_SetFragcount( source->player, source->player->fragcount - (( bPossessedTerminatorArtifact ) ? sv_terminatorfragaward : 1 ), true, true );
 					else
-						PLAYER_SetFragcount( source->player, source->player->fragcount + (( bPossessedTerminatorArtifact ) ? 10 : 1 ), true, true );
+						PLAYER_SetFragcount( source->player, source->player->fragcount + (( bPossessedTerminatorArtifact ) ? sv_terminatorfragaward : 1 ), true, true );
 				}
 
 				// [BC] Add this frag to the server's statistic module.
@@ -774,7 +782,8 @@ void AActor::Die (AActor *source, AActor *inflictor, int dmgflags)
 		// count environment kills against you
 		if (!source)
 		{
-			PLAYER_SetFragcount( player, player->fragcount - (( bPossessedTerminatorArtifact ) ? 10 : 1 ), true, true );	// [RH] Cumulative frag count
+			// [TRSR] Terminator loses extra frags based on sv_terminatorfragaward
+			PLAYER_SetFragcount( player, player->fragcount - (( bPossessedTerminatorArtifact ) ? sv_terminatorfragaward : 1 ), true, true );	// [RH] Cumulative frag count
 		}
 						
 		// [BC] Increment team deathcount.
