@@ -783,8 +783,13 @@ CUSTOM_CVAR(Int, compatmode, 0, CVAR_ARCHIVE|CVAR_NOINITCALL|CVAR_SERVERINFO)
 		break;
 
 	}
-	compatflags = v;
-	compatflags2 = w;
+	// [AK] Don't let clients with RCON access change compatflags or compatflags2.
+	// The server will send them the updated values of both CVars.
+	if ((NETWORK_GetState() != NETSTATE_CLIENT) || (CLIENT_HasRCONAccess() == false))
+	{
+		compatflags = v;
+		compatflags2 = w;
+	}
 }
 
 CVAR (Flag, compat_shortTex,			compatflags,  COMPATF_SHORTTEX);
