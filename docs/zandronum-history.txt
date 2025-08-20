@@ -16,7 +16,7 @@
 ---
 
 +	- Added the CVar sv_terminatorfragaward, which controls how many frags are obtained upon fragging the Terminator. [geNia, Trillster]
--	- Fixed: A_SpawnItemEx didn't sync the TID of spawned actors to clients in online games. [AKMDM]
+-	- Fixed: A_SpawnItemEx didn't sync the TID or stencil color of spawned actors to clients in online games. [AKMDM]
 
 
 3.2.1

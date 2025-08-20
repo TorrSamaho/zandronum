@@ -2695,6 +2695,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SpawnItemEx)
 
 			// [BB] Set scale if necessary.
 			SERVERCOMMANDS_UpdateThingScaleNotAtDefault ( mo );
+
+			// [AK] Set the stencil color if necessary.
+			if ( mo->fillcolor != mo->GetDefault( )->fillcolor )
+				SERVERCOMMANDS_SetThingProperty( mo, APROP_StencilColor );
 		}
 
 		// [BC] Flag this actor as being client-spawned.
