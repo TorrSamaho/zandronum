@@ -2681,6 +2681,10 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_SpawnItemEx)
 			// [BB] Set the angle and velocity if necessary.
 			SERVER_SetThingNonZeroAngleAndVelocity( mo );
 
+			// [AK] Sync the TID if necessary.
+			if ( mo->tid != 0 )
+				SERVERCOMMANDS_SetThingTID( mo );
+
 			if ( mo->Translation )
 				SERVERCOMMANDS_SetThingTranslation( mo );
 
