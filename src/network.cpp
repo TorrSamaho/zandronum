@@ -748,7 +748,7 @@ void NETWORK_Destruct( void )
 int NETWORK_GetPackets( void )
 {
 	LONG				lNumBytes;
-	INT					iDecodedNumBytes = sizeof(g_ucHuffmanBuffer);
+	INT					iDecodedNumBytes = g_NetworkMessage.ulMaxSize;
 	sockaddr			SocketFrom;
 	INT					iSocketFromLength;
 
@@ -843,7 +843,7 @@ int NETWORK_GetLANPackets( void )
 		return 0;
 
 	LONG				lNumBytes;
-	INT					iDecodedNumBytes = sizeof(g_ucHuffmanBuffer);
+	INT					iDecodedNumBytes = g_NetworkMessage.ulMaxSize;
 	sockaddr			SocketFrom;
 	INT					iSocketFromLength;
 

@@ -198,7 +198,7 @@ void NETWORK_Construct( USHORT usPort, const char *pszIPAddress )
 int NETWORK_GetPackets( void )
 {
 	LONG				lNumBytes;
-	INT					iDecodedNumBytes = sizeof(g_ucHuffmanBuffer);
+	INT					iDecodedNumBytes = g_NetworkMessage.ulMaxSize;
 	sockaddr			SocketFrom;
 	INT					iSocketFromLength;
 
