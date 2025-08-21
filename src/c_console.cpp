@@ -135,7 +135,7 @@ ULONG g_ulTextHeight;
 
 static char ConsoleBuffer[CONSOLESIZE];
 static char *Lines[CONSOLELINES];
-static char *TimeStamps[CONSOLELINES]; // [Leo]
+static FString TimeStamps[CONSOLELINES]; // [Leo]
 static bool LineJoins[CONSOLELINES];
 
 static int TopLine, InsertLine;
@@ -425,9 +425,6 @@ void C_InitConback()
 	if ( Args->CheckParm( "-host" ))
 		return;
 
-	// [AK] Initialize the timestamps string array;
-	memset(TimeStamps, 0, sizeof(TimeStamps));
-
 	conback = TexMan.CheckForTexture ("CONBACK", FTexture::TEX_MiscPatch);
 
 	if (!conback.isValid())
@@ -656,13 +653,9 @@ static void ClearConsole ()
 	// [AK] Delete all the timestamps.
 	for (int i = 0; i < CONSOLELINES; i++)
 	{
-		if (TimeStamps[i] != NULL)
-		{
-			delete[] TimeStamps[i];
-		}
+		TimeStamps[i] = "";
 	}
 
-	memset (TimeStamps, 0, sizeof(TimeStamps));
 	memset (LineJoins, 0, sizeof(LineJoins));
 }
 
@@ -780,12 +773,8 @@ static int FlushLines (const char *start, const char *stop)
 		{
 			Lines[i] = NULL;
 
-			// [AK] Delete this timestamp if used.
-			if (TimeStamps[i] != NULL)
-			{
-				delete[] TimeStamps[i];
-				TimeStamps[i] = NULL;
-			}
+			// [AK] Delete this timestamp.
+			TimeStamps[i] = "";
 		}
 		else
 		{
@@ -796,7 +785,7 @@ static int FlushLines (const char *start, const char *stop)
 }
 
 // [Leo] Added an argument for adding timestamps to line entries.
-static void AddLine (const char *text, bool more, size_t len, char *timestamp)
+static void AddLine (const char *text, bool more, size_t len, const FString &timestamp)
 {
 	if (BufferRover + len + 1 - ConsoleBuffer > CONSOLESIZE)
 	{
@@ -815,13 +804,8 @@ static void AddLine (const char *text, bool more, size_t len, char *timestamp)
 	BufferRover += len + 1;
 	LineJoins[InsertLine] = more;
 
-	// [AK] Delete the old timestamp if used, then add the new one if it exists.
-	if (TimeStamps[InsertLine] != NULL)
-	{
-		delete[] TimeStamps[InsertLine];
-	}
-
-	TimeStamps[InsertLine] = (timestamp == NULL) ? NULL : copystring(timestamp);
+	// [AK] Add the new timestamp if it exists.
+	TimeStamps[InsertLine] = timestamp;
 	InsertLine = (InsertLine + 1) & LINEMASK;
 	if (InsertLine == TopLine)
 	{
@@ -840,7 +824,7 @@ void AddToConsole (int printlevel, const char *text)
 
 	char *work_p;
 	char *linestart;
-	char *timestamp = NULL; // [Leo]
+	FString timestamp; // [Leo]
 	FString cc('A' + char(CR_TAN));
 	int size, len;
 	int x;
@@ -858,9 +842,7 @@ void AddToConsole (int printlevel, const char *text)
 		time_t clock;
 		time(&clock);
 		struct tm *lt = localtime (&clock);
-		char timestring[14];
-		sprintf(timestring, "\034i[%02d:%02d:%02d] ", lt->tm_hour, lt->tm_min, lt->tm_sec);
-		timestamp = timestring;
+		timestamp.Format(TEXTCOLOR_ORANGE "[%02d:%02d:%02d] ", lt->tm_hour, lt->tm_min, lt->tm_sec);
 	}
 
 	len = (int)strlen (text);
@@ -964,7 +946,7 @@ void AddToConsole (int printlevel, const char *text)
 			}
 			int w = ConFont->GetCharWidth (*work_p);
 			// [AK] Also take into account the width of the timestamp string, if there is one.
-			if (*work_p == '\n' || x + w + (timestamp != NULL ? ConFont->StringWidth(timestamp) : 0) > maxwidth)
+			if (*work_p == '\n' || x + w + (timestamp.IsNotEmpty() ? ConFont->StringWidth(timestamp) : 0) > maxwidth)
 			{
 				AddLine (linestart, *work_p != '\n', work_p - linestart, timestamp); // [Leo]
 				if (*work_p == '\n')
@@ -1598,7 +1580,7 @@ void C_DrawConsole (bool hw2d)
 			{
 				// [AK] Add the timestamp to the beginning of this line, if there is one.
 				int lineoffset = LEFTMARGIN;
-				if (TimeStamps[pos] != NULL)
+				if (TimeStamps[pos].IsNotEmpty())
 				{
 					screen->DrawText (ConFont, CR_TAN, lineoffset, offset + lines * ConFont->GetHeight(),
 						TimeStamps[pos], TAG_DONE);
