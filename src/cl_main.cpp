@@ -4668,6 +4668,9 @@ void ServerCommands::DisconnectPlayer::Execute()
 				FBehavior::StaticStopMyScripts( player->mo );
 		}
 
+		// [AK] Stop any sounds from this actor before destroying it.
+		S_StopAllSoundsFromActor( player->mo );
+
 		// Destroy the actor associated with the player.
 		player->mo->Destroy( );
 		player->mo = nullptr;
