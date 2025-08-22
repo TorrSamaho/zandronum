@@ -16,6 +16,7 @@
 ---
 
 +	- Added the CVar sv_terminatorfragaward, which controls how many frags are obtained upon fragging the Terminator. [geNia, Trillster]
++	- Added mouse input type selection to MENUDEF so players can toggle the in_mouse CVAR easier and select the desired input mode. Also clarified the function of the old Skulltag mouse option. [Ru5tK1ng]
 -	- Fixed: A_SpawnItemEx didn't sync the TID or stencil color of spawned actors to clients in online games. [AKMDM]
 -	- Fixed: an actor's stencil color wasn't synced to newly connected clients in online games. [AKMDM]
 -	- Fixed: clients that gained RCON access erroneously told the server to change the values of compatflags and compatflags2. [AKMDM]

@@ -568,6 +568,15 @@ OptionString "Cursors"
 	"-", "System cursor"
 }
 
+// [RK]
+OptionValue "InputType"
+{
+	0, "Auto-Detect"
+	1, "Win32"
+	2, "DirectInput"
+	3, "Raw Input"
+}
+
 OptionMenu "MouseOptions"
 {
 	Title "MOUSE OPTIONS"
@@ -576,10 +585,15 @@ OptionMenu "MouseOptions"
 	Option "Show back button",		"m_show_backbutton", "Corners", "use_mouse"
 	Option "Cursor",				"vid_cursor", "Cursors"
 	StaticText 	""
+	// [RK] Toggle the input type for Windows users
+	IfOption(Windows)
+	{
+		Option "Mouse input type",		"in_mouse", "InputType"
+	}
 	Slider "Overall sensitivity",		"mouse_sensitivity", 0.5, 2.5, 0.1
 	Option "Prescale mouse movement",	"m_noprescale", "NoYes"
 	Option "Smooth mouse movement",		"smooth_mouse", "YesNo"
-	Option "Use old Skulltag mouse",	"cl_useskulltagmouse", "YesNo" // [AK]
+	Option "Old ST mouse smoothing",	"cl_useskulltagmouse", "YesNo" // [AK]
 	StaticText 	""
 	Slider "Turning speed",				"m_yaw", 0, 2.5, 0.1
 	Slider "Mouselook speed",			"m_pitch", 0, 2.5, 0.1
