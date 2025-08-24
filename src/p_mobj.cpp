@@ -4026,6 +4026,7 @@ void AActor::Tick ()
 				{
 					special2++;
 				}
+				return;
 			}
 		}
 

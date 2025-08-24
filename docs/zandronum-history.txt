@@ -22,6 +22,7 @@
 -	- Fixed: an actor's stencil color wasn't synced to newly connected clients in online games. [AKMDM]
 -	- Fixed: clients that gained RCON access erroneously told the server to change the values of compatflags and compatflags2. [AKMDM]
 -	- Fixed: any sounds still playing on a player's body weren't stopped when they disconnected. [AKMDM]
+-	- Fixed: actors with the NOINTERACTION flag and without the NOTIMEFREEZE flag weren't frozen when the level was frozen. [AKMDM]
 
 
 3.2.1
