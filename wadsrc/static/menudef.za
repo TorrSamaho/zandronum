@@ -679,6 +679,8 @@ OptionMenu ZA_WeaponSetup
 	Option		"Use custom bob",		"cl_usecustombob",		"YesNo"
 	Option		"Bob style",			"cl_bobstyle",			"ZA_WeaponBobStyle"
 	Slider		"Bob speed",			"cl_bobspeed",			0.0, 2.0, 0.1
+	Slider		"Bob x-range",			"cl_bobrangex",			0.0, 2.0, 0.1
+	Slider		"Bob y-range",			"cl_bobrangey",			0.0, 2.0, 0.1
 	Slider		"Still bob speed",		"cl_stillbobspeed",		0.0, 2.0, 0.1
 	Slider		"Still bob range",		"cl_stillbobrange",		0.0, 2.0, 0.1
 	StaticText	" "
