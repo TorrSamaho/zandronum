@@ -52,6 +52,8 @@
 #include "autosegs.h"
 #include "version.h"
 #include "v_text.h"
+// [AK] New #includes.
+#include "campaign.h"
 
 TArray<cluster_info_t> wadclusterinfos;
 TArray<level_info_t> wadlevelinfos;
@@ -293,6 +295,8 @@ void level_info_t::Reset()
 	specialactions.Clear();
 	DefaultEnvironment = 0;
 	PrecacheSounds.Clear();
+	// [AK] By default, the map can be played in any game mode.
+	GameMode = NUM_GAMEMODES;
 }
 
 
@@ -1216,6 +1220,23 @@ DEFINE_MAP_OPTION(defaultenvironment, false)
 		}
 	}
 	info->DefaultEnvironment = id;
+}
+
+// [AK] Determines which game mode the map is locked into.
+DEFINE_MAP_OPTION(gamemode, false)
+{
+	parse.ParseAssign();
+	parse.sc.MustGetString();
+	info->GameMode = static_cast<GAMEMODE_e>(parse.sc.MustGetEnumName("game mode", "GAMEMODE_", GetValueGAMEMODE_e, true));
+
+	const CAMPAIGNINFO_s *campaignInfo = CAMPAIGN_GetCampaignInfo(info->mapname);
+
+	// [AK] Maps with campaign information means that the game mode can't
+	// be forced to anything other than what's chosen for the campaign.
+	if (campaignInfo != nullptr && campaignInfo->GameMode != info->GameMode)
+	{
+		parse.sc.ScriptError("%s has campaign information that forces the game mode to something other than '%s'.", info->mapname, parse.sc.String);
+	}
 }
 
 

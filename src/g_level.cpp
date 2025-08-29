@@ -1355,6 +1355,10 @@ void G_DoLoadLevel (int position, bool autosave)
 	if (level.flags2 & LEVEL2_FORCETEAMPLAYOFF)
 		teamplay = false;
 
+	// [AK] Change the game mode to what the level requires, if necessary.
+	if ((level.info->GameMode != NUM_GAMEMODES) && (level.info->GameMode != GAMEMODE_GetCurrentMode()))
+		GAMEMODE_SetCurrentMode(level.info->GameMode);
+
 	// [Dusk] Clear keys found
 	// [RK] Since PuzzleItems are tracked don't do this for hubs.
 	if( !( level.clusterflags & CLUSTER_HUB ) || autosave == false ) // Resets with map command

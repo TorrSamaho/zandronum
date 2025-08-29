@@ -40,6 +40,7 @@
 #include "s_sound.h"
 //[BL] New Includes
 #include "sectinfo.h"
+#include "gamemode_enums.h"
 
 struct level_info_t;
 struct cluster_info_t;
@@ -344,6 +345,9 @@ struct level_info_t
 
 	//[BL] Link a sectinfo to a map
 	SectInfo	SectorInfo;
+
+	// [AK] Determines which game mode the map is locked into.
+	GAMEMODE_e	GameMode;
 
 	level_info_t() 
 	{ 

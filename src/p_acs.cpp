@@ -7503,6 +7503,10 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 				if ( newmode == oldmode )
 					return 0;
 
+				// [AK] Don't change to any game mode that the current level isn't locked into.
+				if (( level.info->GameMode != NUM_GAMEMODES ) && ( level.info->GameMode != gamemode ))
+					return 0;
+
 				// [AK] Don't change to any team game if there's no team starts on the map!
 				if (( GAMEMODE_GetFlags( newmode ) & GMF_TEAMGAME ) && ( TEAM_GetNumTeamsWithStarts() < 1 ))
 					return 0;
