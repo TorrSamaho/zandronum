@@ -721,7 +721,7 @@ void DrawFullHUD_GameInformation()
 			// [AK] Using a percentage should only be done in game modes where players earn kills.
 			if (( playersEarnKills ) || ( cl_showscoreleft ))
 			{
-				if (( playersEarnKills ) && ( dmflags2 & DF2_KILL_MONSTERS ))
+				if (( playersEarnKills ) && ( invasion == false ) && ( dmflags2 & DF2_KILL_MONSTERS ))
 					sprintf( szString + strlen( szString ), TEXTCOLOR_TAN " (%ld%% left)", left );
 				else
 					sprintf( szString + strlen( szString ), TEXTCOLOR_TAN " (%ld left)", left );
