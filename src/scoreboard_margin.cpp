@@ -3182,9 +3182,17 @@ void SCOREBOARD_BuildLimitStrings( std::list<FString> &lines )
 		if (( ulFlags & GMF_PLAYERSEARNKILLS ) && (( invasion ) || ( level.total_monsters > 0 )))
 		{
 			if (( invasion ) || (( dmflags2 & DF2_KILL_MONSTERS ) == false ))
+			{
 				text.Format( "%d monster%s left", static_cast<int>( lRemaining ), lRemaining == 1 ? "" : "s" );
+			}
 			else
-				text.Format( "%d%% monsters left", static_cast<int>( lRemaining ));
+			{
+				// [AK] Properly show when there's anywhere between 0 to 1% of monsters left to kill.
+				if (( lRemaining == 0 ) && ( level.total_monsters - level.killed_monsters > 0 ))
+					text = "Less than 1% monsters left";
+				else
+					text.Format( "%d%% monsters left", static_cast<int>( lRemaining ));
+			}
 
 			// [AK] Render the number of monsters left on the same line as the number of waves left in invasion.
 			if ( invasion && wavelimit )

@@ -713,15 +713,16 @@ void DrawFullHUD_GameInformation()
 			sprintf( szString, "%d", CPlayer->killcount );
 
 		LONG left = SCOREBOARD_GetLeftToLimit( );
+		const bool playersEarnKills = !!( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNKILLS );
+		const bool showPercentageMonstersLeft = (( playersEarnKills ) && ( invasion == false ) && ( dmflags2 & DF2_KILL_MONSTERS ));
+
 		if(left > 0)
 		{
-			const bool playersEarnKills = !!( GAMEMODE_GetCurrentFlags( ) & GMF_PLAYERSEARNKILLS );
-
 			// [BB Be careful when using sprintf to append something.
 			// [AK] Using a percentage should only be done in game modes where players earn kills.
 			if (( playersEarnKills ) || ( cl_showscoreleft ))
 			{
-				if (( playersEarnKills ) && ( invasion == false ) && ( dmflags2 & DF2_KILL_MONSTERS ))
+				if ( showPercentageMonstersLeft )
 					sprintf( szString + strlen( szString ), TEXTCOLOR_TAN " (%ld%% left)", left );
 				else
 					sprintf( szString + strlen( szString ), TEXTCOLOR_TAN " (%ld left)", left );
@@ -730,6 +731,11 @@ void DrawFullHUD_GameInformation()
 			{
 				sprintf( szString + strlen( szString ), TEXTCOLOR_TAN " (%ld to win)", left );
 			}
+		}
+		// [AK] Properly show when there's anywhere between 0 to 1% of monsters left to kill.
+		else if (( showPercentageMonstersLeft ) && ( level.total_monsters - level.killed_monsters > 0 ))
+		{
+			strcat( szString, TEXTCOLOR_TAN " (less than 1% left)" );
 		}
 
 		HUD_DrawText( ConFont, CR_RED,

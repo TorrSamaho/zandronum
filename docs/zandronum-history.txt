@@ -25,6 +25,7 @@
 -	- Fixed: any sounds still playing on a player's body weren't stopped when they disconnected. [AKMDM]
 -	- Fixed: actors with the NOINTERACTION flag and without the NOTIMEFREEZE flag weren't frozen when the level was frozen. [AKMDM]
 -	- Fixed: the fullscreen HUD showed the remaining monster count as a percentage if sv_killallmonsters was enabled while playing invasion. [AKMDM]
+-	- Fixed: the scoreboard and fullscreen HUD didn't properly show when there was anywhere between 0 to 1% of monsters left to kill. [AKMDM]
 
 
 3.2.1
