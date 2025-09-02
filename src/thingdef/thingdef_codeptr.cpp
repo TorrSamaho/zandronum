@@ -4643,7 +4643,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_ChangeFlag)
 		else
 		{
 			// [BB] The server handles the flag change.
-			if ( NETWORK_InClientMode() )
+			if (NETWORK_InClientModeAndActorNotClientHandled(self))
 				return;
 
 			DWORD *flagp = (DWORD*) (((char*)self) + fd->structoffset);
