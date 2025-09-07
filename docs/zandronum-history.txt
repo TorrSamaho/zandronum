@@ -27,6 +27,7 @@
 -	- Fixed: the fullscreen HUD showed the remaining monster count as a percentage if sv_killallmonsters was enabled while playing invasion. [AKMDM]
 -	- Fixed: the scoreboard and fullscreen HUD didn't properly show when there was anywhere between 0 to 1% of monsters left to kill. [AKMDM]
 -	- Fixed: A_ChangeFlag didn't work on CLIENTSIDEONLY actors in online games. [AKMDM]
+-	- Fixed: under rare circumstances, a client with cl_telespy enabled crashed upon loading a new level. [AKMDM]
 
 
 3.2.1

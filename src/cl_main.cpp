@@ -3039,17 +3039,17 @@ bool CLIENT_IsParsingPacket( void )
 //
 void CLIENT_ResetConsolePlayerCamera( void )
 {
+	AActor *oldCamera = players[consoleplayer].camera;
+
 	// [AK] Check if we were looking through another player's eyes.
-	if (( players[consoleplayer].camera ) && ( players[consoleplayer].camera->player ))
+	if (( players[consoleplayer].mo != nullptr ) && ( oldCamera != nullptr ) && ( oldCamera->player != nullptr ))
 	{
 		// [AK] Teleport to the player's body if we want to.
 		if (( cl_telespy ) && ( players[consoleplayer].bSpectating ))
 		{
-			AActor *pActor = players[consoleplayer].camera;
-
-			P_TeleportMove( players[consoleplayer].mo, pActor->x, pActor->y, pActor->z, false );
-			players[consoleplayer].mo->angle = pActor->angle;
-			players[consoleplayer].mo->pitch = pActor->pitch;
+			P_TeleportMove( players[consoleplayer].mo, oldCamera->x, oldCamera->y, oldCamera->z, false );
+			players[consoleplayer].mo->angle = oldCamera->angle;
+			players[consoleplayer].mo->pitch = oldCamera->pitch;
 		}
 	}
 
