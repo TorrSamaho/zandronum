@@ -923,9 +923,23 @@ void R_InitSkins (void)
 						memcpy(&lnameint, lname, 4);
 						if (lnameint == intname)
 						{
+							// [AK] Check if there's already an existing sprite for the same lump.
+							FTextureID existingpicnum = TexMan.FindTextureByLumpNum(k);
 							FTextureID picnum = TexMan.CreateTexture(k, FTexture::TEX_SkinSprite);
 							if (!picnum.isValid())
 								continue;
+
+							// [AK] If the sprite already existed before, copy its brightmap over to the skin's sprite.
+							if (existingpicnum.isValid() && TexMan[existingpicnum]->UseType == FTexture::TEX_Sprite)
+							{
+								FTexture::MiscGLInfo &skinspriteglinfo = TexMan[picnum]->gl_info;
+								FTexture::MiscGLInfo &existingspriteglinfo = TexMan[existingpicnum]->gl_info;
+
+								skinspriteglinfo.Brightmap = existingspriteglinfo.Brightmap;
+								skinspriteglinfo.bBrightmapChecked = existingspriteglinfo.bBrightmapChecked;
+								skinspriteglinfo.bBrightmap = existingspriteglinfo.bBrightmap;
+								skinspriteglinfo.bBrightmapDisablesFullbright = existingspriteglinfo.bBrightmapDisablesFullbright;
+							}
 
 							bool res = R_InstallSpriteLump (picnum, lname[4] - 'A', lname[5], false);
 
