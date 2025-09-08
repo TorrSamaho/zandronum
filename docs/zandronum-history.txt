@@ -30,7 +30,7 @@
 -	- Fixed: A_ChangeFlag didn't work on CLIENTSIDEONLY actors in online games. [AKMDM]
 -	- Fixed: under rare circumstances, a client with cl_telespy enabled crashed upon loading a new level. [AKMDM]
 -	- Fixed: spectators were unable to pass through slopes while using the unrestricted spectator mode. [AKMDM]
-!	- Spectators using the unrestricted spectator mode now only pass through teleporters if they can see into the sector where the teleporter is. [AKMDM]
+!	- Spectators now travel at full speed while underwater, and those using the unrestricted spectator mode now only pass through teleporters if they can see into the sector where the teleporter is. [AKMDM]
 
 
 3.2.1
