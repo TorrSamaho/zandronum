@@ -52,7 +52,8 @@
 // [TP] New #includes
 #include "announcer.h"
 #include "doomerrors.h"
-
+// [SB]
+#include "network/cl_auth.h"
 #include "optionmenuitems.h"
 
 void ClearSaveGames();
@@ -168,6 +169,13 @@ static bool CheckSkipOptionBlock(FScanner &sc)
 		else if (sc.Compare("Mac"))
 		{
 			#ifdef __APPLE__
+				filter = true;
+			#endif
+		}
+		// [SB]
+		else if (sc.Compare("ZaAuthStorage"))
+		{
+			#ifdef ENABLE_AUTH_STORAGE
 				filter = true;
 			#endif
 		}

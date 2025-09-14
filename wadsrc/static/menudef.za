@@ -69,8 +69,8 @@ OptionMenu ZA_MultiplayerOptions
 	Submenu		"Server settings",		"ZA_ServerSetupMenu"
 	StaticText	" "
 
-	// [AK] cl_autologin only exists in Windows.
-	IfOption( Windows )
+	// [AK] cl_autologin only exists where credential storage is available.
+	IfOption( ZaAuthStorage )
 	{
 		Option	"Auto-login",			"cl_autologin",			"YesNo"
 	}
