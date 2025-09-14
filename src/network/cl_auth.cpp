@@ -49,6 +49,8 @@
 #include <windows.h>
 #include <wincred.h>
 #define USE_WINDOWS_DWORD
+#elif defined( USE_LIBSECRET )
+#include <libsecret/secret.h>
 #endif
 
 #include "c_dispatch.h"
@@ -83,6 +85,18 @@ CUSTOM_CVAR( String, login_default_user, "", CVAR_ARCHIVE | CVAR_NOINITCALL )
 	if (( NETWORK_GetState( ) == NETSTATE_CLIENT ) && ( CLIENT_IsLoggedIn( ) == false ) && ( cl_autologin ))
 		CLIENT_RetrieveUserAndLogIn( self.GetGenericRep( CVAR_String ).String );
 }
+#endif
+
+// [SB]
+#ifdef USE_LIBSECRET
+static const SecretSchema g_libsecretSchema =
+{
+	DOMAIN_NAME_REVERSE ".AuthPassword", SECRET_SCHEMA_NONE,
+	{
+		{ "username", SECRET_SCHEMA_ATTRIBUTE_STRING },
+		{ "NULL", static_cast<SecretSchemaAttributeType>(0) }
+	}
+};
 #endif
 
 //*****************************************************************************
@@ -137,6 +151,58 @@ bool client_RetrieveCredentials ( const FString &Username, FString &Password )
 
 	CredFree (pcred);
 	return ( ok == TRUE );
+}
+
+// [SB] libsecret backend
+#elif defined( USE_LIBSECRET )
+
+//*****************************************************************************
+//
+bool client_SaveCredentials ( const FString &Username, const FString &Password )
+{
+	GError *error = nullptr;
+
+	FString label;
+	label.Format( "%s (%s)", GAMENAME, Username.GetChars() );
+	bool r = secret_password_store_sync( &g_libsecretSchema, SECRET_COLLECTION_DEFAULT, label.GetChars(), Password.GetChars(), nullptr, &error, "username", Username.GetChars(), nullptr );
+
+	if ( error != nullptr )
+	{
+		Printf( TEXTCOLOR_RED "Failed to save password: %s\n", error->message );
+		g_error_free( error );
+		return false;
+	}
+	// [SB] Yes, it is possible for secret_password_store_sync to return false and not set an error :|
+	else if ( !r )
+	{
+		Printf( TEXTCOLOR_RED "Failed to save password\n" );
+		return false;
+	}
+
+	return true;
+}
+
+//*****************************************************************************
+//
+bool client_RetrieveCredentials ( const FString &Username, FString &Password )
+{
+	GError *error = nullptr;
+	gchar *result = secret_password_lookup_sync( &g_libsecretSchema, nullptr, &error, "username", Username.GetChars(), nullptr );
+
+	if ( error != nullptr )
+	{
+		Printf( TEXTCOLOR_RED "Failed to retrieve password: %s\n", error->message );
+		g_error_free( error );
+		return false;
+	}
+	// [SB] No credential with that username.
+	else if ( result == nullptr )
+	{
+		return false;
+	}
+
+	Password = result;
+	return true;
 }
 #endif
 

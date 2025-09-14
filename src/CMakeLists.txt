@@ -177,6 +177,7 @@ else( WIN32 )
 		set( FMOD_INC_PATH_SUFFIXES PATH_SUFFIXES inc )
 		set( FMOD_LIB_PATH_SUFFIXES PATH_SUFFIXES lib )
 		set( NO_GTK ON )
+		set( NO_LIBSECRET ON ) # [SB]
 
 		# [BL] We need to compile without ASM code for now.
 		# [AL] OpenGL on OS X is enabled by default
@@ -188,12 +189,14 @@ else( WIN32 )
 		option( SERVERONLY "Build a server only binary" )
 		option( NO_SOUND "Turn of sound support" )
 		option( NO_GL "Turn of OpenGL support" )
+		option( NO_LIBSECRET "Turn off libsecret support" ) # [SB]
 
 		# [BB] The server doesn't need sound, GTK or OpenGL.
 		if( SERVERONLY )
 			set( NO_SOUND ON )
 			set( NO_GTK ON )
 			set( NO_GL ON )
+			set( NO_LIBSECRET ON ) # [SB]
 			add_definitions ( -DSERVER_ONLY=1 )
 			set( ZDOOM_EXE_NAME ${ZDOOM_EXE_NAME}-server )
 		endif( SERVERONLY )
@@ -232,12 +235,28 @@ else( WIN32 )
 				unset( XCURSOR_LIB )
 			endif( XCURSOR_HEADER )
 		endif( XCURSOR_LIB )
+
+		# [SB] Find libsecret.
+		if ( NOT NO_LIBSECRET )
+			pkg_check_modules( LIBSECRET libsecret-1 )
+			if( LIBSECRET_FOUND )
+				set( ZDOOM_LIBS ${ZDOOM_LIBS} ${LIBSECRET_LIBRARIES} )
+				include_directories( ${LIBSECRET_INCLUDE_DIRS} )
+			else( )
+				set( NO_LIBSECRET ON )
+			endif( )
+		endif( )
 	endif( APPLE )
 	set( NASM_NAMES nasm )
 	
 	if( NO_GTK )
 		add_definitions( -DNO_GTK=1 )
 	endif( NO_GTK )
+
+	# [SB]
+	if( NOT NO_LIBSECRET )
+		add_definitions( -DUSE_LIBSECRET=1 )
+	endif( )
 	
 	# Non-Windows version also needs SDL
 	find_package( SDL )

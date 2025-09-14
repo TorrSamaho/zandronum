@@ -49,7 +49,7 @@
 #define __CL_AUTH_H__
 
 // [SB] Whether credential storage is available.
-#if defined( _WIN32 )
+#if defined( _WIN32 ) || defined( USE_LIBSECRET )
 #define ENABLE_AUTH_STORAGE
 #endif
 

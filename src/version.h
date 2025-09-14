@@ -131,6 +131,9 @@ int GetRevisionNumber();
 // [BC] This is what's displayed as the title for server windows.
 #define	SERVERCONSOLE_TITLESTRING	GAMENAME " v" DOTVERSIONSTR " Server"
 
+// [SB] Used for the libsecret schema.
+#define DOMAIN_NAME_REVERSE "com.zandronum"
+
 #if defined(__APPLE__) || defined(_WIN32)
 #define GAME_DIR GAMENAME
 #else
