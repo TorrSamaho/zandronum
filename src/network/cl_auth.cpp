@@ -74,7 +74,7 @@ CUSTOM_CVAR( Bool, cl_hideaccount, false, CVAR_ARCHIVE )
 		CLIENTCOMMANDS_SetWantHideInfo( HIDEINFO_ACCOUNTNAME, self );
 }
 
-#ifdef _WIN32
+#ifdef ENABLE_AUTH_STORAGE
 EXTERN_CVAR( Bool, cl_autologin )
 
 CUSTOM_CVAR( String, login_default_user, "", CVAR_ARCHIVE | CVAR_NOINITCALL )
@@ -271,7 +271,7 @@ bool CLIENT_IsLoggedIn( void )
 
 //*****************************************************************************
 //
-#ifdef _WIN32
+#ifdef ENABLE_AUTH_STORAGE
 void CLIENT_RetrieveUserAndLogIn( const FString username )
 {
 	FString password;
@@ -305,7 +305,7 @@ CCMD( login )
 		return;
 	}
 
-#ifdef _WIN32
+#ifdef ENABLE_AUTH_STORAGE
 	if (argv.argc () <= 2)
 	{
 		FString username;
@@ -333,7 +333,7 @@ CCMD( login )
 		Printf ("Usage: login <username> <password>\n");
 }
 
-#ifdef _WIN32
+#ifdef ENABLE_AUTH_STORAGE
 CCMD( login_add )
 {
 	if ( argv.argc() == 3 )

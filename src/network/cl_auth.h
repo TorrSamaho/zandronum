@@ -48,6 +48,11 @@
 #ifndef __CL_AUTH_H__
 #define __CL_AUTH_H__
 
+// [SB] Whether credential storage is available.
+#if defined( _WIN32 )
+#define ENABLE_AUTH_STORAGE
+#endif
+
 //*****************************************************************************
 //	PROTOTYPES
 
@@ -55,14 +60,14 @@ void	CLIENT_ProcessSRPServerCommand( LONG lCommand, BYTESTREAM_s *pByteStream );
 void	CLIENT_LogOut( void );
 bool	CLIENT_IsLoggedIn( void );
 
-#ifdef WIN32
+#ifdef ENABLE_AUTH_STORAGE
 void	CLIENT_RetrieveUserAndLogIn( const FString username );
 #endif
 
 //*****************************************************************************
 //	EXTERNAL CONSOLE VARIABLES
 
-#ifdef WIN32
+#ifdef ENABLE_AUTH_STORAGE
 EXTERN_CVAR( String, login_default_user )
 #endif
 

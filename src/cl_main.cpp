@@ -185,7 +185,7 @@ CVAR( Bool, cl_keepserversettings, false, CVAR_ARCHIVE | CVAR_DEBUGONLY )
 // [JS] Always makes us ready when we are in intermission.
 CVAR( Bool, cl_autoready, false, CVAR_ARCHIVE )
 
-#ifdef WIN32
+#ifdef ENABLE_AUTH_STORAGE
 // [AK] Automatically logs us into our default account (i.e. login_default_user).
 CUSTOM_CVAR( Bool, cl_autologin, false, CVAR_ARCHIVE | CVAR_NOINITCALL )
 {
