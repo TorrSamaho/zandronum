@@ -20,6 +20,7 @@
 +	- Added the CVars "cl_bobrangex" and "cl_bobrangey" to allow the x/y-range of a weapon's bob to be customizable by the user. [AKMDM]
 +	- Added the new MAPINFO property "gamemode", allowing maps to be locked into one specific game mode. [AKMDM]
 +	- Added support for using libsecret to save auth credentials on POSIX platforms. This allows passwords to be stored using services such as KDE Wallet and GNOME Keyring. [Sean]
++	- Weapon sprites are now fully interpolated, and can be toggled with the new CVar "cl_interpolateweapons". Based on code from ZCC. [AKMDM]
 -	- Fixed: A_SpawnItemEx didn't sync the TID or stencil color of spawned actors to clients in online games. [AKMDM]
 -	- Fixed: an actor's stencil color wasn't synced to newly connected clients in online games. [AKMDM]
 -	- Fixed: clients that gained RCON access erroneously told the server to change the values of compatflags and compatflags2. [AKMDM]

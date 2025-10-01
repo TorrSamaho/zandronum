@@ -1285,10 +1285,14 @@ void R_DrawPlayerSprites ()
 			 i < NUMPSPRITES;
 			 i++, psp++)
 		{
+			// [AK] Get the psprite's interpolated position.
+			const TVector2<fixed_t> interpolatedPos = psp->HandleInterpolation(ofsx, ofsy);
+
 			// [RH] Don't draw the targeter's crosshair if the player already has a crosshair set.
 			if (psp->state && (i != ps_targetcenter || CrosshairImage == NULL))
 			{
-				R_DrawPSprite (psp, i, camera, psp->sx + ofsx, psp->sy + ofsy);
+				// [AK] Replaced psp->sx + ofsx and psp->sy + ofsy with interpolatedPos.X and interpolatedPos.Y respectively.
+				R_DrawPSprite (psp, i, camera, interpolatedPos.X, interpolatedPos.Y);
 			}
 			// [RH] Don't bob the targeter.
 			if (i == ps_flash)

@@ -673,6 +673,7 @@ OptionMenu ZA_WeaponSetup
 	Option		"Switch while firing",		"cl_noswitchonfire",		"ZA_SwitchWhileFiring", 	"switchonpickup"
 	Option		"Switch without ammo",		"cl_noammoswitch",		"YesNo"
 	Option		"Railgun color",		"railcolor",			"ZA_RailgunColors"
+	Option		"Interpolate weapons",		"cl_interpolateweapons",	"YesNo"
 	StaticText	" "
 	Option		"Always bob weapon",		"cl_alwaysbob",			"YesNo"
 	Option		"Allow screen bob",		"cl_viewbob",			"YesNo"

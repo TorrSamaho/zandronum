@@ -90,6 +90,14 @@ struct pspdef_t
 	int			sprite;
 	int			frame;
 	bool		processPending; // true: waiting for periodic processing on this tick
+
+	// [AK] New members specifically used for interpolation.
+	int			oldTick;
+	fixed_t		oldSX, oldSY;
+	fixed_t		nowSX, nowSY;
+
+	// [AK] Returns a psprite's position on the screen when interpolated.
+	TVector2<fixed_t> HandleInterpolation (fixed_t bobSX, fixed_t bobSY);
 };
 
 class FArchive;

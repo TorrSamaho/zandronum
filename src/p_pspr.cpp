@@ -78,6 +78,9 @@ CUSTOM_CVAR( Int, sv_fastweapons, 0, CVAR_SERVERINFO | CVAR_GAMEPLAYSETTING )
 	SERVER_SettingChanged( self, false );
 }
 
+// [AK] Controls if whether weapon sprites are interpolated or not.
+CVAR( Bool, cl_interpolateweapons, true, CVAR_ARCHIVE )
+
 // [AK] CVars that control how the weapon bobs.
 CVAR( Bool, cl_alwaysbob, false, CVAR_ARCHIVE )
 CVAR( Bool, cl_usecustombob, false, CVAR_ARCHIVE )
@@ -130,6 +133,41 @@ static FRandom pr_wpnreadysnd ("WpnReadySnd");
 static FRandom pr_gunshot ("GunShot");
 
 // CODE --------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
+//
+// [AK] Returns a psprite's position on the screen when interpolated.
+//
+//---------------------------------------------------------------------------
+
+TVector2<fixed_t> pspdef_t::HandleInterpolation (fixed_t bobSX, fixed_t bobSY)
+{
+	const int nowTick = I_GetTime(false);
+	TVector2<fixed_t> result;
+
+	if (cl_interpolateweapons)
+	{
+		if (nowTick > oldTick)
+		{
+			oldTick = nowTick;
+			oldSX = nowSX;
+			oldSY = nowSY;
+		}
+
+		nowSX = sx + bobSX;
+		nowSY = sy + bobSY;
+
+		result.X = oldSX + FixedMul(r_TicFrac, nowSX - oldSX);
+		result.Y = oldSY + FixedMul(r_TicFrac, nowSY - oldSY);
+	}
+	else
+	{
+		result.X = sx + bobSX;
+		result.Y = sy + bobSY;
+	}
+
+	return result;
+}
 
 //---------------------------------------------------------------------------
 //

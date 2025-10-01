@@ -362,6 +362,9 @@ void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 	
 	for (i=0, psp=player->psprites; i<=ps_flash; i++,psp++)
 	{
+		// [AK] Get the psprite's interpolated position.
+		const TVector2<fixed_t> interpolatedPos = psp->HandleInterpolation(ofsx, ofsy);
+
 		if (psp->state) 
 		{
 			FColormap cmc = cm;
@@ -384,7 +387,8 @@ void FGLRenderer::DrawPlayerSprites(sector_t * viewsector, bool hudModelStep)
 			// set the lighting parameters (only calls glColor and glAlphaFunc)
 			gl_SetSpriteLighting(vis.RenderStyle, playermo, statebright[i]? 255 : lightlevel, 
 				0, &cmc, 0xffffff, trans, statebright[i], true);
-			DrawPSprite (player,psp,psp->sx+ofsx, psp->sy+ofsy, cm.colormap, hudModelStep, OverrideShader);
+			// [AK] Replaced psp->sx+ofsx and psp->sy+ofsy with interpolatedPos.X and interpolatedPos.Y respectively.
+			DrawPSprite (player,psp,interpolatedPos.X, interpolatedPos.Y, cm.colormap, hudModelStep, OverrideShader);
 		}
 	}
 	gl_RenderState.EnableBrightmap(false);
