@@ -763,6 +763,8 @@ EXTERN_CVAR( Bool, sv_forcelogintojoin )
 EXTERN_CVAR( Bool, sv_limitcommands )
 EXTERN_CVAR( Int, sv_smoothplayers )
 EXTERN_CVAR( Int, sv_allowprivatechat )
+EXTERN_CVAR( Float, sv_minfov ); // [RK] Minimum FOV allowed
+EXTERN_CVAR( Float, sv_maxfov ); // [RK] Maximum FOV allowed
 
 // From sv_master.cpp
 EXTERN_CVAR( Bool, sv_updatemaster );

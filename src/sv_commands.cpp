@@ -2597,6 +2597,10 @@ void SERVERCOMMANDS_SetGameModeLimits( ULONG ulPlayerExtra, ServerCommandFlags f
 	command.addFloat( sv_respawndelaytime );
 	// [TRSR] Send sv_nocallvote.
 	command.addByte( sv_nocallvote );
+	// [RK] Send in the minimum FOV.
+	command.addFloat( sv_minfov );
+	// [RK] Send in the maximum FOV.
+	command.addFloat( sv_maxfov );
 	command.sendCommandToClients( ulPlayerExtra, flags );
 }
 

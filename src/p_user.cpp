@@ -4662,3 +4662,15 @@ void P_ResetPlayerPitchLimits(void)
 		}
 	}
 }
+
+// [RK] Resets the player's FOV limits when the server changes them.
+void P_ResetPlayerFOVLimits(void)
+{
+	for (unsigned int i = 0; i < MAXPLAYERS; i++)
+	{
+		if (PLAYER_IsValidPlayer(i) == false)
+			continue;
+
+		players[i].DesiredFOV = clamp<float>(players[i].FOV, sv_minfov, sv_maxfov);
+	}
+}

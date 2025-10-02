@@ -478,6 +478,58 @@ CUSTOM_CVAR( Float, sv_respawndelaytime, 1.0f, CVAR_ARCHIVE | CVAR_SERVERINFO | 
 }
 
 //*****************************************************************************
+// [RK] Set the minimum allowed FOV for players.
+// The default of 5 is the old literal.
+//
+CUSTOM_CVAR( Float, sv_minfov, 5.f, CVAR_ARCHIVE | CVAR_SERVERINFO | CVAR_GAMEPLAYSETTING )
+{
+	if ( self < 5.f )
+	{
+		self = 5.f;
+		return;
+	}
+
+	if ( self >= sv_maxfov )
+	{
+		Printf( "sv_minfov must be less than sv_maxfov; adjusting value by 1.\n" );
+		self = sv_maxfov - 1.f;
+		return;
+	}
+
+	// [RK] Notify the clients about the change.
+	SERVER_SettingChanged( self, false );
+
+	// [RK] Then apply and clamp the new limit to the players.
+	P_ResetPlayerFOVLimits();
+}
+
+//*****************************************************************************
+// [RK] Set the maximum allowed FOV for players.
+// The default of 179 is the old literal.
+//
+CUSTOM_CVAR( Float, sv_maxfov, 179.f, CVAR_ARCHIVE | CVAR_SERVERINFO | CVAR_GAMEPLAYSETTING )
+{
+	if ( self > 179.f )
+	{
+		self = 179.f;
+		return;
+	}
+
+	if ( self <= sv_minfov )
+	{
+		Printf( "sv_maxfov must be greater than sv_minfov; adjusting value by 1.\n" );
+		self = sv_minfov + 1.f;
+		return;
+	}
+
+	// [RK] Notify the clients about the change.
+	SERVER_SettingChanged( self, false );
+
+	// [RK] Then apply and clamp the new limit to the players.
+	P_ResetPlayerFOVLimits();
+}
+
+//*****************************************************************************
 //	FUNCTIONS
 
 void SERVER_Construct( void )

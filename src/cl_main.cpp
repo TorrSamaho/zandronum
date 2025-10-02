@@ -3707,7 +3707,8 @@ void ServerCommands::SpawnPlayer::Execute()
 		pActor->sprite = skins[lSkin].sprite;
 	}
 
-	pPlayer->DesiredFOV = pPlayer->FOV = 90.f;
+	// [RK] Clamp the standard 90 degrees according to min and max FOV
+	pPlayer->DesiredFOV = pPlayer->FOV = clamp<float> ( 90.f, sv_minfov, sv_maxfov );
 	// If the console player was watching another player in demo mode, continue to follow
 	// that other player.
 	// [AK] And also if the console player just became a dead spectator.
@@ -6137,6 +6138,14 @@ static void client_SetGameModeLimits( BYTESTREAM_s *pByteStream )
 	// [TRSR] Read in, and set the value for sv_nocallvote.
 	Value.Int = pByteStream->ReadByte();
 	sv_nocallvote.ForceSet( Value, CVAR_Int );
+
+	// [RK] Read in, and set the value for sv_minfov.
+	Value.Float = pByteStream->ReadFloat();
+	sv_minfov.ForceSet( Value, CVAR_Float );
+
+	// [RK] Read in, and set the value for sv_maxfov.
+	Value.Float = pByteStream->ReadFloat();
+	sv_maxfov.ForceSet( Value, CVAR_Float );
 }
 
 //*****************************************************************************

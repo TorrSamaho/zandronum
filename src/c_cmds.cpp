@@ -1111,12 +1111,14 @@ CCMD (fov)
 	else
 	{
 		// Just do this here in client games.
+		// [RK] Use the server's allowed min and max FOV
 		if ( NETWORK_GetState( ) == NETSTATE_CLIENT )
-			player->DesiredFOV = static_cast<float> ( clamp (atoi (argv[1]), 5, 179) );
+			player->DesiredFOV = clamp<float> (static_cast<float> (atof (argv[1])), sv_minfov, sv_maxfov);
 
 		Net_WriteByte (DEM_MYFOV);
 	}
-	Net_WriteByte (clamp (atoi (argv[1]), 5, 179));
+	// [RK] Use the server's allowed min and max FOV offline too.
+	Net_WriteByte (static_cast<BYTE> (clamp<float> (static_cast<float> (atof (argv[1])), sv_minfov, sv_maxfov)));
 }
 
 //==========================================================================

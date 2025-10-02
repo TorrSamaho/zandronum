@@ -5582,7 +5582,8 @@ APlayerPawn *P_SpawnPlayer (FPlayerStart *mthing, int playernum, int flags)
 		mobj->sprite = skins[lSkin].sprite;
 	}
 
-	p->DesiredFOV = p->FOV = 90.f;
+	// [RK] Clamp the standard 90 degrees according to min and max FOV
+	p->DesiredFOV = p->FOV = clamp<float> (90.f, sv_minfov, sv_maxfov);
 	p->camera = p->mo;
 	p->playerstate = PST_LIVE;
 	p->refire = 0;

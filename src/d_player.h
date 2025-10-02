@@ -937,6 +937,7 @@ inline bool AActor::IsNoClip2() const
 bool P_IsPlayerTotallyFrozen(const player_t *player);
 bool P_IsSpectatorUnrestricted(const AActor *viewActor); // [AK]
 void P_ResetPlayerPitchLimits(void); // [AK]
+void P_ResetPlayerFOVLimits(void); // [RK]
 
 EXTERN_CVAR( Int, cl_spectatormode ) // [AK]
 
