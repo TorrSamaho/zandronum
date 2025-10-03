@@ -777,34 +777,34 @@ OptionMenu ZA_ServerSetupMenu
 	Title		"SERVER SETTINGS"
 	Indent 150
 
-	Submenu		"Voting setup",				"ZA_VotingSetupMenu"
-	Submenu		"Gameplay Options",			"GameplayOptions"
+	Submenu		"Voting setup",			"ZA_VotingSetupMenu"
+	Submenu		"Gameplay Options",		"GameplayOptions"
 	Submenu		"Compatibility Options",	"CompatibilityOptions"
-	Command		"Log out of RCON",			"rcon_logout"
+	Command		"Log out of RCON",		"rcon_logout"
 	StaticText	" "
-	TextField	"Server name",				"sv_hostname"
-	TextField	"Website",					"sv_website"
-	TextField	"Contact address",			"sv_hostemail"
+	TextField	"Server name",			"sv_hostname"
+	TextField	"Website",			"sv_website"
+	TextField	"Contact address",		"sv_hostemail"
 	StaticText	" "
-	Option		"Use connect password",		"sv_forcepassword",			"YesNo"
-	TextField	"Connect password",			"sv_password",				"sv_forcepassword"
+	Option		"Use connect password",		"sv_forcepassword",		"YesNo"
+	TextField	"Connect password",		"sv_password",			"sv_forcepassword"
 	Option		"Use join password",		"sv_forcejoinpassword",		"YesNo"
-	TextField	"Join password",			"sv_joinpassword",			"sv_forcejoinpassword"
+	TextField	"Join password",		"sv_joinpassword",		"sv_forcejoinpassword"
 	Option		"Require login to join",	"sv_forcelogintojoin",		"YesNo"
 	StaticText	" "
-	Option		"Allow private chat",		"sv_allowprivatechat",			"ZA_AllowPrivateChat"
-	Option		"Allow voice chat",		"sv_allowvoicechat",			"ZA_AllowVoiceChat"
-	Option		"Use proximity chat",		"sv_proximityvoicechat",		"YesNo"
-	Slider		"Min rolloff distance",		"sv_minproximityrolloffdist",		0, 2400, 50
-	Slider		"Max rolloff distance",		"sv_maxproximityrolloffdist",		0, 2400, 50
+	Option		"Allow private chat",		"sv_allowprivatechat",		"ZA_AllowPrivateChat"
+	Option		"Allow voice chat",		"sv_allowvoicechat",		"ZA_AllowVoiceChat"
+	Option		"Use proximity chat",		"sv_proximityvoicechat",	"YesNo"
+	Slider		"Min rolloff distance",		"sv_minproximityrolloffdist",	0, 2400, 50
+	Slider		"Max rolloff distance",		"sv_maxproximityrolloffdist",	0, 2400, 50
 	StaticText	" "
-	Slider		"Min FOV",			"sv_minfov",				5, 179, 1
-	Slider		"Max FOV",			"sv_maxfov",				5, 179, 1
+	Slider		"Min FOV",			"sv_minfov",			5, 179, 1
+	Slider		"Max FOV",			"sv_maxfov",			5, 179, 1
 	StaticText	" "
-	// Option	"Smooth lagging players",	"sv_smoothplayers",			"ZA_ExtrapolateLimit"
-	NumberField	"Max connected clients",	"sv_maxclients",			0, 64
-	NumberField	"Max players",				"sv_maxplayers",			0, 64
-	NumberField	"Max idle time (minutes)",	"sv_afk2spec",				0, 30
+	// Option	"Smooth lagging players",	"sv_smoothplayers",		"ZA_ExtrapolateLimit"
+	NumberField	"Max connected clients",	"sv_maxclients",		0, 64
+	NumberField	"Max players",			"sv_maxplayers",		0, 64
+	NumberField	"Max idle time (minutes)",	"sv_afk2spec",			0, 30
 }
 
 OptionValue ZA_AllowVoting
