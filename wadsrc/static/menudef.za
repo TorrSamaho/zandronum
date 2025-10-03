@@ -798,6 +798,9 @@ OptionMenu ZA_ServerSetupMenu
 	Slider		"Min rolloff distance",		"sv_minproximityrolloffdist",		0, 2400, 50
 	Slider		"Max rolloff distance",		"sv_maxproximityrolloffdist",		0, 2400, 50
 	StaticText	" "
+	Slider		"Min FOV",			"sv_minfov",				5, 179, 1
+	Slider		"Max FOV",			"sv_maxfov",				5, 179, 1
+	StaticText	" "
 	// Option	"Smooth lagging players",	"sv_smoothplayers",			"ZA_ExtrapolateLimit"
 	NumberField	"Max connected clients",	"sv_maxclients",			0, 64
 	NumberField	"Max players",				"sv_maxplayers",			0, 64
