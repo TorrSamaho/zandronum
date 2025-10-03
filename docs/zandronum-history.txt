@@ -33,6 +33,7 @@
 -	- Fixed: under rare circumstances, a client with cl_telespy enabled crashed upon loading a new level. [AKMDM]
 -	- Fixed: spectators were unable to pass through slopes while using the unrestricted spectator mode. [AKMDM]
 -	- Fixed: brightmaps didn't work at all on skins. [AKMDM]
+-	- Fixed: the FOV couldn't be changed while in free spectate mode. [AKMDM]
 !	- Spectators now travel at full speed while underwater, and those using the unrestricted spectator mode now only pass through teleporters if they can see into the sector where the teleporter is. [AKMDM]
 
 

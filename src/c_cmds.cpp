@@ -1089,11 +1089,18 @@ CCMD (dir)
 
 CCMD (fov)
 {
-	player_t *player = who ? who->player : &players[consoleplayer];
+	// [AK] Use the free spectator player while in free spectate mode.
+	player_t *player = CLIENTDEMO_IsInFreeSpectateMode () ? CLIENTDEMO_GetFreeSpectatorPlayer () : (who ? who->player : &players[consoleplayer]);
 
 	if (argv.argc() != 2)
 	{
 		Printf ("fov is %g\n", player->DesiredFOV);
+		return;
+	}
+	// [AK] Allow unconditional FOV changes while in free spectate mode.
+	else if (CLIENTDEMO_IsInFreeSpectateMode ())
+	{
+		player->DesiredFOV = clamp<float> (static_cast<float> (atof (argv[1])), 5.f, 179.f);
 		return;
 	}
 	else if (dmflags & DF_NO_FOV)
