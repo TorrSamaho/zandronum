@@ -1,0 +1,45 @@
+Git hash: bb1709228cb0e9b66150094d9d836e50468772b4
+Mercurial hash: f55ca25972fb1946f97c335a712e3cf1e245836d
+Changed FOV from a CCMD to a CVar, allowing players' FOV settings to persist. Also exported SetFOV to PlayerInfo for ZScript.
+
+
+
+--- wadsrc/static/zscript/shared/player.txt
++++ wadsrc/static/zscript/shared/player.txt
+@@ -320,6 +320,7 @@
+ 	native int GetGender();
+ 	native int GetTeam();
+ 	native float GetAutoaim();
++	native void SetFOV(float fov);
+ }
+ 
+ struct PlayerClass native
+
+Git hash: d64dd1f631fc06e2d453bc18f56c1ba16828fedf
+Mercurial hash: 7520fb9a806916e276499f1271b85fc2904deaec
+Add FOV slider to the display options menu
+
+--- wadsrc/static/menudef.txt
++++ wadsrc/static/menudef.txt
+@@ -947,6 +947,8 @@
+ 	Slider "$DSPLYMNU_CONTRAST",				"vid_contrast",	   				0.1, 3.0, 0.1
+ 	Slider "$DSPLYMNU_SATURATION",				"vid_saturation",  				-3.0, 3.0, 0.25, 2
+ 	StaticText " "
++	Slider "$DSPLYMNU_FOV",						"fov",							75.0, 120.0, 0.1, 1
++	StaticText " "
+ 	Option "$DSPLYMNU_SPRITESHADOW",			"r_actorspriteshadow", "SpriteShadowModes"
+ 	Option "$DSPLYMNU_CUSTOMINVERTMAP",			"cl_customizeinvulmap", "OnOff"
+ 	ColorPicker "$DSPLYMNU_CUSTOMINVERTC1",		"cl_custominvulmapcolor1"
+
+--- wadsrc/static/menudef.zsimple
++++ wadsrc/static/menudef.zsimple
+@@ -69,7 +69,8 @@
+ 	Slider "$DSPLYMNU_BRIGHTNESS",				"vid_brightness",				-0.8,0.8, 0.05,2
+ 	Slider "$DSPLYMNU_CONTRAST",				"vid_contrast",	   				0.1, 3.0, 0.1
+ 	Slider "$DSPLYMNU_SATURATION",				"vid_saturation",  				-3.0, 3.0, 0.25, 2
+-
++	StaticText " "
++	Slider "$DSPLYMNU_FOV",						"fov",							75.0, 120.0, 0.1, 1
+ 	// commenting this out for now, this menu is so general purpose I am not sure it makes sense, but I'm leaving it here just in case
+ 	// the "full" menu doesn't have some of the options that are in this one.
+ 	//StaticText " "
