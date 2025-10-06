@@ -1405,6 +1405,12 @@ void P_SetupPsprites(player_t *player, bool startweaponup)
 	// Spawn the ready weapon
 	player->PendingWeapon = !startweaponup ? player->ReadyWeapon : WP_NOCHANGE;
 	P_BringUpWeapon (player);
+	// [AK] After bringing up the weapon, reset each psprite's interpolation data.
+	for (i = 0; i < NUMPSPRITES; i++)
+	{
+		player->psprites[i].oldSX = player->psprites[i].nowSX = player->psprites[i].sx;
+		player->psprites[i].oldSY = player->psprites[i].nowSY = player->psprites[i].sy;
+	}
 }
 
 //------------------------------------------------------------------------
