@@ -1,8 +1,18 @@
+This document contains a list of any out-of-orders commits backported from GZDoom whose nodes failed to merge
+into Zandronum's code base, either because a file is missing or doesn't exist yet, or because the nodes were
+moved into another file that exists in Zandronum by hand. This is simply a way to keep track of changes that
+will need to be re-added once Zandronum's GZDoom base is upgraded.
+
+New entries should contain the Git hash of the commit from https://github.com/ZDoom/gzdoom, the Mercurial hash
+of the commit from https://foss.heptapod.net/zandronum/gzdoom-hg-mirror, and the original commit's message. All
+missing nodes must be copied and pasted as-is underneath.
+===============================================================================================================
+
+===============================================================================================================
 Git hash: bb1709228cb0e9b66150094d9d836e50468772b4
 Mercurial hash: f55ca25972fb1946f97c335a712e3cf1e245836d
 Changed FOV from a CCMD to a CVar, allowing players' FOV settings to persist. Also exported SetFOV to PlayerInfo for ZScript.
-
-
+===============================================================================================================
 
 --- wadsrc/static/zscript/shared/player.txt
 +++ wadsrc/static/zscript/shared/player.txt
@@ -15,9 +25,11 @@ Changed FOV from a CCMD to a CVar, allowing players' FOV settings to persist. Al
  
  struct PlayerClass native
 
+===============================================================================================================
 Git hash: d64dd1f631fc06e2d453bc18f56c1ba16828fedf
 Mercurial hash: 7520fb9a806916e276499f1271b85fc2904deaec
 Add FOV slider to the display options menu
+===============================================================================================================
 
 --- wadsrc/static/menudef.txt
 +++ wadsrc/static/menudef.txt
