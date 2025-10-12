@@ -1127,7 +1127,9 @@ void DrawFullHUD_GameInformation()
 				DTA_HUDRules, HUD_Normal,
 				DTA_CenterBottomOffset, true,
 				TAG_DONE);
-			DrBNumberOuter (ammo1->Amount, -67, -4 - BigHeight);
+			// [RK] Check if the primary ammo amount is allowed to be drawn.
+			if (( NETWORK_InClientMode() == false ) || ( SERVER_IsPlayerAllowedToKnowHealth( consoleplayer, ULONG( CPlayer - players ))))
+				DrBNumberOuter (ammo1->Amount, -67, -4 - BigHeight);
 			ammotop = -4 - BigHeight;
 			if (ammo2 != NULL && ammo2!=ammo1)
 			{
