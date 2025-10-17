@@ -324,7 +324,8 @@ bool Win32GLVideo::GoFullscreen(bool yes)
 	return yes;
 }
 
-CVAR(Bool, vid_activeinbackground, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+// [AK] Changed the default value of "vid_activeinbackground" to true.
+CVAR(Bool, vid_activeinbackground, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
 //==========================================================================
 //
@@ -960,7 +961,8 @@ void Win32GLFrameBuffer::InitializeState()
 
 bool Win32GLFrameBuffer::CanUpdate()
 {
-	if (!AppActive && (IsFullscreen() || !vid_activeinbackground)) return false;
+	// [AK] Allow vid_activeinbackground to work while the game's in fullscreen mode.
+	if (!AppActive && (/*IsFullscreen() ||*/ !vid_activeinbackground)) return false;
 	return true;
 }
 
