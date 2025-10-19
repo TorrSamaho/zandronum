@@ -9,6 +9,41 @@ missing nodes must be copied and pasted as-is underneath.
 ===============================================================================================================
 
 ===============================================================================================================
+Git hash: 7a11be86150422174cd7d745ba5b8fe55d44c686
+Mercurial hash: 9761aa28a850960d988e23d1e8de6fe7495c1d39
+Fixed dangling links to garbage collected HUD message objects
+
+https://forum.zdoom.org/viewtopic.php?t=60262
+===============================================================================================================
+
+--- src/g_statusbar/shared_sbar.cpp
++++ src/g_statusbar/shared_sbar.cpp
+@@ -658,7 +658,6 @@
+ {
+ 	DHUDMessageBase *old = NULL;
+ 	DHUDMessageBase **prev;
+-	DObject *container = this;
+ 
+ 	old = (id == 0 || id == 0xFFFFFFFF) ? NULL : DetachMessage (id);
+ 	if (old != NULL)
+@@ -679,14 +678,13 @@
+ 	// it gets drawn back to front.)
+ 	while (*prev != NULL && (*prev)->SBarID > id)
+ 	{
+-		container = *prev;
+ 		prev = &(*prev)->Next;
+ 	}
+ 
+ 	msg->Next = *prev;
+ 	msg->SBarID = id;
+ 	*prev = msg;
+-	GC::WriteBarrier(container, msg);
++	GC::WriteBarrier(msg);
+ }
+ 
+ DEFINE_ACTION_FUNCTION(DBaseStatusBar, AttachMessage)
+
+===============================================================================================================
 Git hash: bb1709228cb0e9b66150094d9d836e50468772b4
 Mercurial hash: f55ca25972fb1946f97c335a712e3cf1e245836d
 Changed FOV from a CCMD to a CVar, allowing players' FOV settings to persist. Also exported SetFOV to PlayerInfo for ZScript.
