@@ -4,8 +4,8 @@ moved into another file that exists in Zandronum by hand. This is simply a way t
 will need to be re-added once Zandronum's GZDoom base is upgraded.
 
 New entries should contain the Git hash of the commit from https://github.com/ZDoom/gzdoom, the Mercurial hash
-of the commit from https://foss.heptapod.net/zandronum/gzdoom-hg-mirror, and the original commit's message. All
-missing nodes must be copied and pasted as-is underneath.
+of the commit from https://foss.heptapod.net/zandronum/gzdoom-hg-mirror, the original commit's message, and a
+reason for why the node failed to merge. All missing nodes must be copied and pasted as-is underneath.
 ===============================================================================================================
 
 ===============================================================================================================
@@ -14,6 +14,9 @@ Mercurial hash: 9761aa28a850960d988e23d1e8de6fe7495c1d39
 Fixed dangling links to garbage collected HUD message objects
 
 https://forum.zdoom.org/viewtopic.php?t=60262
+
+Reason for documentation: "src/g_statusbar/shared_sbar.cpp" doesn't exist in Zandronum yet, so the node had to
+be pasted into "src/g_shared/shared_sbar.cpp" manually instead.
 ===============================================================================================================
 
 --- src/g_statusbar/shared_sbar.cpp
@@ -47,6 +50,9 @@ https://forum.zdoom.org/viewtopic.php?t=60262
 Git hash: bb1709228cb0e9b66150094d9d836e50468772b4
 Mercurial hash: f55ca25972fb1946f97c335a712e3cf1e245836d
 Changed FOV from a CCMD to a CVar, allowing players' FOV settings to persist. Also exported SetFOV to PlayerInfo for ZScript.
+
+Reason for documentation: "wadsrc/static/zscript/shared/player.txt" doesn't exist in Zandronum yet, and there's
+no other file that the node can be pasted into.
 ===============================================================================================================
 
 --- wadsrc/static/zscript/shared/player.txt
@@ -64,6 +70,9 @@ Changed FOV from a CCMD to a CVar, allowing players' FOV settings to persist. Al
 Git hash: d64dd1f631fc06e2d453bc18f56c1ba16828fedf
 Mercurial hash: 7520fb9a806916e276499f1271b85fc2904deaec
 Add FOV slider to the display options menu
+
+Reason for documentation: replaced "$DSPLYMNU_FOV" with "FOV" manually, and "wadsrc/static/menudef.zsimple"
+doesn't exist in Zandronum without an alternate file to paste the node into yet.
 ===============================================================================================================
 
 --- wadsrc/static/menudef.txt
@@ -95,6 +104,9 @@ Add FOV slider to the display options menu
 Git hash: 276fb7dbb2f43fcb0db6a5fc276495af6254316f
 Mercurial hash: affd5a9240f457f0bfaa33b157fcd299d926aadc
 Add vid_maxfps support for Windows and Linux
+
+Reason for documentation: "src/posix/sdl/sdlglvideo.cpp" doesn't exist in Zandronum yet, so the node had to be
+pasted into "src/sdl/sdlglvideo.cpp" manually instead.
 ===============================================================================================================
 
 --- src/posix/sdl/sdlglvideo.cpp
@@ -118,6 +130,9 @@ Add vid_maxfps support for Windows and Linux
 Git hash: f79c442df533e26888eb748e14041eb71b1e6ab7
 Mercurial hash: e35343baadcf1f6162bcea92dbfe66f178b63951
 Fixed compilation of SDL backend
+
+Reason for documentation: "src/posix/sdl/sdlglvideo.cpp" doesn't exist in Zandronum yet, so the node had to be
+pasted into "src/sdl/sdlglvideo.cpp" manually instead.
 ===============================================================================================================
 
 --- src/posix/sdl/sdlglvideo.cpp
