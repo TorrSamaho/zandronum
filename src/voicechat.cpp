@@ -735,8 +735,9 @@ void VOIPController::Tick( void )
 		if ( VoIPChannels[i] == nullptr )
 			continue;
 
-		// [AK] Delete this channel if this player's no longer valid, or ignored.
-		if (( PLAYER_IsValidPlayer( i ) == false ) || (( i != static_cast<unsigned>( consoleplayer )) && ( players[i].ignoreVoice.enabled )))
+		// [AK] Delete this channel if this player's no longer valid, ignored,
+		// or forbidden to chat with us.
+		if ( IsForbiddenToHearPlayer( i ))
 		{
 			RemoveVoIPChannel( i );
 			continue;
@@ -1429,11 +1430,9 @@ void VOIPController::ReceiveAudioPacket( const unsigned int player, const unsign
 	if (( isActive == false ) && ( player != static_cast<unsigned>( consoleplayer )))
 		return;
 
-	if (( PLAYER_IsValidPlayer( player ) == false ) || ( data == nullptr ) || ( length == 0 ))
-		return;
-
-	// [AK] Don't process any audio frames from other players that are ignored.
-	if (( player != static_cast<unsigned>( consoleplayer )) && ( players[player].ignoreVoice.enabled ))
+	// [AK] Don't process any audio frames from other players that are ignored
+	// or forbidden to chat with us.
+	if (( IsForbiddenToHearPlayer( player )) || ( data == nullptr ) || ( length == 0 ))
 		return;
 
 	// [AK] If this player's channel doesn't exist yet, create a new one.
@@ -1504,6 +1503,14 @@ void VOIPController::UpdateProximityChat( void )
 	{
 		if (( playeringame[i] == false ) || ( VoIPChannels[i] == nullptr ) || ( VoIPChannels[i]->channel == nullptr ))
 			continue;
+
+		// [AK] Don't update this player's channel if they're supposed to be
+		// ignored or forbidden to chat with us. Delete it instead.
+		if ( IsForbiddenToHearPlayer( i ))
+		{
+			RemoveVoIPChannel( i );
+			continue;
+		}
 
 		VoIPChannels[i]->Update3DAttributes( );
 	}
@@ -1589,6 +1596,33 @@ bool VOIPController::IsUsingALSA( void ) const
 
 	if (( system != nullptr ) && ( system->getOutput( &outputType ) == FMOD_OK ) && ( outputType == FMOD_OUTPUTTYPE_ALSA ))
 		return true;
+
+	return false;
+}
+
+//*****************************************************************************
+//
+// [AK] VOIPController::IsForbiddenToHearPlayer
+//
+// Checks if the local player shouldn't hear another player's voice because
+// they're either ignored or forbidden to voice chat with live players. This is
+// primarily used to see if the player's VoIP channel should be deleted.
+//
+//*****************************************************************************
+
+bool VOIPController::IsForbiddenToHearPlayer( const unsigned int player ) const
+{
+	if ( PLAYER_IsValidPlayer( player ) == false )
+		return true;
+
+	if ( player != static_cast<unsigned>( consoleplayer ))
+	{
+		if ( players[player].ignoreVoice.enabled )
+			return true;
+
+		if (( players[consoleplayer].bSpectating == false ) && ( GAMEMODE_IsClientForbiddenToChatToPlayers( player, true )))
+			return true;
+	}
 
 	return false;
 }

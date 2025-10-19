@@ -266,6 +266,7 @@ private:
 	void UpdateTestRMSVolume( unsigned char *soundBuffer, const unsigned int length );
 	int EncodeOpusFrame( const float *inBuffer, const unsigned int inLength, unsigned char *outBuffer, const unsigned int outLength );
 	bool IsUsingALSA( void ) const;
+	bool IsForbiddenToHearPlayer( const unsigned int player ) const;
 
 	static FMOD_CREATESOUNDEXINFO CreateSoundExInfo( const unsigned int sampleRate, const unsigned int fileLength );
 	static FMOD_RESULT F_CALLBACK ChannelCallback( FMOD_CHANNEL *channel, FMOD_CHANNEL_CALLBACKTYPE type, void *commanddata1, void *commanddata2 );
