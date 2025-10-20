@@ -147,3 +147,49 @@ pasted into "src/sdl/sdlglvideo.cpp" manually instead.
  
  // PUBLIC DATA DEFINITIONS -------------------------------------------------
  
+
+===============================================================================================================
+Git hash: 965d602d26167fdec3e6d5c5f6d7f12063d22128
+Mercurial hash: d4a376a7a82ec75eaec0d6c5bbafb9e90d4008cc
+- Improve letterboxing in fullscreen by taking into account animorphic ratio settings.
+- Added more resolutions to the hard coded table (up to 5K).
+- Since we're using scaling for fullscreen, we should probably just use the hard coded table for fullscreen resolutions as well.
+- Fixed: Resolution menu used fake aspect ratio to determine which aspect to file a resolution under.
+- Added a way to use SDL surface blitting instead of accelerated textures.
+
+Reason for documentation: needed the screen resolutions added to the hardcoded table in "sdlvideo.cpp", but the
+commit couldn't be transplanted in its entirety. So, they were added in manually without a transplant.
+===============================================================================================================
+
+--- src/sdl/sdlvideo.cpp
++++ src/sdl/sdlvideo.cpp
+@@ -151,6 +154,7 @@
+ 	{ 960, 600 },	// 16:10
+ 	{ 960, 720 },
+ 	{ 1024, 576 },	// 16:9
++	{ 1024, 600 },	// 17:10
+ 	{ 1024, 640 },	// 16:10
+ 	{ 1024, 768 },
+ 	{ 1088, 612 },	// 16:9
+@@ -160,6 +164,7 @@
+ 	{ 1280, 720 },	// 16:9
+ 	{ 1280, 800 },	// 16:10
+ 	{ 1280, 960 },
++	{ 1280, 1024 },	// 5:4
+ 	{ 1360, 768 },	// 16:9
+ 	{ 1400, 787 },	// 16:9
+ 	{ 1400, 875 },	// 16:10
+@@ -168,6 +173,13 @@
+ 	{ 1600, 1000 },	// 16:10
+ 	{ 1600, 1200 },
+ 	{ 1920, 1080 },
++	{ 1920, 1200 },
++	{ 2048, 1536 },
++	{ 2560, 1440 },
++	{ 2560, 1600 },
++	{ 2880, 1800 },
++	{ 3840, 2160 },
++	{ 5120, 2880 }
+ };
+ 
+ static cycle_t BlitCycles;
