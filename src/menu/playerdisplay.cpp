@@ -49,6 +49,8 @@
 #include "r_defs.h"
 #include "r_state.h"
 #include "r_data/r_translate.h"
+// [AK] New #includes.
+#include "team.h"
 
 
 //=============================================================================
@@ -382,7 +384,13 @@ void FListMenuItemPlayerDisplay::UpdateRandomClass()
 {
 	if (--mRandomTimer < 0)
 	{
-		if (++mRandomClass >= (int)PlayerClasses.Size ()) mRandomClass = 0;
+		// [AK] Only cycle through the classes that are allowed to be selected.
+		do
+		{
+			if (++mRandomClass >= (int)PlayerClasses.Size ()) mRandomClass = 0;
+		}
+		while (TEAM_IsClassAllowedForPlayer (mRandomClass, &players[consoleplayer]) == false);
+
 		mPlayerClass = &PlayerClasses[mRandomClass];
 		mPlayerState = GetDefaultByType (mPlayerClass->Type)->SeeState;
 		if (mPlayerState == NULL)

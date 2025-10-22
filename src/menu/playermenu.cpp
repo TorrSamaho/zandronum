@@ -544,6 +544,8 @@ class DPlayerMenu : public DListMenu
 	void AutoaimChanged (FListMenuItem *li);
 	void SkinChanged (FListMenuItem *li);
 
+	// [AK] Returns a list of classes that the local player's allowed to use.
+	TArray<FPlayerClass *> GetAllowedPlayerClasses();
 
 public:
 
@@ -567,6 +569,16 @@ IMPLEMENT_CLASS(DPlayerMenu)
 void DPlayerMenu::Init(DMenu *parent, FListMenuDescriptor *desc)
 {
 	FListMenuItem *li;
+
+	// [AK] Make sure that upon opening the player setup menu, whatever class
+	// the player has selected is allowed. If not, find one that is.
+	int selectedClass = players[consoleplayer].userinfo.GetPlayerClassNum();
+	if ((selectedClass < 0 && gameinfo.norandomplayerclass) ||
+		(selectedClass >= 0 && TEAM_IsClassAllowedForPlayer(selectedClass, &players[consoleplayer]) == false))
+	{
+		selectedClass = players[consoleplayer].userinfo.PlayerClassNumChanged(TEAM_FindValidClassForPlayer(&players[consoleplayer]));
+		cvar_set("playerclass", PlayerClasses[selectedClass].Type->Meta.GetMetaString(APMETA_DisplayName));
+	}
 
 	Super::Init(parent, desc);
 	PickPlayerClass();
@@ -642,15 +654,26 @@ void DPlayerMenu::Init(DMenu *parent, FListMenuDescriptor *desc)
 		}
 		else
 		{
+			// [AK] Get a list of all the classes that are allowed to be selected.
+			TArray<FPlayerClass *> allowedPlayerClasses = GetAllowedPlayerClasses();
+			int pclass = players[consoleplayer].userinfo.GetPlayerClassNum();
+
 			// [XA] Remove the "Random" option if the relevant gameinfo flag is set.
 			if(!gameinfo.norandomplayerclass)
 				li->SetString(0, "Random");
-			for(unsigned i=0; i< PlayerClasses.Size(); i++)
+			/// [AK] Replaced PlayerClasses with allowedPlayerClasses.
+			for(unsigned i=0; i< allowedPlayerClasses.Size(); i++)
 			{
-				const char *cls = GetPrintableDisplayName(PlayerClasses[i].Type);
+				const char *cls = GetPrintableDisplayName(allowedPlayerClasses[i]->Type);
 				li->SetString(gameinfo.norandomplayerclass ? i : i+1, cls);
+
+				// [AK] Ensure the class the local player is using is selected by default.
+				// Don't do this if they selected a random class.
+				if (pclass >= 0 && allowedPlayerClasses[i]->Type == players[consoleplayer].userinfo.GetPlayerClassType())
+					pclass = i;
 			}
-			int pclass = players[consoleplayer].userinfo.GetPlayerClassNum();
+			// [AK] Zandronum doesn't use this. It's been copied/pasted above instead.
+			// int pclass = players[consoleplayer].userinfo.GetPlayerClassNum();
 			li->SetValue(0, gameinfo.norandomplayerclass && pclass >= 0 ? pclass : pclass + 1);
 		}
 	}
@@ -960,7 +983,31 @@ void DPlayerMenu::ClassChanged (FListMenuItem *li)
 
 	if (li->GetValue(0, &sel))
 	{
-		players[consoleplayer].userinfo.PlayerClassNumChanged(gameinfo.norandomplayerclass ? sel : sel-1);
+		// [AK] Check if the player wants to set their class to random.
+		if (gameinfo.norandomplayerclass == false && sel == 0)
+		{
+			players[consoleplayer].userinfo.PlayerClassNumChanged(-1);
+		}
+		// [AK] Otherwise, find the class that they selected from the list of
+		// allowable classes, then change their setting accordingly. Note that
+		// this list doesn't always match the global player class list.
+		else
+		{
+			TArray<FPlayerClass *> allowedPlayerClasses = GetAllowedPlayerClasses();
+			FPlayerClass *selectedClass = allowedPlayerClasses[gameinfo.norandomplayerclass ? sel : sel - 1];
+
+			for (unsigned int i = 0; i < PlayerClasses.Size(); i++)
+			{
+				if (selectedClass == &PlayerClasses[i])
+				{
+					players[consoleplayer].userinfo.PlayerClassNumChanged(i);
+					break;
+				}
+			}
+		}
+
+		// [AK] Zandronum doesn't use this.
+		// players[consoleplayer].userinfo.PlayerClassNumChanged(gameinfo.norandomplayerclass ? sel : sel-1);
 		PickPlayerClass();
 
 		cvar_set ("playerclass", sel == 0 && !gameinfo.norandomplayerclass ? "Random" : PlayerClass->Type->Meta.GetMetaString (APMETA_DisplayName));
@@ -1024,6 +1071,27 @@ void DPlayerMenu::AutoaimChanged (FListMenuItem *li)
 	{
 		autoaim = ranges[sel];
 	}
+}
+
+//=============================================================================
+//
+// [AK] Returns a list of classes that the local player's allowed to use.
+//
+//=============================================================================
+
+TArray<FPlayerClass *> DPlayerMenu::GetAllowedPlayerClasses()
+{
+	TArray<FPlayerClass *> list;
+
+	for (unsigned int i = 0; i < PlayerClasses.Size(); i++)
+	{
+		if (TEAM_IsClassAllowedForPlayer(i, &players[consoleplayer]) == false)
+			continue;
+
+		list.Push(&PlayerClasses[i]);
+	}
+
+	return list;
 }
 
 //=============================================================================
