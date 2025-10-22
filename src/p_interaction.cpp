@@ -2420,8 +2420,6 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 
 //*****************************************************************************
 //
-// [BC] *grumble*
-void	G_DoReborn (int playernum, bool freshbot);
 void PLAYER_SetSpectator( player_t *pPlayer, bool bBroadcast, bool bDeadSpectator )
 {
 	AActor	*pOldBody;
