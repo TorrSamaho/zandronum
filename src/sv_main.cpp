@@ -3950,7 +3950,8 @@ void SERVER_ForceToSpectate( ULONG ulPlayer, const char *pszReason )
 		return;
 	}
 
-	SERVER_Printf( PRINT_HIGH, TEXTCOLOR_ORANGE "%s" TEXTCOLOR_ORANGE " has been forced to spectate! Reason: %s\n",
+	// [RK] Use NETWORK_Printf instead of SERVER_Printf.
+	NETWORK_Printf( TEXTCOLOR_ORANGE "%s" TEXTCOLOR_ORANGE " has been forced to spectate! Reason: %s\n",
 		players[ulPlayer].userinfo.GetName(), pszReason );
 
 	// Make this player a spectator.
