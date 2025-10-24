@@ -5640,6 +5640,13 @@ void ServerCommands::SetThingScale::Execute()
 }
 
 //*****************************************************************************
+// [RK]
+void ServerCommands::SetThingFloorClip::Execute()
+{
+	actor->floorclip = floorclip;
+}
+
+//*****************************************************************************
 //
 void ServerCommands::SetWeaponAmmoGive::Execute()
 {

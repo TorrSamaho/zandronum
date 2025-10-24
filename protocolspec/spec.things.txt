@@ -297,6 +297,12 @@ Command SetThingScale
 	EndIf
 EndCommand
 
+Command SetThingFloorClip
+	ExtendedCommand
+	Actor actor
+	Fixed floorclip
+EndCommand
+
 Command ThingIsCorpse
 	Actor actor
 	# [TP] TODO: Does this really need to be sent? The client should be able to deduce this.

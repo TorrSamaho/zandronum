@@ -6840,6 +6840,7 @@ bool P_HitWater (AActor * thing, sector_t * sec, fixed_t x, fixed_t y, fixed_t z
 	FSplashDef *splash;
 	int terrainnum;
 	sector_t *hsec = NULL;
+	fixed_t oldFloorclip; // [RK] Store the old value before we send over the network.
 	
 	if (x == FIXED_MIN) x = thing->x;
 	if (y == FIXED_MIN) y = thing->y;
@@ -6927,11 +6928,22 @@ foundone:
 	if (smallsplash && splash->SmallSplash)
 	{
 		mo = Spawn (splash->SmallSplash, x, y, z, ALLOW_REPLACE);
-		if (mo) mo->floorclip += splash->SmallSplashClip;
+		// [RK] Save the current floorclip before adding SmallClip.
+		if (mo)
+		{
+			oldFloorclip = mo->floorclip;
+			mo->floorclip += splash->SmallSplashClip;
+		}
 
 		// [BC/BB] Tell clients to spawn the splash.
 		if ( mo && ( NETWORK_GetState( ) == NETSTATE_SERVER ) )
+		{
 			SERVERCOMMANDS_SpawnThing( mo );
+
+			// [RK] Update the clients about the floorclip change if we need to.
+			if ( oldFloorclip != mo->floorclip )
+				SERVERCOMMANDS_SetThingFloorClip( mo );
+		}
 	}
 	else
 	{
