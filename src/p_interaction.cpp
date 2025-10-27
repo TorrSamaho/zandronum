@@ -2317,6 +2317,9 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 	else
 		pPlayer->bOnTeam = true;
 
+	// [RK] Grab the old team so we can check if the view needs to be reset.
+	const unsigned int oldTeam = pPlayer->Team;
+
 	// Set the team.
 	pPlayer->Team = ulTeam;
 
@@ -2363,6 +2366,13 @@ void PLAYER_SetTeam( player_t *pPlayer, ULONG ulTeam, bool bNoBroadcast )
 		{
 			SERVER_Printf( "%s joined the \034%s%s " TEXTCOLOR_NORMAL "team.\n", pPlayer->userinfo.GetName(), TEAM_GetTextColorName( ulTeam ), TEAM_GetName( ulTeam ));
 		}		
+	}
+	// [RK] Reset the player's camera if they switched teams and their camera is an enemy.
+	// Security cameras and alike are excluded because they are not valid players.
+	else if (( oldTeam != ulTeam ) && ( pPlayer->mo ) && ( pPlayer->camera->player ) && !( pPlayer->mo->IsTeammate( pPlayer->camera->player->mo )))
+	{
+		if (( pPlayer->bDeadSpectator == false ) || (( lmsspectatorsettings & LMS_SPF_VIEW ) == false ))
+			pPlayer->camera = pPlayer->mo;
 	}
 
 	// Finally, update the player's color.
