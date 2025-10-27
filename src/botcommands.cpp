@@ -198,6 +198,11 @@ static  void	botcmd_BeginSpeed( CSkullBot *pBot );
 static  void	botcmd_StopSpeed( CSkullBot *pBot );
 static  void	botcmd_PressUse( CSkullBot *pBot );
 static	void	botcmd_ACS_NamedExecuteWithResult( CSkullBot *pBot );
+static  void	botcmd_BeginMoveUp( CSkullBot *pBot );
+static  void	botcmd_StopMoveUp( CSkullBot *pBot );
+//110
+static  void	botcmd_BeginMoveDown( CSkullBot *pBot );
+static  void	botcmd_StopMoveDown( CSkullBot *pBot );
 
 //*****************************************************************************
 //	VARIABLES
@@ -322,6 +327,11 @@ static	BOTCMD_s	g_BotCommands[NUM_BOTCMDS] =
 	{ "StopSpeed", botcmd_StopSpeed, 0, 0, RETURNVAL_VOID },
 	{ "PressUse", botcmd_PressUse, 0, 0, RETURNVAL_VOID },
 	{ "ACS_NamedExecuteWithResult", botcmd_ACS_NamedExecuteWithResult, 4, 1, RETURNVAL_INT },
+	{ "BeginMoveUp", botcmd_BeginMoveUp, 0, 0, RETURNVAL_VOID },
+	{ "StopMoveUp", botcmd_StopMoveUp, 0, 0, RETURNVAL_VOID },
+	//110
+	{ "BeginMoveDown", botcmd_BeginMoveDown, 0, 0, RETURNVAL_VOID },
+	{ "StopMoveDown", botcmd_StopMoveDown, 0, 0, RETURNVAL_VOID },
 };
 
 static	int			g_iReturnInt = -1;
@@ -2905,4 +2915,32 @@ static void botcmd_ACS_NamedExecuteWithResult( CSkullBot *pBot )
 	LONG scriptNum = -FName( lScript );
 
 	g_iReturnInt = P_StartScript( pBot->GetPlayer( )->mo, NULL, scriptNum, level.mapname, lArgs, 4, ACS_ALWAYS|ACS_WANTRESULT );
+}
+
+//*****************************************************************************
+//
+static void botcmd_BeginMoveUp( CSkullBot *pBot )
+{
+	pBot->m_lButtons |= BT_MOVEUP;
+}
+
+//*****************************************************************************
+//
+static void botcmd_StopMoveUp( CSkullBot *pBot )
+{
+	pBot->m_lButtons &= ~BT_MOVEUP;
+}
+
+//*****************************************************************************
+//
+static void botcmd_BeginMoveDown( CSkullBot *pBot )
+{
+	pBot->m_lButtons |= BT_MOVEDOWN;
+}
+
+//*****************************************************************************
+//
+static void botcmd_StopMoveDown( CSkullBot *pBot )
+{
+	pBot->m_lButtons &= ~BT_MOVEDOWN;
 }
