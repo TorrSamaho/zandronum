@@ -182,8 +182,13 @@ bool P_MorphPlayer (player_t *activator, player_t *p, const PClass *spawntype, i
 	if ((morphed->PlayerFlags & PPF_NOMORPHLIMITATIONS) == false)
 		morphed->ScoreIcon = actor->ScoreIcon;	// [GRB]
 
+	// [RK] Set the skin for offline singleplayer morphing.
+	if (( NETWORK_GetState() == NETSTATE_SINGLE ) || ( NETWORK_GetState() == NETSTATE_SINGLE_MULTIPLAYER ))
+	{
+		PLAYER_SetSpriteToSkin( morphed->player );
+	}
 	// [BB] Tell the clients to morph the player.
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
+	else if ( NETWORK_GetState( ) == NETSTATE_SERVER )
 	{
 		const ULONG ulPlayer = static_cast<ULONG> ( morphed->player-players );
 		SERVERCOMMANDS_SpawnPlayer( ulPlayer, PST_LIVE, MAXPLAYERS, 0, true );

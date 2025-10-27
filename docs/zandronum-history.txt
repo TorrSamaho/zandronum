@@ -40,6 +40,7 @@
 -	- Fixed: TERRAIN SmallClip wasn't being applied online for SmallSplash effects (addresses 1060). [Ru5tK1ng]
 -	- Fixed: Player_SetTeam wouldn't clear coopspy if a player defected to a team while spying on his ally (addresses 1197). [Ru5tK1ng]
 -	- Fixed: cl_respawninvuleffect also affected the server, and upon loading a new level, could make players appear partially invisible for clients that weren't using the flicker respawn invulnerability effect. [AKMDM]
+-	- Fixed: Morphed players did not transfer their skin despite the absence of +NOSKIN on their class (addresses 1425). [Ru5tK1ng]
 !	- Spectators now travel at full speed while underwater, and those using the unrestricted spectator mode now only pass through teleporters if they can see into the sector where the teleporter is. [AKMDM]
 !	- Player classes that are forbidden are no longer selectable in the player setup menu. [AKMDM]
 

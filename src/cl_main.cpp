@@ -3451,7 +3451,6 @@ void ServerCommands::SpawnPlayer::Execute()
 	ULONG					ulPlayer = player - players;
 	player_t				*pPlayer = player;
 	APlayerPawn				*pActor;
-	LONG					lSkin;
 	bool					bWasWatchingPlayer;
 	bool					hadNoMorphLimitations = false;
 	AActor					*pCameraActor;
@@ -3679,33 +3678,8 @@ void ServerCommands::SpawnPlayer::Execute()
 	pActor->id = ulPlayer;
 
 	// [RH] Set player sprite based on skin
-	// [BC] Handle cl_skins here.
-	if ( cl_skins <= 0 )
-	{
-		lSkin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
-		pActor->flags4 |= MF4_NOSKIN;
-	}
-	else if ( cl_skins >= 2 )
-	{
-		if ( skins[pPlayer->userinfo.GetSkin()].bCheat )
-		{
-			lSkin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
-			pActor->flags4 |= MF4_NOSKIN;
-		}
-		else
-			lSkin = pPlayer->userinfo.GetSkin();
-	}
-	else
-		lSkin = pPlayer->userinfo.GetSkin();
-
-	if (( lSkin < 0 ) || ( lSkin >= static_cast<LONG>(skins.Size()) ))
-		lSkin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
-
-	// [BB] There is no skin for the morphed class.
-	if ( !isMorphed )
-	{
-		pActor->sprite = skins[lSkin].sprite;
-	}
+	// [RK] Handle this in a helper function.
+	PLAYER_SetSpriteToSkin( pPlayer );
 
 	// [RK] Clamp the player's FOV according to min and max FOV.
 	pPlayer->DesiredFOV = pPlayer->FOV = clamp<float>( fov, sv_minfov, sv_maxfov );
@@ -4187,37 +4161,10 @@ void ServerCommands::SetPlayerUserInfo::Execute()
 		// Make sure the skin is valid.
 		else if ( name == NAME_Skin )
 		{
-			int skin;
 			player->userinfo.SkinNumChanged ( R_FindSkin( value, player->CurrentPlayerClass ) );
 
-			// [BC] Handle cl_skins here.
-			if ( cl_skins <= 0 )
-			{
-				skin = R_FindSkin( "base", player->CurrentPlayerClass );
-				if ( player->mo )
-					player->mo->flags4 |= MF4_NOSKIN;
-			}
-			else if ( cl_skins >= 2 )
-			{
-				if ( skins[player->userinfo.GetSkin()].bCheat )
-				{
-					skin = R_FindSkin( "base", player->CurrentPlayerClass );
-					if ( player->mo )
-						player->mo->flags4 |= MF4_NOSKIN;
-				}
-				else
-					skin = player->userinfo.GetSkin();
-			}
-			else
-				skin = player->userinfo.GetSkin();
-
-			if (( skin < 0 ) || ( skin >= static_cast<signed>(skins.Size()) ))
-				skin = R_FindSkin( "base", player->CurrentPlayerClass );
-
-			if ( player->mo )
-			{
-				player->mo->sprite = skins[skin].sprite;
-			}
+			// [RK] Handle skins in a helper function.
+			PLAYER_SetSpriteToSkin( player );
 		}
 		// Read in the player's handicap.
 		else if ( name == NAME_Handicap )

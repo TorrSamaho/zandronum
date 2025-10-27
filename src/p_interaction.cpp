@@ -3309,7 +3309,9 @@ bool PLAYER_ShouldForceBaseSkin( player_t *player )
 
 	// [BB] MF4_NOSKIN should force the player to have the base skin too, the
 	// same is true for morphed players.
-	if ((( player->mo != nullptr ) && ( player->mo->flags4 & MF4_NOSKIN )) || ( player->morphTics ))
+	// [RK] In order to be inline with ZDoom and old ST behavior, we'll let
+	// morphed players keep their skin unless their class has NOSKIN.
+	if (( player->mo != nullptr ) && ( player->mo->flags4 & MF4_NOSKIN ))
 		return true;
 
 	return false;
@@ -3738,6 +3740,46 @@ void PLAYER_ResetCustomValues( const ULONG ulPlayer )
 
 	while ( it.NextPair( pair ))
 		pair->Value.ResetToDefault( ulPlayer, false );
+}
+
+//*****************************************************************************
+// [RK]
+void PLAYER_SetSpriteToSkin( player_t *pPlayer )
+{
+	// [RK] Return if we have some null pointers.
+	if ( !pPlayer || !pPlayer->mo )
+		return;
+
+	int lSkin;
+
+	// [BC] Handle cl_skins here.
+	if ( cl_skins <= 0 )
+	{
+		lSkin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
+		pPlayer->mo->flags4 |= MF4_NOSKIN;
+	}
+	else if ( cl_skins >= 2 )
+	{
+		if ( skins[pPlayer->userinfo.GetSkin()].bCheat )
+		{
+			lSkin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
+			pPlayer->mo->flags4 |= MF4_NOSKIN;
+		}
+		else
+			lSkin = pPlayer->userinfo.GetSkin();
+	}
+	else
+		lSkin = pPlayer->userinfo.GetSkin();
+
+	if (( lSkin < 0 ) || ( static_cast<unsigned> (lSkin) >= skins.Size() ))
+		lSkin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
+
+	// [BB] There is no skin for the morphed class.
+	// [RK] Let the morph class keep the skin if they don't have +NOSKIN.
+	if ( !pPlayer->morphTics || !( pPlayer->mo->flags4 & MF4_NOSKIN ))
+	{
+		pPlayer->mo->sprite = skins[lSkin].sprite;
+	}
 }
 
 //*****************************************************************************
