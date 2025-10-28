@@ -21,6 +21,10 @@ stages:
       if [[ "$SERVERONLY" != "ON" ]]; then
         cp ${FMOD_DIR_PATH}/api/lib/libfmodex64-${FMOD_SO_VERSION}.so .;
       fi
+    # liboutput_sdl is a symlink, we need the actual file
+    - if [ -L liboutput_sdl.so ]; then
+        cp --remove-destination "$(readlink liboutput_sdl.so)" liboutput_sdl.so ;
+      fi
   artifacts:
     expire_in: 1 week
     paths:
