@@ -1,5 +1,6 @@
 stages:
   - build
+  - deploy
 
 # For Linux, we use custom Docker images that have our dependencies pre-installed.
 # This saves some time when building.
@@ -30,7 +31,7 @@ stages:
     paths:
       - build/zandronum*
       - build/*.pk3
-      - build/libfmodex*.so
+      - build/*.so
 
 build_linux:
   <<: *linux
@@ -49,6 +50,29 @@ build_linux_serveronly_arm64:
     - arm64
   variables:
     SERVERONLY: "ON"
+
+# Build an AppImage from the artefacts of the build_linux job.
+appimage:
+  stage: deploy
+  image: registry.heptapod.net/zandronum/ci-images/zandronum-build-ubuntu:latest
+  script:
+    - mkdir -p AppDir/usr/bin AppDir/usr/lib
+    - cp build/zandronum* AppDir/usr/bin
+    - cp build/*.pk3 AppDir/usr/bin
+    - cp build/liboutput_sdl.so AppDir/usr/bin
+    - cp appimage/AppRun AppDir
+    - cp appimage/zandronum.desktop AppDir
+    - cp appimage/zandronum.png AppDir
+    # Explicitly bundle SDL2, since SDL1.2-compat dynamically loads it,
+    # and so linuxdeploy can't find it automatically
+    - linuxdeploy --appimage-extract-and-run
+      -l/usr/lib/x86_64-linux-gnu/libSDL2.so
+      --appdir AppDir --output appimage -v0
+  dependencies:
+    - build_linux
+  artifacts:
+    paths:
+      - "*.AppImage"
 
 # Windows build currently require a shell runner with the dependencies already set up.
 # Set up as described on the wiki: https://wiki.zandronum.com/Compiling_Zandronum_with_Visual_Studio

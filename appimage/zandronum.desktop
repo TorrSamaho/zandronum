@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Zandronum
+Comment=Online Doom source port
+Exec=zandronum %F
+Terminal=false
+Categories=Game
+Icon=zandronum
