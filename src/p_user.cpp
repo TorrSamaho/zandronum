@@ -2694,7 +2694,7 @@ void P_CheckPlayerSprite(AActor *actor, int &spritenum, fixed_t &scalex, fixed_t
 	}
 
 	// [BB/AK] An overridden skin also overrides NOSKIN.
-	if (skin != 0 && ( !(player->mo->flags4 & MF4_NOSKIN) || ( overrideSkin != -1 ) ) )
+	if (skin != 0 && (!(player->mo->flags4 & MF4_NOSKIN) || (overrideSkin != -1)) && (skins[skin].sprite == actor->sprite))
 	{
 		// Convert from default scale to skin scale.
 		fixed_t defscaleY = actor->GetDefault()->scaleY;
