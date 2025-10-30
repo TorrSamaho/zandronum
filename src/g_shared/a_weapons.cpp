@@ -446,7 +446,8 @@ void AWeapon::AttachToOwner (AActor *other)
 			}
 
 			// [AK] Don't switch the weapon if we don't want to while pressing the fire button(s).
-			if (( shouldSwitch ) && ( NETWORK_GetState( ) != NETSTATE_SERVER ) && (( Owner->player - players ) == consoleplayer ))
+			if (( shouldSwitch ) && ( NETWORK_GetState( ) != NETSTATE_SERVER ) &&
+				(( Owner->player - players ) == consoleplayer ) && ( Owner->player->ReadyWeapon != nullptr ))
 			{
 				// [AK] It's common for players to respawn on top of weapons in deathmatch levels.
 				// It's reasonable to assume that the player would always want to switch to this
