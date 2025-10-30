@@ -3763,6 +3763,9 @@ void PLAYER_SetSpriteToSkin( player_t *pPlayer )
 	else
 	{
 		skin = pPlayer->userinfo.GetSkin( );
+
+		if (( pPlayer->mo->GetDefault( )->flags4 & MF4_NOSKIN ) == false )
+			pPlayer->mo->flags4 &= ~MF4_NOSKIN;
 	}
 
 	if (( skin < 0 ) || ( static_cast<unsigned>( skin ) >= skins.Size( )))
@@ -3770,9 +3773,14 @@ void PLAYER_SetSpriteToSkin( player_t *pPlayer )
 
 	// [BB] There is no skin for the morphed class.
 	// [RK] Let the morph class keep the skin if they don't have +NOSKIN.
-	if ( !pPlayer->morphTics || !( pPlayer->mo->flags4 & MF4_NOSKIN ))
+	if (( pPlayer->mo->flags4 & MF4_NOSKIN ) == false )
 	{
-		pPlayer->mo->sprite = skins[skin].sprite;
+		if (( pPlayer->mo->sprite == pPlayer->mo->SpawnState->sprite ) && ( pPlayer->mo->sprite != SPR_TNT1 ))
+			pPlayer->mo->sprite = skins[skin].sprite;
+	}
+	else if ( pPlayer->mo->sprite == skins[skin].sprite )
+	{
+		pPlayer->mo->sprite = pPlayer->mo->state->sprite;
 	}
 }
 

@@ -1436,70 +1436,15 @@ void R_DeinitSpriteData()
 }
 
 // [BC] Allow clients to decide whether or not they want skins enabled.
-CUSTOM_CVAR( Int, cl_skins, 1, CVAR_ARCHIVE )
+CUSTOM_CVAR(Int, cl_skins, 1, CVAR_ARCHIVE)
 {
-	LONG	lSkin;
-	ULONG	ulIdx;
-
 	// Loop through all the players and set their sprite according to the value of cl_skins.
-	for ( ulIdx = 0; ulIdx < MAXPLAYERS; ulIdx++ )
+	for (unsigned int i = 0; i < MAXPLAYERS; i++)
 	{
-		if (( playeringame[ulIdx] == false ) || ( players[ulIdx].mo == NULL ))
+		if (playeringame[i] == false)
 			continue;
 
-		// If cl_skins == 0, then the user wishes to disable all skins.
-		if ( self <= 0 )
-		{
-			lSkin = R_FindSkin( "base", players[ulIdx].CurrentPlayerClass );
-
-			// Make sure the player doesn't change sprites when his state changes.
-			players[ulIdx].mo->flags4 |= MF4_NOSKIN;
-		}
-		// If cl_skins >= 2, then the user wants to disable cheat skins, but allow all others.
-		else if ( self >= 2 )
-		{
-			if ( skins[players[ulIdx].userinfo.GetSkin()].bCheat )
-			{
-				lSkin = R_FindSkin( "base", players[ulIdx].CurrentPlayerClass );
-
-				// Make sure the player doesn't change sprites when his state changes.
-				players[ulIdx].mo->flags4 |= MF4_NOSKIN;
-			}
-			else
-			{
-				lSkin = players[ulIdx].userinfo.GetSkin();
-
-				if (( players[ulIdx].mo->GetDefault( )->flags4 & MF4_NOSKIN ) == false )
-					players[ulIdx].mo->flags4 &= ~MF4_NOSKIN;
-			}
-		}
-		// If cl_skins == 1, allow all skins to be used.
-		else
-		{
-			lSkin = players[ulIdx].userinfo.GetSkin();
-
-			if (( players[ulIdx].mo->GetDefault( )->flags4 & MF4_NOSKIN ) == false )
-				players[ulIdx].mo->flags4 &= ~MF4_NOSKIN;
-		}
-
-		// If the skin is valid, set the player's sprite to the skin's sprite.
-		if (( lSkin >= 0 ) && ( static_cast<unsigned> (lSkin) < skins.Size() ))
-		{
-			players[ulIdx].mo->sprite = skins[lSkin].sprite;
-/*
-			players[ulIdx].mo->scaleX = skins[lSkin].ScaleX;
-			players[ulIdx].mo->scaleY = skins[lSkin].ScaleY;
-
-			// Make sure the player doesn't change sprites when his state changes.
-			if ( lSkin == R_FindSkin( "base", players[ulIdx].CurrentPlayerClass ))
-				players[ulIdx].mo->flags4 |= MF4_NOSKIN;
-			else
-			{
-				if (( players[ulIdx].mo->GetDefault( )->flags4 & MF4_NOSKIN ) == false )
-					players[ulIdx].mo->flags4 &= ~MF4_NOSKIN;
-			}
-*/
-		}
+		PLAYER_SetSpriteToSkin(&players[i]);
 	}
 }
 
