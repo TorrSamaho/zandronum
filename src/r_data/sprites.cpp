@@ -1447,4 +1447,3 @@ CUSTOM_CVAR(Int, cl_skins, 1, CVAR_ARCHIVE)
 		PLAYER_SetSpriteToSkin(&players[i]);
 	}
 }
-
