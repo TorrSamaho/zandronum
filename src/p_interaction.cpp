@@ -3750,35 +3750,29 @@ void PLAYER_SetSpriteToSkin( player_t *pPlayer )
 	if ( !pPlayer || !pPlayer->mo )
 		return;
 
-	int lSkin;
+	int skin = 0;
 
-	// [BC] Handle cl_skins here.
-	if ( cl_skins <= 0 )
+	// If cl_skins == 0, then the user wishes to disable all skins. Likewise,
+	// if cl_skins >= 2, then the user wants to disable cheat skins, but allow all others.
+	if (( cl_skins <= 0 ) || (( cl_skins >= 2 ) && ( skins[pPlayer->userinfo.GetSkin( )].bCheat )))
 	{
-		lSkin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
+		skin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
 		pPlayer->mo->flags4 |= MF4_NOSKIN;
 	}
-	else if ( cl_skins >= 2 )
-	{
-		if ( skins[pPlayer->userinfo.GetSkin()].bCheat )
-		{
-			lSkin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
-			pPlayer->mo->flags4 |= MF4_NOSKIN;
-		}
-		else
-			lSkin = pPlayer->userinfo.GetSkin();
-	}
+	// Otherwise, allow the skin to be used.
 	else
-		lSkin = pPlayer->userinfo.GetSkin();
+	{
+		skin = pPlayer->userinfo.GetSkin( );
+	}
 
-	if (( lSkin < 0 ) || ( static_cast<unsigned> (lSkin) >= skins.Size() ))
-		lSkin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
+	if (( skin < 0 ) || ( static_cast<unsigned>( skin ) >= skins.Size( )))
+		skin = R_FindSkin( "base", pPlayer->CurrentPlayerClass );
 
 	// [BB] There is no skin for the morphed class.
 	// [RK] Let the morph class keep the skin if they don't have +NOSKIN.
 	if ( !pPlayer->morphTics || !( pPlayer->mo->flags4 & MF4_NOSKIN ))
 	{
-		pPlayer->mo->sprite = skins[lSkin].sprite;
+		pPlayer->mo->sprite = skins[skin].sprite;
 	}
 }
 
