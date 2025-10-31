@@ -2200,8 +2200,8 @@ void G_PlayerReborn (int player, bool bGiveInventory)
 	}
 	else if ( p->bSpectating == false )
 	{
-		// [AK] Reset the client's tic buffer every time they spawn.
-		SERVER_ResetClientTicBuffer( player );
+		// [AK] Reset the client's command buffer every time they spawn.
+		SERVER_GetClient( player )->bufferedCMDs.Clear();
 	}
 
 	// Reset player structure to its defaults

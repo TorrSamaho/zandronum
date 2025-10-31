@@ -86,7 +86,6 @@
 #include "voicechat.h"
 #include "d_netinf.h"
 #include "callvote.h"
-#include <memory>
 
 CVAR (Bool, sv_showwarnings, false, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 

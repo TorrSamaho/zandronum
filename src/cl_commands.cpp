@@ -502,7 +502,7 @@ void CLIENTCOMMANDS_SendBackupWeaponSelect( void )
 	// [AK] A backup version of a weapon select command is different from an ordinary
 	// CLC_WEAPONSELECT command, so we'll use a different CLC identifier for it. We must
 	// also send the gametic so the server knows exactly where this command should go
-	// in the client's tic buffer, or can ignore it if it's already been received.
+	// in the client's command buffer, or can ignore it if it's already been received.
 	CLIENT_GetLocalBuffer( )->ByteStream.WriteByte( CLC_WEAPONSELECTBACKUP );
 	CLIENT_GetLocalBuffer( )->ByteStream.WriteShort( g_pLastWeaponClass->getActorNetworkIndex( ));
 	CLIENT_GetLocalBuffer( )->ByteStream.WriteLong( g_ulLastWeaponSelectTime );

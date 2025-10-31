@@ -60,6 +60,7 @@
 #include "network/packetarchive.h"
 #include <list>
 #include <queue>
+#include <memory>
 
 //*****************************************************************************
 //	DEFINES
@@ -461,8 +462,8 @@ struct CLIENT_s
 	// [K6] Last tic we got some action from the client. Used to determine his presence.
 	LONG			lLastActionTic;
 
-	// [BB] Buffer storing all movement commands received from the client we haven't executed yet.
-	TArray<ClientCommand*>	MoveCMDs;
+	// [BB] Buffer storing all commands received from the client that we haven't executed yet.
+	TArray<std::shared_ptr<ClientCommand>>	bufferedCMDs;
 
 	// [BB] Variables for the account system
 	FString username;
@@ -626,7 +627,6 @@ void		SERVER_KillCheat( const char* what );
 void STACK_ARGS SERVER_PrintWarning( const char* format, ... ) GCCPRINTF( 1, 2 );
 void		SERVER_FlagsetChanged( FIntCVar& flagset, int maxflags = 2 );
 void		SERVER_SettingChanged( FBaseCVar &cvar, bool bUpdateConsole, int maxDecimals = 0 );
-void		SERVER_ResetClientTicBuffer( ULONG ulClient );
 void		SERVER_DestroyActorIfClientsidedOnly( AActor *actor );
 
 // From sv_master.cpp
