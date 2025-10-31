@@ -329,23 +329,11 @@ void P_Ticker (void)
 
 				CLIENT_s *client = SERVER_GetClient( ulIdx );
 
-				// [AK] Handle the skip correction.
-				SERVER_HandleSkipCorrection( ulIdx );
-
 				while ( client->MoveCMDs.Size( ) != 0 )
 				{
 					// Process only one movement command.
 					const bool bMovement = client->MoveCMDs[0]->isMoveCmd( );
 					client->MoveCMDs[0]->process( ulIdx );
- 
-					if ( bMovement )
-					{
-						if ( client->LastMoveCMD != NULL )
-							delete client->LastMoveCMD;
-
-						// [AK] This becomes the last movement command we received from the client.
-						client->LastMoveCMD = new ClientMoveCommand( *static_cast<ClientMoveCommand *>( client->MoveCMDs[0] ));
-					}
 
 					delete client->MoveCMDs[0];
 					client->MoveCMDs.Delete(0);

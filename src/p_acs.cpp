@@ -6968,7 +6968,7 @@ doplaysound:			if (funcIndex == ACSF_PlayActorSound)
 			fixed_t	oldx = caller->x;
 			fixed_t	oldy = caller->y;
 			fixed_t	oldz = caller->z;
-			const MOVE_THING_DATA_s oldPositionData ( caller ); // [TP]
+			const MoveThingData oldPositionData(caller); // [TP]
 
 			if (!(flags & WARPF_ABSOLUTEANGLE))
 			{

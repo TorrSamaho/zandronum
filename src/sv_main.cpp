@@ -175,9 +175,6 @@ static	bool	server_CheckJoinPassword( const FString& clientPassword );
 static	bool	server_InfoCheat( BYTESTREAM_s* pByteStream );
 static	bool	server_CheckLogin( const ULONG ulClient );
 static	void	server_PrintWithIP( FString message, const NETADDRESS_s &address );
-static	void	server_PerformBacktrace( ULONG ulClient, ULONG ulNumLateMoveCMDs );
-static	bool	server_ShouldPerformBacktrace( ULONG ulClient );
-static	void	server_FixZFromBacktrace( APlayerPawn *pmo, fixed_t oldFloorZ );
 static	void	server_ForceRenamePlayer( ULONG playerIndex ); // [SB]
 
 // [RC]
@@ -291,57 +288,8 @@ CVAR( Int, sv_afk2spec, 0, CVAR_ARCHIVE | CVAR_SERVERINFO ) // [K6]
 CVAR( Bool, sv_forcelogintojoin, false, CVAR_ARCHIVE|CVAR_NOSETBYACS )
 CVAR( Bool, sv_useticbuffer, true, CVAR_ARCHIVE|CVAR_NOSETBYACS|CVAR_DEBUGONLY )
 CVAR( Int, sv_showcommands, 0, CVAR_ARCHIVE|CVAR_DEBUGONLY )
-CVAR( Int, sv_smoothplayers_debuginfo, 0, CVAR_ARCHIVE|CVAR_DEBUGONLY ) // [AK]
 CVAR( Bool, sv_noplayertimeout, false, CVAR_NOSETBYACS|CVAR_DEBUGONLY ) // [SB]
 CVAR( Bool, sv_printconnectionmessages, true, CVAR_ARCHIVE|CVAR_NOSETBYACS ) // [SB]
-
-//*****************************************************************************
-// [AK] Smooths the movement of lagging players using extrapolation and correction.
-CUSTOM_CVAR( Int, sv_smoothplayers, 0, CVAR_ARCHIVE|CVAR_NOSETBYACS|CVAR_SERVERINFO|CVAR_DEBUGONLY )
-{
-	// [AK] We can't extrapolate for a negative number of tics.
-	if ( self < 0 )
-	{
-		self = 0;
-		return;
-	}
-
-	// [AK] Don't extrapolate for more than 3 tics. The longer the server has to predict
-	// a player's movement, the more likely that prediction errors will occur.
-	if ( self > 3 )
-	{
-		Printf( "A player's movement can only be extrapolated for up to 3 tics.\n" );
-		self = 3;
-		return;
-	}
-
-	if ( NETWORK_GetState( ) == NETSTATE_SERVER )
-	{
-		static int oldValue = self;
-
-		// [AK] Print a message indicating that the skip correction is enabled/disabled.
-		if ( self != oldValue )
-		{
-			// [AK] Reset the extrapolation for all clients if we disable the skip correction.
-			if ( !self )
-			{
-				for ( ULONG ulClient = 0; ulClient < MAXPLAYERS; ulClient++ )
-					SERVER_ResetClientExtrapolation( ulClient );
-
-				SERVER_Printf( "Skip correction disabled.\n" );
-			}
-			else
-			{
-				SERVER_Printf( "Players will now be extrapolated for %d tics.\n", *self );
-			}
-
-			oldValue = self;
-
-			// [AK] Notify the clients about any changes to the skip correction.
-			SERVERCOMMANDS_SetCVar( self );
-		}
-	}
-}
 
 //*****************************************************************************
 //
@@ -1548,9 +1496,6 @@ void SERVER_ConnectNewPlayer( BYTESTREAM_s *pByteStream )
 
 	// [AK] Send the name of the server.
 	SERVERCOMMANDS_SetCVar( sv_hostname, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
-
-	// [AK] Send the current state of the skip correction.
-	// SERVERCOMMANDS_SetCVar( sv_smoothplayers, g_lCurrentClient, SVCF_ONLYTHISCLIENT );
 
 	// Send dmflags.
 	SERVERCOMMANDS_SetGameDMFlags( g_lCurrentClient, SVCF_ONLYTHISCLIENT );
@@ -5559,7 +5504,6 @@ template <typename CommandType>
 static bool server_ParseBufferedCommand ( BYTESTREAM_s *pByteStream )
 {
 	CommandType *cmd = new CommandType ( pByteStream );
-	TArray<ClientCommand*> *buffer = &g_aClients[g_lCurrentClient].MoveCMDs;
 	const ULONG ulClientTic = cmd->getClientTic( );
 	const bool bIsMoveCMD = cmd->isMoveCmd( );
 
@@ -5599,231 +5543,26 @@ static bool server_ParseBufferedCommand ( BYTESTREAM_s *pByteStream )
 	{
 		if ( ulClientTic != 0 )
 		{
-			// [AK] It's possible that we were extrapolating this player's movement. If that's the case,
-			// then we're going to store any incoming commands into a separate buffer until we receive
-			// as many of them as we emulated during extrapolation. Once that happens, we'll use them to
-			// backtrace the player's actual movement. 
-			if (( sv_smoothplayers ) && ( g_aClients[g_lCurrentClient].ulExtrapolatedTics > 0 ))
+			for ( unsigned int i = 0; i < g_aClients[g_lCurrentClient].MoveCMDs.Size( ); i++ )
 			{
-				ULONG ulNumLateMoveCMDs = 0;
-
-				// [AK] Only count how many movement commands are in the buffer, weapon select command don't matter.
-				for ( unsigned int i = 0; i < g_aClients[g_lCurrentClient].LateMoveCMDs.Size( ); i++ )
-				{
-					if ( g_aClients[g_lCurrentClient].LateMoveCMDs[i]->isMoveCmd( ))
-						ulNumLateMoveCMDs++;
-				}
-
-				if ( ulNumLateMoveCMDs < g_aClients[g_lCurrentClient].ulExtrapolatedTics )
-					buffer = &g_aClients[g_lCurrentClient].LateMoveCMDs;
-			}
-
-			for ( unsigned int i = 0; i < buffer->Size( ); i++ )
-			{
-				ULONG ulBufferClientTic = (*buffer)[i]->getClientTic( );
+				ULONG ulBufferClientTic = g_aClients[g_lCurrentClient].MoveCMDs[i]->getClientTic( );
 
 				// [AK] Reorganize the commands in case they arrived in the wrong order.
 				if (( ulBufferClientTic != 0 ) && ( ulClientTic < ulBufferClientTic ))
 				{
-					buffer->Insert( i, cmd );
+					g_aClients[g_lCurrentClient].MoveCMDs.Insert( i, cmd );
 					return false;
 				}
 			}
 		}
 
-		buffer->Push( cmd );
+		g_aClients[g_lCurrentClient].MoveCMDs.Push( cmd );
 		return false;
 	}
 
 	const bool retValue = cmd->process ( g_lCurrentClient );
 	delete cmd;
 	return retValue;
-}
-
-//*****************************************************************************
-//
-CLIENT_PLAYER_DATA_s::CLIENT_PLAYER_DATA_s ( player_t *player )
-{
-	ulSavedGametic = gametic;
-	PositionData = MOVE_THING_DATA_s( player->mo );
-	pMorphedPlayerClass = player->MorphedPlayerClass;
-	reactionTime = player->mo->reactiontime;
-	chickenPeck = player->chickenPeck;
-	morphTics = player->morphTics;
-	inventoryTics = player->inventorytics;
-	jumpTics = player->jumpTics;
-	turnTics = player->turnticks;
-	crouching = player->crouching;
-	crouchDirection = player->crouchdir;
-	crouchFactor = player->crouchfactor;
-	crouchOffset = player->crouchoffset;
-	crouchViewDelta = player->crouchviewdelta;
-	bTeleported = false;
-}
-
-//*****************************************************************************
-//
-void CLIENT_PLAYER_DATA_s::Restore ( player_t *player )
-{
-	// [AK] Set the actor's position. Despite the name of the function, the clients don't execute this
-	// function here, but CLIENT_MoveThing adds checks upon calling AActor::SetOrigin that correct the
-	// player's floorz value after they've been moved.
-	CLIENT_MoveThing( player->mo, PositionData.x, PositionData.y, PositionData.z );
-
-	// [AK] Set the player's velocity, orientation, and other data accordingly.
-	player->mo->velx = PositionData.velx;
-	player->mo->vely = PositionData.vely;
-	player->mo->velz = PositionData.velz;
-	player->mo->pitch = PositionData.pitch;
-	player->mo->angle = PositionData.angle;
-	player->mo->movedir = PositionData.movedir;
-	player->mo->reactiontime = reactionTime;
-	player->chickenPeck = chickenPeck;
-	player->morphTics = morphTics;
-	player->inventorytics = inventoryTics;
-	player->jumpTics = jumpTics;
-	player->turnticks = turnTics;
-	player->crouching = crouching;
-	player->crouchdir = crouchDirection;
-	player->crouchfactor = crouchFactor;
-	player->crouchoffset = crouchOffset;
-	player->crouchviewdelta = crouchViewDelta;
-}
-
-//*****************************************************************************
-//
-void SERVER_HandleSkipCorrection( ULONG ulClient )
-{
-	CLIENT_s *pClient = &g_aClients[ulClient];
-	ULONG ulNumMoveCMDs = 0;
-	ULONG ulNumLateMoveCMDs = 0;
-	FString debugMessage;
-
-	// [AK] Don't handle the skip correction if it's supposed to be disabled.
-	if ( sv_smoothplayers == 0 )
-		return;
-
-	// [AK] Make sure the player has a body before running the skip correction, and only run the skip
-	// correction on them once per tic.
-	if (( players[ulClient].mo == NULL ) || ( pClient->lLastMoveTickProcess == gametic ))
-		return;
-
-	// [AK] Count how many movement commands are inside the client's tic buffer.
-	for ( unsigned int i = 0; i < pClient->MoveCMDs.Size( ); i++ )
-	{
-		if ( pClient->MoveCMDs[i]->isMoveCmd( ))
-			ulNumMoveCMDs++;
-	}
-
-	// [AK] We might already have some late commands but count the ones that are movement commands.
-	for ( unsigned int i = 0; i < pClient->LateMoveCMDs.Size( ); i++ )
-	{
-		if ( pClient->LateMoveCMDs[i]->isMoveCmd( ))
-			ulNumLateMoveCMDs++;
-	}
-
-	// When a player is experiencing ping spikes or packet loss and we don't have any commands
-	// left in their buffer, we will try to predict where they will be for at least the next few tics
-	// until we start receiveing commands from them again. In case the player suffers from a ping spike, we
-	// might eventually receive the commands we emulated. When this happens, we will move the player's body
-	// to where they were before we started extrapolating, then backtrace their movement by processing all
-	// these commands in the same tic.
-	// If our prediction was correct, the player should move to about where we extrapolated them, but
-	// sometimes we might be wrong. However, the skipping that may result from this discrepancy is usually
-	// not nearly as bad than if the player was lagging without any skip correction in place.
-	if (( players[ulClient].bSpectating == false ) && ( players[ulClient].playerstate == PST_LIVE ))
-	{
-		if (( sv_smoothplayers_debuginfo ) && ( pClient->ulExtrapolatedTics > 0 ))
-		{
-			if (( pClient->MoveCMDs.Size( ) > 0 ) || ( pClient->LateMoveCMDs.Size( ) > 0 ))
-			{
-				debugMessage.Format( "%d: %s (%d tics extrapolated, %d move commands, %d late commands).\n", gametic, players[ulClient].userinfo.GetName( ),
-					static_cast<unsigned int>( pClient->ulExtrapolatedTics ), pClient->MoveCMDs.Size( ), pClient->LateMoveCMDs.Size( ));
-
-				if ( sv_smoothplayers_debuginfo >= 2 )
-				{
-					if ( pClient->MoveCMDs.Size( ) > 0 )
-					{
-						debugMessage.AppendFormat( "-> Move gametics: " );
-						for ( unsigned int i = 0; i < pClient->MoveCMDs.Size( ); i++ )
-							debugMessage.AppendFormat( "%d%s", pClient->MoveCMDs[i]->getClientTic( ), i < pClient->MoveCMDs.Size( ) - 1 ? ", " : "\n" );
-					}
-
-					if ( pClient->LateMoveCMDs.Size( ) > 0 )
-					{
-						debugMessage.AppendFormat( "-> Late gametics: " );
-						for ( unsigned int i = 0; i < pClient->LateMoveCMDs.Size( ); i++ )
-							debugMessage.AppendFormat( "%d%s", pClient->LateMoveCMDs[i]->getClientTic( ), i < pClient->LateMoveCMDs.Size( ) - 1 ? ", " : "\n" );
-					}
-				}
-
-				Printf( "%s", debugMessage.GetChars( ));
-			}
-		}
-
-		// [AK] If we have enough late commands in the buffer, process them all immediately, so as long
-		// as they hadn't morphed or unmorphed at any point during extrapolation.
-		if (( pClient->OldData != NULL ) && ( pClient->ulExtrapolatedTics > 0 ) && ( pClient->ulExtrapolatedTics == ulNumLateMoveCMDs ))
-			server_PerformBacktrace( ulClient, ulNumLateMoveCMDs );
-
-		// [AK] If there are no movement commands left in the client's tic buffer then we'll keep processing
-		// the last movement command we received from them, but we won't extrapolate more than we should.
-		if (( ulNumMoveCMDs == 0 ) && ( pClient->LastMoveCMD != NULL ) && ( pClient->ulExtrapolatedTics < static_cast<ULONG>( sv_smoothplayers )))
-		{
-			// [AK] Save the player's current position, velocity, and orientation before we start extrapolating.
-			if ( pClient->ulExtrapolatedTics++ == 0 )
-			{
-				if ( sv_smoothplayers_debuginfo )
-				{
-					Printf( "%d: starting extrapolation for %s (last gametic = %d).\n", gametic, players[ulClient].userinfo.GetName( ),
-						pClient->LastMoveCMD->getClientTic( ));
-				}
-
-				pClient->OldData = new CLIENT_PLAYER_DATA_s( &players[ulClient] );
-			}
-
-			pClient->LastMoveCMD->process( ulClient );
-		}
-	}
-	else if ( pClient->ulExtrapolatedTics > 0 )
-	{
-		// [AK] Reset the client's extrapolation data whenever they die or spectate.
-		SERVER_ResetClientExtrapolation( ulClient );
-
-		if ( sv_smoothplayers_debuginfo )
-		{
-			debugMessage.Format( "%d: aborting extrapolation of %s (", gametic, players[ulClient].userinfo.GetName( ));
-
-			if ( players[ulClient].bSpectating )
-				debugMessage.AppendFormat( "left game" );
-			else
-				debugMessage.AppendFormat( "died" );
-
-			Printf( "%s).\n", debugMessage.GetChars( ));
-		}
-	}
-}
-
-//*****************************************************************************
-//
-bool SERVER_IsExtrapolatingPlayer( ULONG ulClient )
-{
-	// [AK] Only the server is allowed to extrapolate players.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		return false;
-
-	return (( SERVER_IsValidClient( ulClient )) && ( g_aClients[ulClient].ulExtrapolatedTics > 0 ));
-}
-
-//*****************************************************************************
-//
-bool SERVER_IsBacktracingPlayer( ULONG ulClient )
-{
-	// [AK] Only the server is allowed to backtrace players.
-	if ( NETWORK_GetState( ) != NETSTATE_SERVER )
-		return false;
-
-	return (( SERVER_IsValidClient( ulClient )) && ( g_aClients[ulClient].bIsBacktracing ));
 }
 
 //*****************************************************************************
@@ -5838,63 +5577,6 @@ void SERVER_ResetClientTicBuffer( ULONG ulClient )
 		delete g_aClients[ulClient].MoveCMDs[i];
 
 	g_aClients[ulClient].MoveCMDs.Clear( );
-
-	// [AK] Also delete the last processed movement command.
-	if ( g_aClients[ulClient].LastMoveCMD != NULL )
-	{
-		delete g_aClients[ulClient].LastMoveCMD;
-		g_aClients[ulClient].LastMoveCMD = NULL;
-	}
- 
-	SERVER_ResetClientExtrapolation( ulClient );
-}
-
-//*****************************************************************************
-//
-void SERVER_ResetClientExtrapolation( ULONG ulClient, bool bAfterBacktrace )
-{
-	bool bUpdatedLastMoveCMD = false;
-
-	for ( int i = g_aClients[ulClient].LateMoveCMDs.Size( ) - 1; i >= 0; i-- )
-	{
-		if ( bAfterBacktrace )
-		{
-			if ( g_aClients[ulClient].LateMoveCMDs[i]->isMoveCmd( ))
-			{
-				// [AK] In case we didn't perform a backtrace, we still need to update the client's last move command
-				// to the last late command we received from them and update their gametic.
-				if ( bUpdatedLastMoveCMD == false )
-				{
-					delete g_aClients[ulClient].LastMoveCMD;
-					g_aClients[ulClient].LastMoveCMD = static_cast<ClientMoveCommand *>( g_aClients[ulClient].LateMoveCMDs[i] );
-
-					bUpdatedLastMoveCMD = true;
-					continue;
-				}
-			}
-			else
-			{
-				// [AK] If we still have any late weapon select commands from this client that haven't been processed,
-				// move them all to the start of the their tic buffer.
-				g_aClients[ulClient].MoveCMDs.Insert( 0, g_aClients[ulClient].LateMoveCMDs[i] );
-				continue;
-			}
-		}
-
-		delete g_aClients[ulClient].LateMoveCMDs[i];
-	}
-
-	g_aClients[ulClient].LateMoveCMDs.Clear( );
-
-	if ( g_aClients[ulClient].OldData != NULL )
-	{
-		delete g_aClients[ulClient].OldData;
-		g_aClients[ulClient].OldData = NULL;
-	}
-
-	g_aClients[ulClient].ulExtrapolatedTics = 0;
-	g_aClients[ulClient].ExtrapolatedSpecials.Clear( );
-	g_aClients[ulClient].bIsBacktracing = false;
 }
 
 //*****************************************************************************
@@ -6279,8 +5961,7 @@ bool ClientMoveCommand::process( const ULONG clientIndex ) const
 		client->lLastServerGametic = moveCmd.ulServerGametic; // [CK] Use the gametic from what we saw
 
 	// If the client is attacking, he always sends the name of the weapon he's using.
-	// [AK] Only do this when we're not extrapolating this player's movement.
-	if (( cmd->ucmd.buttons & BT_ATTACK ) && ( SERVER_IsExtrapolatingPlayer( clientIndex ) == false ))
+	if ( cmd->ucmd.buttons & BT_ATTACK )
 	{
 		// If the name of the weapon the client is using doesn't match the name of the
 		// weapon we think he's using, do something to rectify the situation.
@@ -7881,183 +7562,6 @@ static void server_PrintWithIP( FString message, const NETADDRESS_s &address )
 	// [TP] Then print a version of the message without the IP address to clients.
 	message.Substitute( "{ip}", "" );
 	SERVERCOMMANDS_Print( message, PRINT_HIGH );
-}
-
-//*****************************************************************************
-//
-static void server_PerformBacktrace( ULONG ulClient, ULONG ulNumLateMoveCMDs )
-{
-	CLIENT_s *pClient = &g_aClients[ulClient];
-	APlayerPawn *pmo = players[ulClient].mo;
-	FString debugMessage;
-
-	if ( server_ShouldPerformBacktrace( ulClient ))
-	{
-		debugMessage.Format( "%d: backtracing %s... ", gametic, players[ulClient].userinfo.GetName( ));
-
-		// [AK] Hijack the unlagged's sector reconciliation for the backtrace too.
-		int unlaggedIndex = pClient->OldData->ulSavedGametic % UNLAGGEDTICS;
-
-		// [AK] Save the current sector ceiling/floor heights, then set them to whatever they
-		// were on the gametic that we started extrapolating this player.
-		for ( int i = 0; i < numsectors; i++ )
-		{
-			sectors[i].floorplane.backtraceRestoreD = sectors[i].floorplane.d;
-			sectors[i].ceilingplane.backtraceRestoreD = sectors[i].ceilingplane.d;
-
-			sectors[i].floorplane.d = sectors[i].floorplane.unlaggedD[unlaggedIndex];
-			sectors[i].ceilingplane.d = sectors[i].ceilingplane.unlaggedD[unlaggedIndex];
-		}
-
-		CLIENT_PLAYER_DATA_s oldData( &players[ulClient] );
-		pClient->OldData->Restore( &players[ulClient] );
-
-		// [AK] Check if the player hasn't moved into a spot that's blocking them or something else.
-		if ( P_TestMobjLocation( players[ulClient].mo ))
-		{
-			ULONG ulNumProcessedMoveCMDs = 0;
-			fixed_t oldFloorZ = 0;
-
-			pClient->bIsBacktracing = true;
-			pClient->ulExtrapolatedTics = 0;
-
-			for ( int tic = 0; tic < static_cast<int>( pClient->LateMoveCMDs.Size( )); tic++ )
-			{
-				// [AK] If this is a weapon select command, just process it and move onto the next late command.
-				if ( pClient->LateMoveCMDs[tic]->isMoveCmd( ) == false )
-				{
-					pClient->LateMoveCMDs[tic]->process( ulClient );
-					continue;
-				}
-
-				// [AK] This becomes the last movement command we received from the client.
-				delete pClient->LastMoveCMD;
-				pClient->LastMoveCMD = new ClientMoveCommand( *static_cast<ClientMoveCommand *>( pClient->LateMoveCMDs[tic] ));
-
-				pClient->LastMoveCMD->process( ulClient );
-
-				// [AK] Now we have to tick this player's body and set the proper psprite settings.
-				pmo->Tick( );		
-				P_NewPspriteTick( &players[ulClient] );
-
-				pClient->lLastMoveTickProcess--;
-				oldFloorZ = pmo->floorz;
-
-				// [AK] Adjust the sector ceiling/floor heights for the next tic that we extrapolated the player.
-				// We don't have to do this on the last tic that we extrapolated the player.
-				if ( ++ulNumProcessedMoveCMDs < ulNumLateMoveCMDs )
-				{
-					unlaggedIndex = ( unlaggedIndex + 1 ) % UNLAGGEDTICS;
-
-					for ( int i = 0; i < numsectors; i++ )
-					{
-						sectors[i].floorplane.d = sectors[i].floorplane.unlaggedD[unlaggedIndex];
-						sectors[i].ceilingplane.d = sectors[i].ceilingplane.unlaggedD[unlaggedIndex];
-					}
-
-					// [AK] Make sure the player doesn't get stuck in the floor/ceiling in case they moved.
-					server_FixZFromBacktrace( pmo, oldFloorZ );
-				}
-			}
-
-			// [AK] Restore the sector ceiling/floor heights back to what they were before the backtrace.
-			for ( int i = 0; i < numsectors; i++ )
-			{
-				sectors[i].floorplane.d = sectors[i].floorplane.backtraceRestoreD;
-				sectors[i].ceilingplane.d = sectors[i].ceilingplane.backtraceRestoreD;
-			}
-
-			// [AK] As a final measure, fix the player's floorz/ceilingz and to ensure that they don't
-			// get stuck in the floor/ceiling of whatever sector they're supposed to be in.
-			server_FixZFromBacktrace( pmo, oldFloorZ );
-			debugMessage += "accepted";
-		}
-		else
-		{
-			// [AK] Restore the sector ceiling/floor heights back to what they were before the backtrace.
-			for ( int i = 0; i < numsectors; i++ )
-			{
-				sectors[i].floorplane.d = sectors[i].floorplane.backtraceRestoreD;
-				sectors[i].ceilingplane.d = sectors[i].ceilingplane.backtraceRestoreD;
-			}
-
-			oldData.Restore( &players[ulClient] );
-			debugMessage.AppendFormat( "not enough room" );
-		}
-
-		if ( sv_smoothplayers_debuginfo )
-			Printf( "%s.\n", debugMessage.GetChars( ));
-	}
-
-	SERVER_ResetClientExtrapolation( ulClient, true );
-}
-
-//*****************************************************************************
-//
-static bool server_ShouldPerformBacktrace( ULONG ulClient )
-{
-	bool bShouldPerform = true;
-	FString reason;
-
-	if ( g_aClients[ulClient].OldData->pMorphedPlayerClass != players[ulClient].MorphedPlayerClass )
-	{
-		reason = "morphed during extrapolation";
-		bShouldPerform = false;
-	}
-	else if ( g_aClients[ulClient].OldData->bTeleported )
-	{
-		reason = "teleported during extrapolation";
-		bShouldPerform = false;
-	}
-	else if ( gametic - g_aClients[ulClient].OldData->ulSavedGametic >= UNLAGGEDTICS )
-	{
-		// [AK] Since the backtrace needs to hijack the unlagged's sector reconciliation, we don't want
-		// to backtrace a player if the amount of ticks since we started extrapolating them is greater
-		// than what the unlagged can support. A player might rarely lag out for more than 35 tics that
-		// this could become an issue.
-		reason = "lagged for too long";
-		bShouldPerform = false;
-	}
-
-	// [AK] Explain why we didn't backtrace their movement.
-	if (( bShouldPerform == false ) && ( sv_smoothplayers_debuginfo ))
-		Printf( "%d: cannot backtrace %s (%s).\n", gametic, players[ulClient].userinfo.GetName( ), reason.GetChars( ));
-
-	return bShouldPerform;
-}
-
-//*****************************************************************************
-//
-static void server_FixZFromBacktrace( APlayerPawn *pmo, fixed_t oldFloorZ )
-{
-	pmo->floorz = pmo->Sector->floorplane.ZatPoint( pmo->x, pmo->y );
-	pmo->ceilingz = pmo->Sector->ceilingplane.ZatPoint( pmo->x, pmo->y );
-	P_FindFloorCeiling( pmo, false );
-
-	if ( pmo->z + pmo->height > pmo->ceilingz )
-		pmo->z = pmo->ceilingz - pmo->height;
-
-	if ( pmo->z < pmo->floorz )
-	{
-		pmo->z = pmo->floorz;
-	}
-	else if ( oldFloorZ != pmo->floorz )
-	{
-		// [AK] Check if the player should move with the floor if it moved, similarly to PIT_FloorDrop.
-		if (( pmo->velz == 0 ) && (!( pmo->flags & MF_NOGRAVITY ) || ( pmo->z == oldFloorZ && !( pmo->flags & MF_NOLIFTDROP ))))
-		{
-			if (( pmo->flags & MF_NOGRAVITY) || ( pmo->flags5 & MF5_MOVEWITHSECTOR ) ||
-				( pmo->Sector->Flags & SECF_FLOORDROP ) || ( pmo->z - pmo->floorz <= 9 * FRACUNIT ))
-			{
-				pmo->z = pmo->floorz;
-			}
-		}
-		else if ( pmo->z != oldFloorZ && !( pmo->flags & MF_NOLIFTDROP ))
-		{
-			if (( pmo->flags & MF_NOGRAVITY ) && ( pmo->flags6 & MF6_RELATIVETOFLOOR ))
-				pmo->z = pmo->z - oldFloorZ + pmo->floorz;
-		}
-	}
 }
 
 //*****************************************************************************

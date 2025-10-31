@@ -3932,39 +3932,6 @@ int P_ExecuteSpecial(int			num,
 {
 	if (num >= 0 && num <= 255)
 	{
-		// [AK] If we're the server and the activator is a player, check if they're being extrapolated
-		// or backtraced right now. We want to keep track of any specials this player has executed while
-		// being extrapolated so that if they're backtraced and execute the exact same special again, we
-		// can simply cancel the execution.
-		// Ignore line specials LS_ThrustThing (72) and LS_ThrustThingZ (128), as we should allow these
-		// specials to be repeated by the player during a backtrace.
-		if (( NETWORK_GetState( ) == NETSTATE_SERVER ) && ( num != 72 && num != 128 ) && ( activator ) && ( activator->player ))
-		{
-			CLIENT_s *pClient = SERVER_GetClient( activator->player - players );
-			CLIENT_SAVED_SPECIAL_s savedSpecial;
-
-			if ( SERVER_IsBacktracingPlayer( activator->player - players ))
-			{
-				for ( unsigned int i = 0; i < pClient->ExtrapolatedSpecials.Size( ); i++ )
-				{
-					savedSpecial = pClient->ExtrapolatedSpecials[i];
-
-					// [AK] If this is the same special, don't execute it again!
-					if (( num == savedSpecial.num ) && ( line == savedSpecial.line ) && ( backSide == savedSpecial.backSide ))
-						return 0;
-				}
-			}
-			else if ( SERVER_IsExtrapolatingPlayer( activator->player - players ))
-			{
-				savedSpecial.num = num;
-				savedSpecial.line = line;
-				savedSpecial.backSide = backSide;
-
-				// [AK] Save the info about this special for later.
-				pClient->ExtrapolatedSpecials.Push( savedSpecial );
-			}
-		}
-
 		return LineSpecials[num](line, activator, backSide, arg1, arg2, arg3, arg4, arg5);
 	}
 	return 0;

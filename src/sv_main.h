@@ -204,33 +204,8 @@ enum LEAVEREASON_e
 };
 
 //*****************************************************************************
-//
-// [TP] For SERVERCOMMANDS_MoveThingIfChanged
-// [AK] Also used by the skip correction.
-//
-struct MOVE_THING_DATA_s
-{
-	MOVE_THING_DATA_s( ) {}
+//	STRUCTURES
 
-	MOVE_THING_DATA_s( AActor *actor ) :
-	    x ( actor->x ),
-	    y ( actor->y ),
-	    z ( actor->z ),
-	    velx ( actor->velx ),
-	    vely ( actor->vely ),
-	    velz ( actor->velz ),
-	    pitch ( actor->pitch ),
-	    angle ( actor->angle ),
-	    movedir ( actor->movedir ) {}
-
-	fixed_t x, y, z;
-	fixed_t velx, vely, velz;
-	fixed_t pitch;
-	angle_t angle;
-	BYTE movedir;
-};
-
-//*****************************************************************************
 struct STORED_QUERY_IP_s
 {
 	// Address of the person who queried us.
@@ -257,40 +232,6 @@ struct CLIENT_MOVE_COMMAND_s
 	bool operator<(const CLIENT_MOVE_COMMAND_s& other) const {
 	  return ( ulGametic > other.ulGametic );
 	}
-};
-
-//*****************************************************************************
-struct CLIENT_SAVED_SPECIAL_s
-{
-	int				num;
-	line_t			*line;
-	bool			backSide;
-};
-
-//*****************************************************************************
-struct CLIENT_PLAYER_DATA_s
-{
-	ULONG				ulSavedGametic;
-	MOVE_THING_DATA_s	PositionData;
-	const PClass		*pMorphedPlayerClass;
-	SDWORD				reactionTime;
-	int					chickenPeck;
-	int					morphTics;
-	int					inventoryTics;
-	int					jumpTics;
-	BYTE				turnTics;
-	SBYTE				crouching;
-	SBYTE				crouchDirection;
-	fixed_t				crouchFactor;
-	fixed_t				crouchOffset;
-	fixed_t				crouchViewDelta;
-	bool				bTeleported;
-
-	CLIENT_PLAYER_DATA_s ( player_t *player );
-
-	// [AK] Restore's the player's data to whatever's stored in the structure.
-	// We won't restore the morphed player class though.
-	void Restore ( player_t *player );
 };
 
 //*****************************************************************************
@@ -447,9 +388,6 @@ struct CLIENT_s
 	// [BB] Did the client not yet acknowledge receiving the last full update?
 	bool			bFullUpdateIncomplete;
 
-	// [AK] Are we in the middle of backtracing this player's movement via skip correction?
-	bool			bIsBacktracing;
-
 	// [BB] A record of the gametics the client called protected commands, e.g. send_password.
 	RingBuffer<LONG, 8> commandInstances;
 
@@ -489,9 +427,6 @@ struct CLIENT_s
 	// Last tick we processed a movement command.
 	LONG			lLastMoveTickProcess;
 
-	// [AK] The last movement command we received from this client.
-	ClientMoveCommand	*LastMoveCMD;
-
 	// [AK] The network index the client sent with their last weapon select command.
 	USHORT			usLastWeaponNetworkIndex;
 
@@ -528,20 +463,6 @@ struct CLIENT_s
 
 	// [BB] Buffer storing all movement commands received from the client we haven't executed yet.
 	TArray<ClientCommand*>	MoveCMDs;
-
-	// [AK] All the movement commands we received from this client that came too late (i.e. we tried
-	// predicting these commands through extrapolation).
-	TArray<ClientCommand*>	LateMoveCMDs;
-
-	// [AK] Some of the player's data that was saved before we started extrapolating them, which can
-	// be restored if we need to perform a backtrace on them.
-	CLIENT_PLAYER_DATA_s	*OldData;
-
-	// [AK] The number of tics we extrapolated this player's movement.
-	ULONG			ulExtrapolatedTics;
-
-	// [AK] A list of specials this player executed while being extrapolated.
-	TArray<CLIENT_SAVED_SPECIAL_s>	ExtrapolatedSpecials;
 
 	// [BB] Variables for the account system
 	FString username;
@@ -705,11 +626,7 @@ void		SERVER_KillCheat( const char* what );
 void STACK_ARGS SERVER_PrintWarning( const char* format, ... ) GCCPRINTF( 1, 2 );
 void		SERVER_FlagsetChanged( FIntCVar& flagset, int maxflags = 2 );
 void		SERVER_SettingChanged( FBaseCVar &cvar, bool bUpdateConsole, int maxDecimals = 0 );
-void		SERVER_HandleSkipCorrection( ULONG ulClient );
-bool		SERVER_IsExtrapolatingPlayer( ULONG ulClient );
-bool		SERVER_IsBacktracingPlayer( ULONG ulClient );
 void		SERVER_ResetClientTicBuffer( ULONG ulClient );
-void		SERVER_ResetClientExtrapolation( ULONG ulClient, bool bAfterBacktrace = false );
 void		SERVER_DestroyActorIfClientsidedOnly( AActor *actor );
 
 // From sv_master.cpp
@@ -761,7 +678,6 @@ EXTERN_CVAR( Bool, sv_minimizetosystray )
 EXTERN_CVAR( Int, sv_queryignoretime )
 EXTERN_CVAR( Bool, sv_forcelogintojoin )
 EXTERN_CVAR( Bool, sv_limitcommands )
-EXTERN_CVAR( Int, sv_smoothplayers )
 EXTERN_CVAR( Int, sv_allowprivatechat )
 EXTERN_CVAR( Float, sv_minfov ); // [RK] Minimum FOV allowed
 EXTERN_CVAR( Float, sv_maxfov ); // [RK] Maximum FOV allowed

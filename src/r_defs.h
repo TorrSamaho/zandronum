@@ -251,9 +251,6 @@ struct secplane_t
 	fixed_t		unlaggedD[UNLAGGEDTICS];
 	fixed_t		restoreD;
 
-	// [AK] The old D of the plane before backtracing a player.
-	fixed_t		backtraceRestoreD;
-
 	// Returns < 0 : behind; == 0 : on; > 0 : in front
 	int PointOnSide (fixed_t x, fixed_t y, fixed_t z) const
 	{

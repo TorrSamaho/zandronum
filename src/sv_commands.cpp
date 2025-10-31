@@ -1040,34 +1040,15 @@ void SERVERCOMMANDS_MoveLocalPlayer( ULONG ulPlayer )
 	if ( SERVER_IsValidClient( ulPlayer ) == false || players[ulPlayer].mo == NULL )
 		return;
 
-	CLIENT_s *pClient = SERVER_GetClient( ulPlayer );
-
 	ServerCommands::MoveLocalPlayer command;
+	command.SetClientTicOnServerEnd( SERVER_GetClient( ulPlayer )->ulClientGameTic );
 	command.SetLatestServerGametic( gametic );
-
-	// [AK] If this player is being extrapolated, send them their last known position and velocity.
-	// This helps keep their movement smooth for them until we receive commands from them again.
-	if (( pClient->ulExtrapolatedTics > 0 ) && ( pClient->OldData ))
-	{
-		command.SetClientTicOnServerEnd( pClient->LastMoveCMD->getClientTic( ));
-		command.SetX( pClient->OldData->PositionData.x );
-		command.SetY( pClient->OldData->PositionData.y );
-		command.SetZ( pClient->OldData->PositionData.z );
-		command.SetVelx( pClient->OldData->PositionData.velx );
-		command.SetVely( pClient->OldData->PositionData.vely );
-		command.SetVelz( pClient->OldData->PositionData.velz );
-	}
-	else
-	{
-		command.SetClientTicOnServerEnd( pClient->ulClientGameTic );
-		command.SetX( players[ulPlayer].mo->x );
-		command.SetY( players[ulPlayer].mo->y );
-		command.SetZ( players[ulPlayer].mo->z );
-		command.SetVelx( players[ulPlayer].mo->velx );
-		command.SetVely( players[ulPlayer].mo->vely );
-		command.SetVelz( players[ulPlayer].mo->velz );
-	}
-
+	command.SetX( players[ulPlayer].mo->x );
+	command.SetY( players[ulPlayer].mo->y );
+	command.SetZ( players[ulPlayer].mo->z );
+	command.SetVelx( players[ulPlayer].mo->velx );
+	command.SetVely( players[ulPlayer].mo->vely );
+	command.SetVelz( players[ulPlayer].mo->velz );
 	command.sendCommandToClients( ulPlayer, SVCF_ONLYTHISCLIENT );
 }
 
@@ -1075,8 +1056,7 @@ void SERVERCOMMANDS_MoveLocalPlayer( ULONG ulPlayer )
 //
 void SERVERCOMMANDS_SetLocalPlayerJumpTics( ULONG ulPlayer )
 {
-	// [AK] Don't update this client's jump tics while we're extrapolating their movement.
-	if (( SERVER_IsValidClient( ulPlayer ) == false ) || ( SERVER_GetClient( ulPlayer )->ulExtrapolatedTics > 0 ))
+	if ( SERVER_IsValidClient( ulPlayer ) == false )
 		return;
 
 	ServerCommands::SetLocalPlayerJumpTics command;
@@ -1582,7 +1562,7 @@ void SERVERCOMMANDS_LevelSpawnThingNoNetID( AActor *pActor, ULONG ulPlayerExtra,
 /*
  * [TP] Compares actor position data to a previous state and calls SERVERCOMMANDS_MoveThing to send appropriate updates.
  */
-void SERVERCOMMANDS_MoveThingIfChanged( AActor *actor, const MOVE_THING_DATA_s &oldData, ULONG ulPlayerExtra, ServerCommandFlags flags )
+void SERVERCOMMANDS_MoveThingIfChanged( AActor *actor, const MoveThingData &oldData, ULONG ulPlayerExtra, ServerCommandFlags flags )
 {
 	if ( EnsureActorHasNetID( actor ) )
 	{
@@ -3662,18 +3642,6 @@ void SERVERCOMMANDS_SoundActor( AActor *pActor, LONG lChannel, const char *pszSo
 {
 	if ( pActor == NULL )
 		return;
-
-	// [AK] There's a few sounds that we shouldn't play if it originated from a player who we're backtracing.
-	if (( pActor->player ) && ( SERVER_IsBacktracingPlayer( pActor->player - players )))
-	{
-		static const char *pszRestrictedSounds[7] = { "*grunt", "*land", "*falling", "*jump", "*dive", "*surface", "*gasp" };
-
-		for ( unsigned int i = 0; i < 7; i++ )
-		{
-			if ( stricmp( pszSound, pszRestrictedSounds[i] ) == 0 )
-				return;
-		}
-	}
 
 	// [BB] If the actor doesn't have a NetID, we have to instruct the clients differently how to play the sound.
 	if ( pActor->NetID == 0 )

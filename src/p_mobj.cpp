@@ -4041,18 +4041,14 @@ void AActor::Tick ()
 	}
 	else
 	{
-		// [AK] Don't handle powerup effects while we're backtracing the player's movement.
-		if (( this->player == NULL ) || ( SERVER_IsBacktracingPlayer( this->player - players ) == false ))
-		{
-			AInventory * item = Inventory;
+		AInventory * item = Inventory;
 
-			// Handle powerup effects here so that the order is controlled
-			// by the order in the inventory, not the order in the thinker table
-			while (item != NULL && item->Owner == this)
-			{
-				item->DoEffect();
-				item = item->Inventory;
-			}
+		// Handle powerup effects here so that the order is controlled
+		// by the order in the inventory, not the order in the thinker table
+		while (item != NULL && item->Owner == this)
+		{
+			item->DoEffect();
+			item = item->Inventory;
 		}
 
 		if (flags & MF_UNMORPHED)
@@ -4505,16 +4501,9 @@ void AActor::Tick ()
 	if ( CLIENT_PREDICT_IsPredicting( ))
 		return;
 
-	if ( this->player )
-	{
-		// [BB] Spectators shall stay in their spawn state and don't execute any code pointers.
-		if ( this->player->bSpectating )
-			return;
-
-		// [AK] Don't tick the player's states while we're backtracing their movement.
-		if ( SERVER_IsBacktracingPlayer( this->player - players ))
-			return;
-	}
+	// [BB] Spectators shall stay in their spawn state and don't execute any code pointers.
+	if (this->player && this->player->bSpectating)
+		return;
 
 	assert (state != NULL);
 	if (state == NULL)

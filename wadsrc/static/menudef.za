@@ -763,14 +763,6 @@ OptionValue ZA_AllowVoiceChat
 	3, "Players or spectators only"
 }
 
-OptionValue ZA_ExtrapolateLimit
-{
-	0, "Never"
-	1, "One tick"
-	2, "Two ticks"
-	3, "Three ticks"
-}
-
 OptionMenu ZA_ServerSetupMenu
 {
 	RequiresRconAccess
@@ -801,7 +793,6 @@ OptionMenu ZA_ServerSetupMenu
 	Slider		"Min FOV",			"sv_minfov",			5, 179, 1
 	Slider		"Max FOV",			"sv_maxfov",			5, 179, 1
 	StaticText	" "
-	// Option	"Smooth lagging players",	"sv_smoothplayers",		"ZA_ExtrapolateLimit"
 	NumberField	"Max connected clients",	"sv_maxclients",		0, 64
 	NumberField	"Max players",			"sv_maxplayers",		0, 64
 	NumberField	"Max idle time (minutes)",	"sv_afk2spec",			0, 30

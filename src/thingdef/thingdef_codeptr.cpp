@@ -5576,7 +5576,7 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Warp)
 		return;
 
 	AActor *reference = COPY_AAPTR(self, destination_selector);
-	const MOVE_THING_DATA_s oldPositionData ( self ); // [TP]
+	const MoveThingData oldPositionData(self); // [TP]
 
 	if (!reference)
 	{
