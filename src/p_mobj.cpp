@@ -251,6 +251,15 @@ void AActor::Serialize (FArchive &arc)
 	{
 		arc << flags7;
 	}
+	// [LZ] MBF21 additions.
+	if (SaveVersion >= 4507)
+	{
+		arc << flags8
+			<< InfightingGroup
+			<< ProjectileGroup
+			<< SplashGroup
+			<< RipSound;
+	}
 	arc	<< special1
 		<< special2
 		<< health
@@ -4185,6 +4194,15 @@ void AActor::Tick ()
 				}
 			}
 		}
+		}
+
+		// [LZ] MBF21: sectors with the kill monsters bit kill grounded monsters.
+		// The server handles this and informs the clients about the death.
+		if (( Sector->special & KILL_MONSTERS_MASK ) && z <= floorz &&
+			player == NULL && (flags & MF_SHOOTABLE) && !(flags & MF_FLOAT) &&
+			( NETWORK_InClientMode() == false ))
+		{
+			P_DamageMobj (this, NULL, NULL, TELEFRAG_DAMAGE, NAME_InstantDeath);
 		}
 
 		// [RH] Consider carrying sectors here

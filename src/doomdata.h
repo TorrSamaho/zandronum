@@ -155,6 +155,7 @@ enum ELineFlags
 	ML_BLOCKSIGHT				= 0x04000000,	// blocks monster line of sight
 	ML_BLOCKHITSCAN				= 0x08000000,	// blocks hitscan attacks
 	ML_3DMIDTEX_IMPASS			= 0x10000000,	// [TP] if 3D midtex, behaves like a height-restricted ML_BLOCKING
+	ML_BLOCKLANDMONSTERS		= 0x20000000,	// [LZ] MBF21: blocks non-floating monsters
 };
 
 

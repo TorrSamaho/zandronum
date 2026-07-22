@@ -72,6 +72,8 @@ DECLARE_ACTION(A_BossDeath)
 
 void A_Chase(AActor *self);
 void A_FaceTarget (AActor *actor, angle_t max_turn = 0, angle_t max_pitch = ANGLE_270);
+// [LZ] Exported and given custom state/sound support for MBF21's A_HealChase.
+bool P_CheckForResurrection(AActor *self, bool usevilestates, FState *customstate = NULL, FSoundID customsound = 0);
 
 bool A_RaiseMobj (AActor *, fixed_t speed);
 bool A_SinkMobj (AActor *, fixed_t speed);

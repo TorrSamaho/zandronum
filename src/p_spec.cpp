@@ -650,6 +650,43 @@ void P_PlayerInSpecialSector (player_t *player, sector_t * sector)
 			break;
 		}
 	}
+	else if (special & DEATH_MASK)
+	{
+		// [LZ] MBF21: the death bit changes the meaning of the damage bits to
+		// instant death effects.
+		switch (special & DAMAGE_MASK)
+		{
+		case 0x000: // kills the player unless they have a radiation suit or are invulnerable
+			if (ironfeet == NULL)
+				P_DamageMobj (player->mo, NULL, NULL, TELEFRAG_DAMAGE - 1, NAME_InstantDeath);
+			break;
+		case 0x100: // kills the player
+			P_DamageMobj (player->mo, NULL, NULL, TELEFRAG_DAMAGE, NAME_InstantDeath);
+			break;
+		case 0x200: // kills all players and exits the map (normal exit)
+		case 0x300: // kills all players and exits the map (secret exit)
+			{
+				// [LZ] Check DF_NO_EXIT etc. before killing everyone. If exiting isn't
+				// allowed, CheckIfExitIsGood already kills the activating player.
+				const bool bExitIsGood = CheckIfExitIsGood (player->mo, NULL);
+
+				for (int i = 0; i < MAXPLAYERS; ++i)
+				{
+					if (playeringame[i] && players[i].mo != NULL && players[i].bSpectating == false)
+						P_DamageMobj (players[i].mo, NULL, NULL, TELEFRAG_DAMAGE, NAME_InstantDeath);
+				}
+
+				if (bExitIsGood)
+				{
+					if ((special & DAMAGE_MASK) == 0x200)
+						G_ExitLevel (0, false);
+					else
+						G_SecretExitLevel (0);
+				}
+			}
+			break;
+		}
+	}
 	else
 	{
 		//jff 3/14/98 handle extended sector types for secrets and damage
@@ -2221,16 +2258,45 @@ static void P_SpawnScrollers(void)
 			break;
 
 		case Scroll_Texture_Offsets:
-
+		{
 			// [WS] The server will update these for us.
 			if ( NETWORK_InClientMode() )
 				break;
 
+			// [LZ] Extended for MBF21's tagged wall scrollers: args[3] divides the
+			// scroll speed, args[1] is a line ID to scroll instead of the line
+			// itself, and args[2] selects displacement (1) or accelerative (2)
+			// scrolling like Scroll_Texture_Model.
+			fixed_t divider = MAX<int> (1, l->args[3]);
+
+			if (l->args[2] & 3)
+			{
+				// if 1, then displacement
+				// if 2, then accelerative (also if 3)
+				control = int(l->sidedef[0]->sector - sectors);
+				if (l->args[2] & 2)
+					accel = 1;
+			}
+
 			// killough 3/2/98: scroll according to sidedef offsets
 			s = int(lines[i].sidedef[0] - sides);
-			new DScroller (DScroller::sc_side, -sides[s].GetTextureXOffset(side_t::mid),
-				sides[s].GetTextureYOffset(side_t::mid), -1, s, accel, SCROLLTYPE(l->args[0]));
+			dx = -sides[s].GetTextureXOffset(side_t::mid) / divider;
+			dy = sides[s].GetTextureYOffset(side_t::mid) / divider;
+
+			if (l->args[1] == 0)
+			{
+				new DScroller (DScroller::sc_side, dx, dy, control, s, accel, SCROLLTYPE(l->args[0]));
+			}
+			else
+			{
+				for (s = -1; (s = P_FindLineFromID (l->args[1], s)) >= 0;)
+				{
+					new DScroller (DScroller::sc_side, dx, dy, control,
+						int(lines[s].sidedef[0] - sides), accel, SCROLLTYPE(l->args[0]));
+				}
+			}
 			break;
+		}
 
 		case Scroll_Texture_Left:
 

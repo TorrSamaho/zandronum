@@ -52,6 +52,17 @@ ACTOR Inventory native
 	// [BB] Skulltag specific code pointers
 	action native A_CheckRailReload();
 
+	// [LZ] MBF21 weapon codepointers. All arguments are optional so that they
+	// qualify as DEHACKED-compatible codepointers.
+	action native A_WeaponProjectile(class<Actor> spawntype = "None", float angle = 0, float pitch = 0, float hoffset = 0, float voffset = 0);
+	action native A_WeaponBulletAttack(float hspread = 0, float vspread = 0, int numbullets = 1, int damagebase = 5, int damagedice = 3);
+	action native A_WeaponMeleeAttack(int damagebase = 2, int damagedice = 10, float zerkfactor = 1.0, sound hitsound = "", float range = 0);
+	action native A_WeaponJump(state label = "", int chance = 0);
+	action native A_ConsumeAmmo(int amount = 0);
+	action native A_CheckAmmo(state label = "", int amount = 0);
+	action native A_RefireTo(state label = "", int noammocheck = 0);
+	action native A_GunFlashTo(state flash = "", int nothirdperson = 0);
+
 	States
 	{
 	HideDoomish:

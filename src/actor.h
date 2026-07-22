@@ -354,6 +354,19 @@ enum
 	MF7_USEKILLSCRIPTS	= 0x00800000,	// [JM] Use "KILL" Script on death if not forced by GameInfo.
 	MF7_NOKILLSCRIPTS	= 0x01000000,	// [JM] No "KILL" Script on death whatsoever, even if forced by GameInfo.
 
+// --- mobj.flags8 ---
+
+	// [LZ] Flags needed for MBF21 support.
+	MF8_FULLVOLDEATH	= 0x00000001,	// [MBF21] death sound plays at full volume
+	MF8_FULLVOLSEE		= 0x00000002,	// [MBF21] see sound plays at full volume
+	MF8_E1M8BOSS		= 0x00000004,	// [MBF21] E1M8 boss (Baron-like)
+	MF8_E2M8BOSS		= 0x00000008,	// [MBF21] E2M8 boss (Cyberdemon-like)
+	MF8_E3M8BOSS		= 0x00000010,	// [MBF21] E3M8 boss (Mastermind-like)
+	MF8_E4M6BOSS		= 0x00000020,	// [MBF21] E4M6 boss (Cyberdemon-like)
+	MF8_E4M8BOSS		= 0x00000040,	// [MBF21] E4M8 boss (Mastermind-like)
+	MF8_MAP07BOSS1		= 0x00000080,	// [MBF21] MAP07 tag 666 boss (Mancubus-like)
+	MF8_MAP07BOSS2		= 0x00000100,	// [MBF21] MAP07 tag 667 boss (Arachnotron-like)
+
 	// [BC] More object flags for Skulltag.
 
 	// Object can only be picked up by blue team members.
@@ -1006,7 +1019,8 @@ public:
 	DWORD			flags4;			// [RH] Even more flags!
 	DWORD			flags5;			// OMG! We need another one.
 	DWORD			flags6;			// Shit! Where did all the flags go?
-	DWORD			flags7;			// 
+	DWORD			flags7;			//
+	DWORD			flags8;			// [LZ] MBF21 support needed more of them.
 
 	// [BB] If 0, everybody can see the actor, if > 0, only members of team (VisibleToTeam-1) can see it.
 	DWORD			VisibleToTeam;
@@ -1070,6 +1084,13 @@ public:
 									// but instead tries to come closer for a melee attack.
 									// This is not the same as meleerange
 	fixed_t			maxtargetrange;	// any target farther away cannot be attacked
+	// [LZ] MBF21 grouping behaviors. Zero means "no group set"; DeHackEd group
+	// numbers are stored incremented by one so the zero default stays neutral.
+	// A ProjectileGroup of -1 disables even the default same-species projectile immunity.
+	int				InfightingGroup;
+	int				ProjectileGroup;
+	int				SplashGroup;
+	FSoundID		RipSound;		// [LZ] MBF21: sound a ripper missile makes when ripping through something. Empty = default ripslop.
 	fixed_t			bouncefactor;	// Strife's grenades use 50%, Hexen's Flechettes 70.
 	fixed_t			wallbouncefactor;	// The bounce factor for walls can be different.
 	int				bouncecount;	// Strife's grenades only bounce twice before exploding

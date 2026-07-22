@@ -269,7 +269,19 @@ OrgSprNames
 	COL3,COL4,CAND,CBRA,COL6,TRE1,TRE2,ELEC,CEYE,FSKU,
 	COL5,TBLU,TGRN,TRED,SMBT,SMGT,SMRT,HDB1,HDB2,HDB3,
 	HDB4,HDB5,HDB6,POB1,POB2,BRS1,TLMP,TLP2,
-	TNT1,DOGS,PLS1,PLS2,BON3,BON4	// Added by MBF
+	TNT1,DOGS,PLS1,PLS2,BON3,BON4,	// Added by MBF
+	BLD2	// [LZ] Sprite 144, added by Crispy Doom. Keeps SP00 at 145 as DEHEXTRA requires.
+	// [LZ] DEHEXTRA sprites 145-244
+	,SP00, SP01, SP02, SP03, SP04, SP05, SP06, SP07, SP08, SP09,
+	SP10, SP11, SP12, SP13, SP14, SP15, SP16, SP17, SP18, SP19,
+	SP20, SP21, SP22, SP23, SP24, SP25, SP26, SP27, SP28, SP29,
+	SP30, SP31, SP32, SP33, SP34, SP35, SP36, SP37, SP38, SP39,
+	SP40, SP41, SP42, SP43, SP44, SP45, SP46, SP47, SP48, SP49,
+	SP50, SP51, SP52, SP53, SP54, SP55, SP56, SP57, SP58, SP59,
+	SP60, SP61, SP62, SP63, SP64, SP65, SP66, SP67, SP68, SP69,
+	SP70, SP71, SP72, SP73, SP74, SP75, SP76, SP77, SP78, SP79,
+	SP80, SP81, SP82, SP83, SP84, SP85, SP86, SP87, SP88, SP89,
+	SP90, SP91, SP92, SP93, SP94, SP95, SP96, SP97, SP98, SP99
 };
 
 StateMap
@@ -422,6 +434,8 @@ StateMap
 	UnholyBible,		Spawn, 1,		// [MBF] S_BON4							1055
 	BetaSkull,			Spawn, 19,		// [MBF] S_BSKUL_STND - S_BSKUL_DIE8	1056-1074
 	Grenade,			Mushroom, 1,	// [MBF] S_MUSHROOM						1075
+	// [LZ] DEHEXTRA/DSDHacked extra frames 1076-15999
+	DehExtraStates, Spawn, 14924
 };
 
 // Sound equivalences. When a patch tries to change a sound, use these sound names.
@@ -535,6 +549,44 @@ SoundMap
 	"skeleton/sight",
 	"skeleton/attack",
 	"misc/chat"
+	// [LZ] Padding, then the DEHEXTRA sounds 500-699
+	,"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+	"", "", "", "", "", "", "", "dehextra/sound000", "dehextra/sound001", "dehextra/sound002", "dehextra/sound003", "dehextra/sound004", "dehextra/sound005", "dehextra/sound006", "dehextra/sound007", "dehextra/sound008",
+	"dehextra/sound009", "dehextra/sound010", "dehextra/sound011", "dehextra/sound012", "dehextra/sound013", "dehextra/sound014", "dehextra/sound015", "dehextra/sound016", "dehextra/sound017", "dehextra/sound018", "dehextra/sound019", "dehextra/sound020", "dehextra/sound021", "dehextra/sound022", "dehextra/sound023", "dehextra/sound024",
+	"dehextra/sound025", "dehextra/sound026", "dehextra/sound027", "dehextra/sound028", "dehextra/sound029", "dehextra/sound030", "dehextra/sound031", "dehextra/sound032", "dehextra/sound033", "dehextra/sound034", "dehextra/sound035", "dehextra/sound036", "dehextra/sound037", "dehextra/sound038", "dehextra/sound039", "dehextra/sound040",
+	"dehextra/sound041", "dehextra/sound042", "dehextra/sound043", "dehextra/sound044", "dehextra/sound045", "dehextra/sound046", "dehextra/sound047", "dehextra/sound048", "dehextra/sound049", "dehextra/sound050", "dehextra/sound051", "dehextra/sound052", "dehextra/sound053", "dehextra/sound054", "dehextra/sound055", "dehextra/sound056",
+	"dehextra/sound057", "dehextra/sound058", "dehextra/sound059", "dehextra/sound060", "dehextra/sound061", "dehextra/sound062", "dehextra/sound063", "dehextra/sound064", "dehextra/sound065", "dehextra/sound066", "dehextra/sound067", "dehextra/sound068", "dehextra/sound069", "dehextra/sound070", "dehextra/sound071", "dehextra/sound072",
+	"dehextra/sound073", "dehextra/sound074", "dehextra/sound075", "dehextra/sound076", "dehextra/sound077", "dehextra/sound078", "dehextra/sound079", "dehextra/sound080", "dehextra/sound081", "dehextra/sound082", "dehextra/sound083", "dehextra/sound084", "dehextra/sound085", "dehextra/sound086", "dehextra/sound087", "dehextra/sound088",
+	"dehextra/sound089", "dehextra/sound090", "dehextra/sound091", "dehextra/sound092", "dehextra/sound093", "dehextra/sound094", "dehextra/sound095", "dehextra/sound096", "dehextra/sound097", "dehextra/sound098", "dehextra/sound099", "dehextra/sound100", "dehextra/sound101", "dehextra/sound102", "dehextra/sound103", "dehextra/sound104",
+	"dehextra/sound105", "dehextra/sound106", "dehextra/sound107", "dehextra/sound108", "dehextra/sound109", "dehextra/sound110", "dehextra/sound111", "dehextra/sound112", "dehextra/sound113", "dehextra/sound114", "dehextra/sound115", "dehextra/sound116", "dehextra/sound117", "dehextra/sound118", "dehextra/sound119", "dehextra/sound120",
+	"dehextra/sound121", "dehextra/sound122", "dehextra/sound123", "dehextra/sound124", "dehextra/sound125", "dehextra/sound126", "dehextra/sound127", "dehextra/sound128", "dehextra/sound129", "dehextra/sound130", "dehextra/sound131", "dehextra/sound132", "dehextra/sound133", "dehextra/sound134", "dehextra/sound135", "dehextra/sound136",
+	"dehextra/sound137", "dehextra/sound138", "dehextra/sound139", "dehextra/sound140", "dehextra/sound141", "dehextra/sound142", "dehextra/sound143", "dehextra/sound144", "dehextra/sound145", "dehextra/sound146", "dehextra/sound147", "dehextra/sound148", "dehextra/sound149", "dehextra/sound150", "dehextra/sound151", "dehextra/sound152",
+	"dehextra/sound153", "dehextra/sound154", "dehextra/sound155", "dehextra/sound156", "dehextra/sound157", "dehextra/sound158", "dehextra/sound159", "dehextra/sound160", "dehextra/sound161", "dehextra/sound162", "dehextra/sound163", "dehextra/sound164", "dehextra/sound165", "dehextra/sound166", "dehextra/sound167", "dehextra/sound168",
+	"dehextra/sound169", "dehextra/sound170", "dehextra/sound171", "dehextra/sound172", "dehextra/sound173", "dehextra/sound174", "dehextra/sound175", "dehextra/sound176", "dehextra/sound177", "dehextra/sound178", "dehextra/sound179", "dehextra/sound180", "dehextra/sound181", "dehextra/sound182", "dehextra/sound183", "dehextra/sound184",
+	"dehextra/sound185", "dehextra/sound186", "dehextra/sound187", "dehextra/sound188", "dehextra/sound189", "dehextra/sound190", "dehextra/sound191", "dehextra/sound192", "dehextra/sound193", "dehextra/sound194", "dehextra/sound195", "dehextra/sound196", "dehextra/sound197", "dehextra/sound198", "dehextra/sound199"
 };
 
 // Names of different actor types, in original Doom 2 order
@@ -686,6 +738,78 @@ InfoNames
 	PlasmaBall2,
 	EvilSceptre,
 	UnholyBible
+	// [LZ] DEHEXTRA things 151-250
+	,Deh_Actor_151, Deh_Actor_152, Deh_Actor_153, Deh_Actor_154, Deh_Actor_155,
+	Deh_Actor_156, Deh_Actor_157, Deh_Actor_158, Deh_Actor_159, Deh_Actor_160,
+	Deh_Actor_161, Deh_Actor_162, Deh_Actor_163, Deh_Actor_164, Deh_Actor_165,
+	Deh_Actor_166, Deh_Actor_167, Deh_Actor_168, Deh_Actor_169, Deh_Actor_170,
+	Deh_Actor_171, Deh_Actor_172, Deh_Actor_173, Deh_Actor_174, Deh_Actor_175,
+	Deh_Actor_176, Deh_Actor_177, Deh_Actor_178, Deh_Actor_179, Deh_Actor_180,
+	Deh_Actor_181, Deh_Actor_182, Deh_Actor_183, Deh_Actor_184, Deh_Actor_185,
+	Deh_Actor_186, Deh_Actor_187, Deh_Actor_188, Deh_Actor_189, Deh_Actor_190,
+	Deh_Actor_191, Deh_Actor_192, Deh_Actor_193, Deh_Actor_194, Deh_Actor_195,
+	Deh_Actor_196, Deh_Actor_197, Deh_Actor_198, Deh_Actor_199, Deh_Actor_200,
+	Deh_Actor_201, Deh_Actor_202, Deh_Actor_203, Deh_Actor_204, Deh_Actor_205,
+	Deh_Actor_206, Deh_Actor_207, Deh_Actor_208, Deh_Actor_209, Deh_Actor_210,
+	Deh_Actor_211, Deh_Actor_212, Deh_Actor_213, Deh_Actor_214, Deh_Actor_215,
+	Deh_Actor_216, Deh_Actor_217, Deh_Actor_218, Deh_Actor_219, Deh_Actor_220,
+	Deh_Actor_221, Deh_Actor_222, Deh_Actor_223, Deh_Actor_224, Deh_Actor_225,
+	Deh_Actor_226, Deh_Actor_227, Deh_Actor_228, Deh_Actor_229, Deh_Actor_230,
+	Deh_Actor_231, Deh_Actor_232, Deh_Actor_233, Deh_Actor_234, Deh_Actor_235,
+	Deh_Actor_236, Deh_Actor_237, Deh_Actor_238, Deh_Actor_239, Deh_Actor_240,
+	Deh_Actor_241, Deh_Actor_242, Deh_Actor_243, Deh_Actor_244, Deh_Actor_245,
+	Deh_Actor_246, Deh_Actor_247, Deh_Actor_248, Deh_Actor_249, Deh_Actor_250,
+	// [LZ] Extended to 500 for DSDHacked
+	Deh_Actor_251, Deh_Actor_252, Deh_Actor_253, Deh_Actor_254, Deh_Actor_255,
+	Deh_Actor_256, Deh_Actor_257, Deh_Actor_258, Deh_Actor_259, Deh_Actor_260,
+	Deh_Actor_261, Deh_Actor_262, Deh_Actor_263, Deh_Actor_264, Deh_Actor_265,
+	Deh_Actor_266, Deh_Actor_267, Deh_Actor_268, Deh_Actor_269, Deh_Actor_270,
+	Deh_Actor_271, Deh_Actor_272, Deh_Actor_273, Deh_Actor_274, Deh_Actor_275,
+	Deh_Actor_276, Deh_Actor_277, Deh_Actor_278, Deh_Actor_279, Deh_Actor_280,
+	Deh_Actor_281, Deh_Actor_282, Deh_Actor_283, Deh_Actor_284, Deh_Actor_285,
+	Deh_Actor_286, Deh_Actor_287, Deh_Actor_288, Deh_Actor_289, Deh_Actor_290,
+	Deh_Actor_291, Deh_Actor_292, Deh_Actor_293, Deh_Actor_294, Deh_Actor_295,
+	Deh_Actor_296, Deh_Actor_297, Deh_Actor_298, Deh_Actor_299, Deh_Actor_300,
+	Deh_Actor_301, Deh_Actor_302, Deh_Actor_303, Deh_Actor_304, Deh_Actor_305,
+	Deh_Actor_306, Deh_Actor_307, Deh_Actor_308, Deh_Actor_309, Deh_Actor_310,
+	Deh_Actor_311, Deh_Actor_312, Deh_Actor_313, Deh_Actor_314, Deh_Actor_315,
+	Deh_Actor_316, Deh_Actor_317, Deh_Actor_318, Deh_Actor_319, Deh_Actor_320,
+	Deh_Actor_321, Deh_Actor_322, Deh_Actor_323, Deh_Actor_324, Deh_Actor_325,
+	Deh_Actor_326, Deh_Actor_327, Deh_Actor_328, Deh_Actor_329, Deh_Actor_330,
+	Deh_Actor_331, Deh_Actor_332, Deh_Actor_333, Deh_Actor_334, Deh_Actor_335,
+	Deh_Actor_336, Deh_Actor_337, Deh_Actor_338, Deh_Actor_339, Deh_Actor_340,
+	Deh_Actor_341, Deh_Actor_342, Deh_Actor_343, Deh_Actor_344, Deh_Actor_345,
+	Deh_Actor_346, Deh_Actor_347, Deh_Actor_348, Deh_Actor_349, Deh_Actor_350,
+	Deh_Actor_351, Deh_Actor_352, Deh_Actor_353, Deh_Actor_354, Deh_Actor_355,
+	Deh_Actor_356, Deh_Actor_357, Deh_Actor_358, Deh_Actor_359, Deh_Actor_360,
+	Deh_Actor_361, Deh_Actor_362, Deh_Actor_363, Deh_Actor_364, Deh_Actor_365,
+	Deh_Actor_366, Deh_Actor_367, Deh_Actor_368, Deh_Actor_369, Deh_Actor_370,
+	Deh_Actor_371, Deh_Actor_372, Deh_Actor_373, Deh_Actor_374, Deh_Actor_375,
+	Deh_Actor_376, Deh_Actor_377, Deh_Actor_378, Deh_Actor_379, Deh_Actor_380,
+	Deh_Actor_381, Deh_Actor_382, Deh_Actor_383, Deh_Actor_384, Deh_Actor_385,
+	Deh_Actor_386, Deh_Actor_387, Deh_Actor_388, Deh_Actor_389, Deh_Actor_390,
+	Deh_Actor_391, Deh_Actor_392, Deh_Actor_393, Deh_Actor_394, Deh_Actor_395,
+	Deh_Actor_396, Deh_Actor_397, Deh_Actor_398, Deh_Actor_399, Deh_Actor_400,
+	Deh_Actor_401, Deh_Actor_402, Deh_Actor_403, Deh_Actor_404, Deh_Actor_405,
+	Deh_Actor_406, Deh_Actor_407, Deh_Actor_408, Deh_Actor_409, Deh_Actor_410,
+	Deh_Actor_411, Deh_Actor_412, Deh_Actor_413, Deh_Actor_414, Deh_Actor_415,
+	Deh_Actor_416, Deh_Actor_417, Deh_Actor_418, Deh_Actor_419, Deh_Actor_420,
+	Deh_Actor_421, Deh_Actor_422, Deh_Actor_423, Deh_Actor_424, Deh_Actor_425,
+	Deh_Actor_426, Deh_Actor_427, Deh_Actor_428, Deh_Actor_429, Deh_Actor_430,
+	Deh_Actor_431, Deh_Actor_432, Deh_Actor_433, Deh_Actor_434, Deh_Actor_435,
+	Deh_Actor_436, Deh_Actor_437, Deh_Actor_438, Deh_Actor_439, Deh_Actor_440,
+	Deh_Actor_441, Deh_Actor_442, Deh_Actor_443, Deh_Actor_444, Deh_Actor_445,
+	Deh_Actor_446, Deh_Actor_447, Deh_Actor_448, Deh_Actor_449, Deh_Actor_450,
+	Deh_Actor_451, Deh_Actor_452, Deh_Actor_453, Deh_Actor_454, Deh_Actor_455,
+	Deh_Actor_456, Deh_Actor_457, Deh_Actor_458, Deh_Actor_459, Deh_Actor_460,
+	Deh_Actor_461, Deh_Actor_462, Deh_Actor_463, Deh_Actor_464, Deh_Actor_465,
+	Deh_Actor_466, Deh_Actor_467, Deh_Actor_468, Deh_Actor_469, Deh_Actor_470,
+	Deh_Actor_471, Deh_Actor_472, Deh_Actor_473, Deh_Actor_474, Deh_Actor_475,
+	Deh_Actor_476, Deh_Actor_477, Deh_Actor_478, Deh_Actor_479, Deh_Actor_480,
+	Deh_Actor_481, Deh_Actor_482, Deh_Actor_483, Deh_Actor_484, Deh_Actor_485,
+	Deh_Actor_486, Deh_Actor_487, Deh_Actor_488, Deh_Actor_489, Deh_Actor_490,
+	Deh_Actor_491, Deh_Actor_492, Deh_Actor_493, Deh_Actor_494, Deh_Actor_495,
+	Deh_Actor_496, Deh_Actor_497, Deh_Actor_498, Deh_Actor_499, Deh_Actor_500
 };
 
 ThingBits

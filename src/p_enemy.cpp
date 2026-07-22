@@ -2037,7 +2037,8 @@ DEFINE_ACTION_FUNCTION(AActor, A_Look)
 	}
 	else if (self->SeeSound)
 	{
-		if (self->flags2 & MF2_BOSS)
+		// [LZ] MF8_FULLVOLSEE is checked for MBF21 support.
+		if (self->flags2 & MF2_BOSS || self->flags8 & MF8_FULLVOLSEE)
 		{ // full volume
 			S_Sound (self, CHAN_VOICE, self->SeeSound, 1, ATTN_NONE, true );	// [BC] Inform the clients.
 		}
@@ -2875,7 +2876,8 @@ void A_DoChase (AActor *actor, bool fastchase, FState *meleestate, FState *missi
 //
 //==========================================================================
 
-static bool P_CheckForResurrection(AActor *self, bool usevilestates)
+// [LZ] Custom state/sound support added for the MBF21 A_HealChase codepointer.
+bool P_CheckForResurrection(AActor *self, bool usevilestates, FState *customstate, FSoundID customsound)
 {
 	const AActor *info;
 	AActor *temp;
@@ -2960,28 +2962,45 @@ static bool P_CheckForResurrection(AActor *self, bool usevilestates)
 				}
 				self->target = temp;
 
-				// [BC] If we are the server, tell clients about the state change.
-				// [EP/BB] Handle also A_VileChase which requires the archvile's states.
-				if ( NETWORK_GetState() == NETSTATE_SERVER )
-					SERVERCOMMANDS_SetThingState( self, usevilestates ? STATE_ARCHVILE_HEAL : STATE_HEAL );
+				// [LZ] MBF21's A_HealChase provides its own heal state.
+				if (customstate != NULL)
+				{
+					// [LZ] If we are the server, tell clients about the state change.
+					if ( NETWORK_GetState() == NETSTATE_SERVER )
+						SERVERCOMMANDS_SetThingFrame( self, customstate );
 
-				// Make the state the monster enters customizable.
-				FState * state = self->FindState(NAME_Heal);
-				if (state != NULL)
-				{
-					self->SetState(state);
+					self->SetState(customstate);
 				}
-				else if (usevilestates)
+				else
 				{
-					// For Dehacked compatibility this has to use the Arch Vile's
-					// heal state as a default if the actor doesn't define one itself.
-					const PClass *archvile = PClass::FindClass("Archvile");
-					if (archvile != NULL)
+					// [BC] If we are the server, tell clients about the state change.
+					// [EP/BB] Handle also A_VileChase which requires the archvile's states.
+					if ( NETWORK_GetState() == NETSTATE_SERVER )
+						SERVERCOMMANDS_SetThingState( self, usevilestates ? STATE_ARCHVILE_HEAL : STATE_HEAL );
+
+					// Make the state the monster enters customizable.
+					FState * state = self->FindState(NAME_Heal);
+					if (state != NULL)
 					{
-						self->SetState(archvile->ActorInfo->FindState(NAME_Heal));
+						self->SetState(state);
+					}
+					else if (usevilestates)
+					{
+						// For Dehacked compatibility this has to use the Arch Vile's
+						// heal state as a default if the actor doesn't define one itself.
+						const PClass *archvile = PClass::FindClass("Archvile");
+						if (archvile != NULL)
+						{
+							self->SetState(archvile->ActorInfo->FindState(NAME_Heal));
+						}
 					}
 				}
-				S_Sound(corpsehit, CHAN_BODY, "vile/raise", 1, ATTN_IDLE);
+				// [LZ] Inform the clients when playing a custom raise sound, since they
+				// don't run this function themselves.
+				if (customsound != 0)
+					S_Sound(corpsehit, CHAN_BODY, customsound, 1, ATTN_IDLE, true);
+				else
+					S_Sound(corpsehit, CHAN_BODY, "vile/raise", 1, ATTN_IDLE);
 				info = corpsehit->GetDefault();
 
 				if (corpsehit->state == corpsehit->FindState(NAME_GenericCrush))
@@ -3331,7 +3350,8 @@ DEFINE_ACTION_FUNCTION(AActor, A_Scream)
 	if (self->DeathSound)
 	{
 		// Check for bosses.
-		if (self->flags2 & MF2_BOSS)
+		// [LZ] MF8_FULLVOLDEATH is checked for MBF21 support.
+		if (self->flags2 & MF2_BOSS || self->flags8 & MF8_FULLVOLDEATH)
 		{
 			// full volume
 			S_Sound (self, CHAN_VOICE, self->DeathSound, 1, ATTN_NONE);
@@ -3727,11 +3747,13 @@ DEFINE_ACTION_FUNCTION(AActor, A_BossDeath)
 						LEVEL_SORCERER2SPECIAL)) == 0)
 		return;
 
+	// [LZ] MBF21 boss flags participate in the level's special boss deaths like
+	// their vanilla counterparts do.
 	if ((i_compatflags & COMPATF_ANYBOSSDEATH) || ( // [GZ] Added for UAC_DEAD
-		((level.flags & LEVEL_MAP07SPECIAL) && (type == NAME_Fatso || type == NAME_Arachnotron)) ||
-		((level.flags & LEVEL_BRUISERSPECIAL) && (type == NAME_BaronOfHell)) ||
-		((level.flags & LEVEL_CYBORGSPECIAL) && (type == NAME_Cyberdemon)) ||
-		((level.flags & LEVEL_SPIDERSPECIAL) && (type == NAME_SpiderMastermind)) ||
+		((level.flags & LEVEL_MAP07SPECIAL) && (type == NAME_Fatso || type == NAME_Arachnotron || self->flags8 & (MF8_MAP07BOSS1|MF8_MAP07BOSS2))) ||
+		((level.flags & LEVEL_BRUISERSPECIAL) && (type == NAME_BaronOfHell || self->flags8 & MF8_E1M8BOSS)) ||
+		((level.flags & LEVEL_CYBORGSPECIAL) && (type == NAME_Cyberdemon || self->flags8 & (MF8_E2M8BOSS|MF8_E4M6BOSS))) ||
+		((level.flags & LEVEL_SPIDERSPECIAL) && (type == NAME_SpiderMastermind || self->flags8 & (MF8_E3M8BOSS|MF8_E4M8BOSS))) ||
 		((level.flags & LEVEL_HEADSPECIAL) && (type == NAME_Ironlich)) ||
 		((level.flags & LEVEL_MINOTAURSPECIAL) && (type == NAME_Minotaur)) ||
 		((level.flags & LEVEL_SORCERER2SPECIAL) && (type == NAME_Sorcerer2))
@@ -3752,13 +3774,14 @@ DEFINE_ACTION_FUNCTION(AActor, A_BossDeath)
 	}
 	if (level.flags & LEVEL_MAP07SPECIAL)
 	{
-		if (type == NAME_Fatso)
+		// [LZ] Also check the MBF21 boss flags here.
+		if (type == NAME_Fatso || self->flags8 & MF8_MAP07BOSS1)
 		{
 			EV_DoFloor (DFloor::floorLowerToLowest, NULL, 666, FRACUNIT, 0, 0, 0, false);
 			return;
 		}
-		
-		if (type == NAME_Arachnotron)
+
+		if (type == NAME_Arachnotron || self->flags8 & MF8_MAP07BOSS2)
 		{
 			EV_DoFloor (DFloor::floorRaiseByTexture, NULL, 667, FRACUNIT, 0, 0, 0, false);
 			return;

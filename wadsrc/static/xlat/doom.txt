@@ -1,8 +1,11 @@
 include "xlat/base.txt"
 
 
-sector bitmask 0xf000 clear;
-sector bitmask 0xfe0 <<= 3;
+// [LZ] MBF21 uses bits 12-13 for its generalized sector effects (mapped to
+// DEATH_MASK and KILL_MONSTERS_MASK), so only clear bits 10-11 and 14-15.
+sector bitmask 0xcc00 clear;
+sector bitmask 0x3000 <<= 1;
+sector bitmask 0x3e0 <<= 3;
 
 sector 1 = dLight_Flicker;
 sector 2 = dLight_StrobeFast;
@@ -40,3 +43,12 @@ lineflag 8 = ML_MAPPED;
 lineflag 9 = ML_PASSTHROUGH;
 lineflag 10 = ML_3DMIDTEX;
 lineflag 11 & (ML_BLOCKING|ML_BLOCKMONSTERS|ML_TWOSIDED|ML_DONTPEGTOP|ML_DONTPEGBOTTOM|ML_SECRET|ML_SOUNDBLOCK|ML_DONTDRAW|ML_MAPPED);
+// [LZ] MBF21 line flags.
+lineflag 12 = ML_BLOCKLANDMONSTERS;
+lineflag 13 = ML_BLOCK_PLAYERS;
+
+// [LZ] MBF21 line types: scroll tagged walls by the front sidedef's texture
+// offsets divided by 8 (1025 with displacement, 1026 with acceleration).
+1024 = 0,	Scroll_Texture_Offsets (0, tag, 0, 8)
+1025 = 0,	Scroll_Texture_Offsets (0, tag, 1, 8)
+1026 = 0,	Scroll_Texture_Offsets (0, tag, 2, 8)

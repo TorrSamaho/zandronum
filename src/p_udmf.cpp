@@ -880,7 +880,13 @@ public:
 
 			case NAME_Blockfloaters:
 				CHECK_N(St | Zd | Zdt | Va)
-				Flag(ld->flags, ML_BLOCK_FLOATERS, key); 
+				Flag(ld->flags, ML_BLOCK_FLOATERS, key);
+				continue;
+
+			// [LZ] MBF21
+			case NAME_Blocklandmonsters:
+				CHECK_N(St | Zd | Zdt | Va)
+				Flag(ld->flags, ML_BLOCKLANDMONSTERS, key);
 				continue;
 
 			case NAME_Translucent:

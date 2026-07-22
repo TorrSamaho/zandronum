@@ -1961,6 +1961,9 @@ bool AActor::OkayToSwitchTarget (AActor *other)
 		(other->tid != TIDtoHate || TIDtoHate == 0) &&
 		!IsHostile (other))
 		return false;
+	// [LZ] MBF21: actors in the same infighting group never retaliate against each other.
+	if (InfightingGroup != 0 && InfightingGroup == other->InfightingGroup)
+		return false;
 	if (threshold != 0 && !(flags4 & MF4_QUICKTORETALIATE))
 		return false;
 	if (IsFriend (other))

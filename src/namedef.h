@@ -413,6 +413,7 @@ xx(Blockeverything)
 xx(Zoneboundary)
 xx(Jumpover)
 xx(Blockfloaters)
+xx(Blocklandmonsters)	// [LZ] MBF21
 xx(Clipmidtex)
 xx(Wrapmidtex)
 xx(Midtex3d)

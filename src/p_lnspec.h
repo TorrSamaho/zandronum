@@ -187,6 +187,12 @@ typedef enum {
 #define FRICTION_MASK	0x0800
 #define PUSH_MASK		0x1000
 
+// [LZ] Equivalents for MBF21's generalized sector types. The death mask changes
+// the meaning of the damage bits to instant death effects, and the kill monsters
+// mask kills grounded monsters in the sector.
+#define DEATH_MASK			0x2000
+#define KILL_MONSTERS_MASK	0x4000
+
 struct line_t;
 class AActor;
 

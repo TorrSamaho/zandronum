@@ -57,15 +57,18 @@ DEFINE_ACTION_FUNCTION(AActor, A_Punch)
 	angle = self->angle;
 
 	angle += pr_punch.Random2() << 18;
-	pitch = P_AimLineAttack (self, angle, MELEERANGE, &linetarget);
+	// [LZ] Honor the actor's melee range so the MBF21 "Melee range" dehacked
+	// field affects the fist like the spec asks. The default matches MELEERANGE.
+	const fixed_t punchrange = self->meleerange + 20*FRACUNIT;
+	pitch = P_AimLineAttack (self, angle, punchrange, &linetarget);
 
-	P_LineAttack (self, angle, MELEERANGE, pitch, damage, NAME_Melee, NAME_BulletPuff, LAF_ISMELEEATTACK, &linetarget);
+	P_LineAttack (self, angle, punchrange, pitch, damage, NAME_Melee, NAME_BulletPuff, LAF_ISMELEEATTACK, &linetarget);
 
 	// [BC] Apply spread.
 	if (( self->player ) && ( self->player->cheats2 & CF2_SPREAD ))
 	{
-		P_LineAttack( self, angle + ( ANGLE_45 / 3 ), MELEERANGE, pitch, damage, NAME_Melee, NAME_BulletPuff, LAF_ISMELEEATTACK);
-		P_LineAttack( self, angle - ( ANGLE_45 / 3 ), MELEERANGE, pitch, damage, NAME_Melee, NAME_BulletPuff, LAF_ISMELEEATTACK);
+		P_LineAttack( self, angle + ( ANGLE_45 / 3 ), punchrange, pitch, damage, NAME_Melee, NAME_BulletPuff, LAF_ISMELEEATTACK);
+		P_LineAttack( self, angle - ( ANGLE_45 / 3 ), punchrange, pitch, damage, NAME_Melee, NAME_BulletPuff, LAF_ISMELEEATTACK);
 	}
 
 	// [BC] If the player hit a player with his attack, potentially give him a medal.
@@ -232,7 +235,8 @@ DEFINE_ACTION_FUNCTION_PARAMS(AActor, A_Saw)
 		damage *= (pr_saw()%10+1);
 	
 	// use meleerange + 1 so the puff doesn't skip the flash (i.e. plays all states)
-	if (Range == 0) Range = MELEERANGE+1;
+	// [LZ] Honor the actor's melee range for MBF21's "Melee range" field.
+	if (Range == 0) Range = self->meleerange + 20*FRACUNIT + 1;
 
 	angle = self->angle + (pr_saw.Random2() * (Spread_XY / 255));
 	slope = P_AimLineAttack (self, angle, Range, &linetarget) + (pr_saw.Random2() * (Spread_Z / 255));
